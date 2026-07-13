@@ -1,0 +1,10 @@
+keras_preprocessing
+pandas==2.3.3
+PyYAML
+scikit-learn
+numpy
+h5py
+tqdm
+huggingface_hub
+pyarrow
+polars<=1.0.0

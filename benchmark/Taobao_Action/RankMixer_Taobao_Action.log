@@ -1,0 +1,163 @@
+2026-07-09 16:46:29,938 P1176960 INFO UniRank version: 2.3.7
+2026-07-09 16:46:29,939 P1176960 INFO Params: {
+    "accumulation_steps": "1",
+    "attention_dropout": "0",
+    "batch_size": "8192",
+    "block_cache_size": "2",
+    "blocked": "True",
+    "data_format": "parquet",
+    "data_root": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data",
+    "dataset_id": "Taobao_Action",
+    "debug_mode": "False",
+    "dense_learning_rate": "0.0001",
+    "dense_optimizer": "AdamW",
+    "dense_weight_decay": "0",
+    "distributed": "True",
+    "early_stop_patience": "2",
+    "embedding_dim": "16",
+    "enable_bf16": "True",
+    "epochs": "1",
+    "eval_steps": "None",
+    "expansion_factor": "2",
+    "feature_cols": "[{'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 470571}, {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 846812, 'source': 'item'}, {'name': 'cate_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 6409, 'source': 'item'}, {'name': 'campaign_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 354106, 'source': 'item'}, {'name': 'customer_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 2, 'source': 'item'}, {'name': 'brand', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 88145, 'source': 'item'}, {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11, 'source': 'item'}, {'name': 'cms_segid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 99}, {'name': 'cms_group_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 15}, {'name': 'final_gender_code', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'age_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}, {'name': 'pvalue_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'shopping_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'occupation', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'new_user_class_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 2}, {'name': 'pid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}, {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}, {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}, {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17, 'source': 'action'}]",
+    "feature_config": "None",
+    "feature_specs": "None",
+    "gpu": "0",
+    "group_id": "user_index",
+    "label_col": "[{'name': 'is_click', 'dtype': 'float'}, {'name': 'cart', 'dtype': 'float'}, {'name': 'fav', 'dtype': 'float'}, {'name': 'buy', 'dtype': 'float'}]",
+    "local_rank": "0",
+    "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
+    "max_len": "100",
+    "metrics": "['logloss', 'AUC', 'gAUC']",
+    "model": "RankMixer",
+    "model_id": "RankMixer_Taobao_Action",
+    "model_root": "./checkpoints/",
+    "monitor": "{'AUC': 1, 'logloss': 0, 'gAUC': 1}",
+    "monitor_mode": "max",
+    "net_dropout": "0",
+    "num_layers": "3",
+    "num_ns_token": "4",
+    "num_tasks": "4",
+    "num_workers": "4",
+    "pickle_feature_encoder": "True",
+    "rank": "0",
+    "rebuild_dataset": "False",
+    "save_best_only": "True",
+    "seed": "20262027",
+    "shuffle": "True",
+    "sparse_learning_rate": "0.05",
+    "sparse_optimizer": "Adagrad",
+    "task": "binary_classification",
+    "test_data": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/test/data",
+    "test_item_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/test/item_info",
+    "test_user_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/test/user_info",
+    "token_dim": "256",
+    "tower_activations": "ReLU",
+    "tower_hidden_units": "[128, 64]",
+    "train_data": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/train/data",
+    "train_item_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/train/item_info",
+    "train_user_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/train/user_info",
+    "use_features": "None",
+    "valid_data": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/valid/data",
+    "valid_item_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/valid/item_info",
+    "valid_user_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/valid/user_info",
+    "verbose": "1",
+    "world_size": "4"
+}
+2026-07-09 16:46:29,941 P1176960 INFO Set up feature processor...
+2026-07-09 16:46:29,941 P1176960 INFO Fit feature processor...
+2026-07-09 16:46:29,941 P1176960 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-09 16:46:29,941 P1176960 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-09 16:46:29,941 P1176960 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-09 16:46:29,941 P1176960 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 470571}
+2026-07-09 16:46:30,034 P1176960 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 846812, 'source': 'item'}
+2026-07-09 16:46:30,205 P1176960 INFO Processing column: {'name': 'cate_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 6409, 'source': 'item'}
+2026-07-09 16:46:30,207 P1176960 INFO Processing column: {'name': 'campaign_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 354106, 'source': 'item'}
+2026-07-09 16:46:30,282 P1176960 INFO Processing column: {'name': 'customer_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 2, 'source': 'item'}
+2026-07-09 16:46:30,282 P1176960 INFO Processing column: {'name': 'brand', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 88145, 'source': 'item'}
+2026-07-09 16:46:30,302 P1176960 INFO Processing column: {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11, 'source': 'item'}
+2026-07-09 16:46:30,303 P1176960 INFO Processing column: {'name': 'cms_segid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 99}
+2026-07-09 16:46:30,303 P1176960 INFO Processing column: {'name': 'cms_group_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 15}
+2026-07-09 16:46:30,303 P1176960 INFO Processing column: {'name': 'final_gender_code', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-09 16:46:30,303 P1176960 INFO Processing column: {'name': 'age_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
+2026-07-09 16:46:30,304 P1176960 INFO Processing column: {'name': 'pvalue_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-09 16:46:30,304 P1176960 INFO Processing column: {'name': 'shopping_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-09 16:46:30,304 P1176960 INFO Processing column: {'name': 'occupation', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-09 16:46:30,304 P1176960 INFO Processing column: {'name': 'new_user_class_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 2}
+2026-07-09 16:46:30,304 P1176960 INFO Processing column: {'name': 'pid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-09 16:46:30,304 P1176960 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
+2026-07-09 16:46:30,304 P1176960 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-09 16:46:30,304 P1176960 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
+2026-07-09 16:46:30,304 P1176960 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17, 'source': 'action'}
+2026-07-09 16:46:30,305 P1176960 INFO Set column index...
+2026-07-09 16:46:30,305 P1176960 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_map.json
+2026-07-09 16:46:30,373 P1176960 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_processor.pkl
+2026-07-09 16:46:30,501 P1176960 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_vocab.json
+2026-07-09 16:46:32,227 P1176960 INFO Set feature processor done.
+2026-07-09 16:46:32,244 P1176960 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_map.json
+2026-07-09 16:46:32,246 P1176960 INFO Set column index...
+2026-07-09 16:46:32,246 P1176960 INFO Feature specs: {
+    "action": "{'source': 'action', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 17}",
+    "age_level": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 9}",
+    "brand": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 88145}",
+    "campaign_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 354106}",
+    "cate_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 6409}",
+    "cms_group_id": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 15}",
+    "cms_segid": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 99}",
+    "customer_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 2}",
+    "day_of_week": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 8}",
+    "final_gender_code": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 4}",
+    "hour": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 25}",
+    "is_weekend": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 3}",
+    "item_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 846812}",
+    "item_index": "{'type': 'meta'}",
+    "new_user_class_level": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 2}",
+    "occupation": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 4}",
+    "pid": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 4}",
+    "price_bucket": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 11}",
+    "pvalue_level": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 5}",
+    "seq_len": "{'type': 'meta'}",
+    "shopping_level": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 5}",
+    "user_id": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 470571}",
+    "user_index": "{'type': 'meta'}"
+}
+2026-07-09 16:46:32,526 P1176960 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=3551236), sparse=Adagrad(lr=0.05, params=28260096)
+2026-07-09 16:46:32,526 P1176960 INFO ************ compile start ************
+2026-07-09 16:46:33,934 P1176960 INFO Compiled dense module: tokenizer_layer
+2026-07-09 16:46:33,936 P1176960 INFO Compiled dense module: attention_layers
+2026-07-09 16:46:33,937 P1176960 INFO Compiled dense module: unified_layers
+2026-07-09 16:46:33,938 P1176960 INFO Compiled dense module: tower.0
+2026-07-09 16:46:33,939 P1176960 INFO Compiled dense module: tower.1
+2026-07-09 16:46:33,940 P1176960 INFO Compiled dense module: tower.2
+2026-07-09 16:46:33,941 P1176960 INFO Compiled dense module: tower.3
+2026-07-09 16:46:34,188 P1176960 INFO Total number of parameters: 31811332.
+2026-07-09 16:46:34,189 P1176960 INFO Number of embedding parameters: 28260096.
+2026-07-09 16:46:34,189 P1176960 INFO Number of dense parameters: 3551236.
+2026-07-09 16:46:34,189 P1176960 INFO Loading datasets...
+2026-07-09 16:46:34,229 P1176960 INFO Train samples: total/2218860, blocks/2
+2026-07-09 16:46:34,251 P1176960 INFO Validation samples: total/722353, blocks/2
+2026-07-09 16:46:34,251 P1176960 INFO Loading train and validation data done.
+2026-07-09 16:46:34,255 P1176960 INFO BF16 mixed precision: True
+2026-07-09 16:46:34,255 P1176960 INFO Start training: 270 local batches/epoch
+2026-07-09 16:46:34,255 P1176960 INFO DDP blocked training: True
+2026-07-09 16:46:34,255 P1176960 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
+2026-07-09 16:46:34,255 P1176960 INFO ************ Epoch=1 start ************
+2026-07-09 16:47:54,697 P1176960 INFO Train loss: 0.270182
+2026-07-09 16:47:54,698 P1176960 INFO Evaluation @epoch 1 - batch 270: 
+2026-07-09 16:48:05,058 P1176960 INFO [Task: is_click][Metrics] AUC: 0.610091 - logloss: 0.186754 - gAUC: 0.590130
+2026-07-09 16:48:06,352 P1176960 INFO [Task: cart][Metrics] AUC: 0.716901 - logloss: 0.023711 - gAUC: 0.698057
+2026-07-09 16:48:07,618 P1176960 INFO [Task: fav][Metrics] AUC: 0.758079 - logloss: 0.017343 - gAUC: 0.721573
+2026-07-09 16:48:08,802 P1176960 INFO [Task: buy][Metrics] AUC: 0.717388 - logloss: 0.010371 - gAUC: 0.703399
+2026-07-09 16:48:08,870 P1176960 INFO Save best model: monitor(max)=1.378904
+2026-07-09 16:48:09,040 P1176960 INFO ************ Epoch=1 end ************
+2026-07-09 16:48:09,041 P1176960 INFO Training finished.
+2026-07-09 16:48:09,041 P1176960 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/Taobao_Action/RankMixer_Taobao_Action.model
+2026-07-09 16:48:09,701 P1176960 INFO ******** Test evaluation ********
+2026-07-09 16:48:09,701 P1176960 INFO Loading datasets...
+2026-07-09 16:48:09,720 P1176960 INFO Test samples: total/726005, blocks/2
+2026-07-09 16:48:09,721 P1176960 INFO Loading test data done.
+2026-07-09 16:48:15,851 P1176960 INFO [Task: is_click][Metrics] logloss: 0.188617 - AUC: 0.605446 - gAUC: 0.586079
+2026-07-09 16:48:17,158 P1176960 INFO [Task: cart][Metrics] logloss: 0.020465 - AUC: 0.709046 - gAUC: 0.692366
+2026-07-09 16:48:18,369 P1176960 INFO [Task: fav][Metrics] logloss: 0.015360 - AUC: 0.744744 - gAUC: 0.720878
+2026-07-09 16:48:19,471 P1176960 INFO [Task: buy][Metrics] logloss: 0.007322 - AUC: 0.697697 - gAUC: 0.694532
+2026-07-09 16:48:19,961 P1176960 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/Taobao_Action/RankMixer_Taobao_Action.model

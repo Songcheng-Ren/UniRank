@@ -1,0 +1,162 @@
+2026-07-12 22:22:03,262 P3793970 INFO UniRank version: 2.3.7
+2026-07-12 22:22:03,263 P3793970 INFO Params: {
+    "accumulation_steps": "1",
+    "batch_size": "8192",
+    "block_cache_size": "2",
+    "blocked": "True",
+    "data_format": "parquet",
+    "data_root": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data",
+    "dataset_id": "MerRec_Action",
+    "debug_mode": "False",
+    "dense_learning_rate": "0.0001",
+    "dense_optimizer": "AdamW",
+    "dense_weight_decay": "0",
+    "distributed": "True",
+    "early_stop_patience": "2",
+    "embedding_dim": "16",
+    "enable_bf16": "True",
+    "epochs": "1",
+    "eval_steps": "None",
+    "feature_cols": "[{'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1697916}, {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 43817684, 'source': 'item'}, {'name': 'product_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 893620, 'source': 'item'}, {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10, 'source': 'item'}, {'name': 'c0_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18, 'source': 'item'}, {'name': 'c1_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 310, 'source': 'item'}, {'name': 'c2_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3042, 'source': 'item'}, {'name': 'brand_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 19783, 'source': 'item'}, {'name': 'item_condition_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}, {'name': 'size_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 356, 'source': 'item'}, {'name': 'shipper_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3, 'source': 'item'}, {'name': 'color', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7311, 'source': 'item'}, {'name': 'session_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3701837}, {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}, {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}, {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}, {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 33, 'source': 'action'}]",
+    "feature_config": "None",
+    "feature_specs": "None",
+    "gpu": "0",
+    "group_id": "user_index",
+    "label_col": "[{'name': 'Like', 'dtype': 'float'}, {'name': 'Cart', 'dtype': 'float'}, {'name': 'Offer', 'dtype': 'float'}, {'name': 'Checkout', 'dtype': 'float'}, {'name': 'Purchase', 'dtype': 'float'}]",
+    "local_rank": "0",
+    "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
+    "low_rank_dim": "16",
+    "max_len": "100",
+    "metrics": "['logloss', 'AUC', 'gAUC']",
+    "model": "HeMix",
+    "model_id": "HeMix_MerRec_Action",
+    "model_root": "./checkpoints/",
+    "monitor": "{'AUC': 1, 'logloss': 0, 'gAUC': 1}",
+    "monitor_mode": "max",
+    "net_dropout": "0",
+    "num_glocal_token": "4",
+    "num_layers": "3",
+    "num_mix_heads": "2",
+    "num_real_token": "2",
+    "num_tasks": "5",
+    "num_workers": "4",
+    "pickle_feature_encoder": "True",
+    "rank": "0",
+    "real_seq_len": "20",
+    "rebuild_dataset": "False",
+    "save_best_only": "True",
+    "seed": "20262027",
+    "shuffle": "True",
+    "sparse_learning_rate": "0.05",
+    "sparse_optimizer": "Adagrad",
+    "task": "binary_classification",
+    "test_data": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/test/data",
+    "test_item_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/test/item_info",
+    "test_user_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/test/user_info",
+    "token_dim": "256",
+    "tower_activations": "ReLU",
+    "tower_hidden_units": "[128, 64]",
+    "train_data": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/train/data",
+    "train_item_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/train/item_info",
+    "train_user_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/train/user_info",
+    "use_features": "None",
+    "valid_data": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/valid/data",
+    "valid_item_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/valid/item_info",
+    "valid_user_info": "/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/valid/user_info",
+    "verbose": "1",
+    "world_size": "4"
+}
+2026-07-12 22:22:03,265 P3793970 INFO Set up feature processor...
+2026-07-12 22:22:03,265 P3793970 INFO Fit feature processor...
+2026-07-12 22:22:03,265 P3793970 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-12 22:22:03,265 P3793970 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-12 22:22:03,265 P3793970 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-12 22:22:03,265 P3793970 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1697916}
+2026-07-12 22:22:03,614 P3793970 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 43817684, 'source': 'item'}
+2026-07-12 22:22:11,684 P3793970 INFO Processing column: {'name': 'product_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 893620, 'source': 'item'}
+2026-07-12 22:22:11,847 P3793970 INFO Processing column: {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10, 'source': 'item'}
+2026-07-12 22:22:11,848 P3793970 INFO Processing column: {'name': 'c0_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18, 'source': 'item'}
+2026-07-12 22:22:11,848 P3793970 INFO Processing column: {'name': 'c1_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 310, 'source': 'item'}
+2026-07-12 22:22:11,848 P3793970 INFO Processing column: {'name': 'c2_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3042, 'source': 'item'}
+2026-07-12 22:22:11,849 P3793970 INFO Processing column: {'name': 'brand_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 19783, 'source': 'item'}
+2026-07-12 22:22:11,852 P3793970 INFO Processing column: {'name': 'item_condition_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}
+2026-07-12 22:22:11,852 P3793970 INFO Processing column: {'name': 'size_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 356, 'source': 'item'}
+2026-07-12 22:22:11,852 P3793970 INFO Processing column: {'name': 'shipper_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3, 'source': 'item'}
+2026-07-12 22:22:11,853 P3793970 INFO Processing column: {'name': 'color', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7311, 'source': 'item'}
+2026-07-12 22:22:11,854 P3793970 INFO Processing column: {'name': 'session_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3701837}
+2026-07-12 22:22:12,568 P3793970 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
+2026-07-12 22:22:12,569 P3793970 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-12 22:22:12,569 P3793970 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
+2026-07-12 22:22:12,569 P3793970 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 33, 'source': 'action'}
+2026-07-12 22:22:12,570 P3793970 INFO Set column index...
+2026-07-12 22:22:12,570 P3793970 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
+2026-07-12 22:22:12,576 P3793970 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_processor.pkl
+2026-07-12 22:22:14,061 P3793970 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_vocab.json
+2026-07-12 22:22:56,976 P3793970 INFO Set feature processor done.
+2026-07-12 22:22:56,988 P3793970 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
+2026-07-12 22:22:56,991 P3793970 INFO Set column index...
+2026-07-12 22:22:56,991 P3793970 INFO Feature specs: {
+    "action": "{'source': 'action', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 33}",
+    "brand_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 19783}",
+    "c0_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 18}",
+    "c1_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 310}",
+    "c2_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 3042}",
+    "color": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 7311}",
+    "day_of_week": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 8}",
+    "hour": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 25}",
+    "is_weekend": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 3}",
+    "item_condition_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 7}",
+    "item_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 43817684}",
+    "item_index": "{'type': 'meta'}",
+    "price_bucket": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 10}",
+    "product_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 893620}",
+    "seq_len": "{'type': 'meta'}",
+    "session_id": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 3701837}",
+    "shipper_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 3}",
+    "size_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 356}",
+    "user_id": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 1697916}",
+    "user_index": "{'type': 'meta'}"
+}
+2026-07-12 22:23:04,430 P3793970 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=30699109), sparse=Adagrad(lr=0.05, params=802271456)
+2026-07-12 22:23:04,430 P3793970 INFO ************ compile start ************
+2026-07-12 22:23:06,150 P3793970 INFO Compiled dense module: unified_tokenizer_layer
+2026-07-12 22:23:06,151 P3793970 INFO Compiled dense module: item_token_proj
+2026-07-12 22:23:06,153 P3793970 INFO Compiled dense module: unified_interaction_layers
+2026-07-12 22:23:06,154 P3793970 INFO Compiled dense module: tower.0
+2026-07-12 22:23:06,155 P3793970 INFO Compiled dense module: tower.1
+2026-07-12 22:23:06,156 P3793970 INFO Compiled dense module: tower.2
+2026-07-12 22:23:06,157 P3793970 INFO Compiled dense module: tower.3
+2026-07-12 22:23:06,158 P3793970 INFO Compiled dense module: tower.4
+2026-07-12 22:23:10,144 P3793970 INFO Total number of parameters: 832970565.
+2026-07-12 22:23:10,148 P3793970 INFO Number of embedding parameters: 802271456.
+2026-07-12 22:23:10,150 P3793970 INFO Number of dense parameters: 30699109.
+2026-07-12 22:23:10,151 P3793970 INFO Loading datasets...
+2026-07-12 22:23:10,191 P3793970 INFO Train samples: total/36090865, blocks/2
+2026-07-12 22:23:10,220 P3793970 INFO Validation samples: total/4124870, blocks/2
+2026-07-12 22:23:10,220 P3793970 INFO Loading train and validation data done.
+2026-07-12 22:23:10,226 P3793970 INFO BF16 mixed precision: True
+2026-07-12 22:23:10,226 P3793970 INFO Start training: 4405 local batches/epoch
+2026-07-12 22:23:10,226 P3793970 INFO DDP blocked training: True
+2026-07-12 22:23:10,226 P3793970 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
+2026-07-12 22:23:10,226 P3793970 INFO ************ Epoch=1 start ************
+2026-07-12 22:35:17,294 P3793970 INFO Train loss: 0.505150
+2026-07-12 22:35:17,306 P3793970 INFO Evaluation @epoch 1 - batch 4405: 
+2026-07-12 22:36:03,513 P3793970 INFO [Task: Like][Metrics] AUC: 0.758558 - logloss: 0.325083 - gAUC: 0.659205
+2026-07-12 22:36:14,370 P3793970 INFO [Task: Cart][Metrics] AUC: 0.702653 - logloss: 0.061083 - gAUC: 0.665227
+2026-07-12 22:36:24,182 P3793970 INFO [Task: Offer][Metrics] AUC: 0.670546 - logloss: 0.025152 - gAUC: 0.652266
+2026-07-12 22:36:32,857 P3793970 INFO [Task: Checkout][Metrics] AUC: 0.758759 - logloss: 0.005950 - gAUC: 0.725521
+2026-07-12 22:36:41,582 P3793970 INFO [Task: Purchase][Metrics] AUC: 0.768517 - logloss: 0.003979 - gAUC: 0.738124
+2026-07-12 22:36:41,992 P3793970 INFO Save best model: monitor(max)=1.419875
+2026-07-12 22:36:46,175 P3793970 INFO ************ Epoch=1 end ************
+2026-07-12 22:36:46,175 P3793970 INFO Training finished.
+2026-07-12 22:36:46,175 P3793970 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/HeMix_MerRec_Action.model
+2026-07-12 22:36:49,225 P3793970 INFO ******** Test evaluation ********
+2026-07-12 22:36:49,226 P3793970 INFO Loading datasets...
+2026-07-12 22:36:49,265 P3793970 INFO Test samples: total/2919932, blocks/2
+2026-07-12 22:36:49,265 P3793970 INFO Loading test data done.
+2026-07-12 22:37:19,584 P3793970 INFO [Task: Like][Metrics] logloss: 0.321927 - AUC: 0.759524 - gAUC: 0.659013
+2026-07-12 22:37:27,225 P3793970 INFO [Task: Cart][Metrics] logloss: 0.057939 - AUC: 0.701290 - gAUC: 0.659085
+2026-07-12 22:37:34,166 P3793970 INFO [Task: Offer][Metrics] logloss: 0.022041 - AUC: 0.674886 - gAUC: 0.654316
+2026-07-12 22:37:40,306 P3793970 INFO [Task: Checkout][Metrics] logloss: 0.005123 - AUC: 0.766052 - gAUC: 0.726723
+2026-07-12 22:37:46,633 P3793970 INFO [Task: Purchase][Metrics] logloss: 0.003297 - AUC: 0.769543 - gAUC: 0.733176
+2026-07-12 22:37:47,892 P3793970 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/HeMix_MerRec_Action.model
