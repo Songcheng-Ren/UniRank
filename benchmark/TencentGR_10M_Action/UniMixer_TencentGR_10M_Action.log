@@ -1,5 +1,5 @@
-2026-07-11 08:01:27,977 P2785785 INFO UniRank version: 2.3.7
-2026-07-11 08:01:27,977 P2785785 INFO Params: {
+2026-07-13 20:25:15,099 P4055243 INFO UniRank version: 2.3.7
+2026-07-13 20:25:15,099 P4055243 INFO Params: {
     "accumulation_steps": "1",
     "batch_size": "8192",
     "block_cache_size": "2",
@@ -15,6 +15,7 @@
     "early_stop_patience": "2",
     "embedding_dim": "16",
     "enable_bf16": "True",
+    "enable_torch_compile": "True",
     "epochs": "1",
     "eval_steps": "None",
     "expansion_factor": "2",
@@ -23,6 +24,7 @@
     "feature_specs": "None",
     "global_rank": "64",
     "gpu": "0",
+    "gradient_checkpointing": "False",
     "group_id": "user_index",
     "label_col": "[{'name': 'is_click', 'dtype': 'float'}, {'name': 'is_conversion', 'dtype': 'float'}]",
     "local_rank": "0",
@@ -75,46 +77,46 @@
     "verbose": "1",
     "world_size": "4"
 }
-2026-07-11 08:01:27,979 P2785785 INFO Set up feature processor...
-2026-07-11 08:01:27,979 P2785785 INFO Fit feature processor...
-2026-07-11 08:01:27,979 P2785785 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-11 08:01:27,979 P2785785 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-11 08:01:27,979 P2785785 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-11 08:01:27,979 P2785785 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7706779}
-2026-07-11 08:01:29,494 P2785785 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17487677, 'source': 'item'}
-2026-07-11 08:01:32,850 P2785785 INFO Processing column: {'name': '100', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}
-2026-07-11 08:01:32,850 P2785785 INFO Processing column: {'name': '101', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 54, 'source': 'item'}
-2026-07-11 08:01:32,851 P2785785 INFO Processing column: {'name': '102', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 173463, 'source': 'item'}
-2026-07-11 08:01:32,879 P2785785 INFO Processing column: {'name': '112', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 31, 'source': 'item'}
-2026-07-11 08:01:32,879 P2785785 INFO Processing column: {'name': '114', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 34, 'source': 'item'}
-2026-07-11 08:01:32,879 P2785785 INFO Processing column: {'name': '115', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 989, 'source': 'item'}
-2026-07-11 08:01:32,880 P2785785 INFO Processing column: {'name': '116', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 21, 'source': 'item'}
-2026-07-11 08:01:32,880 P2785785 INFO Processing column: {'name': '117', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 559, 'source': 'item'}
-2026-07-11 08:01:32,880 P2785785 INFO Processing column: {'name': '118', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1637, 'source': 'item'}
-2026-07-11 08:01:32,880 P2785785 INFO Processing column: {'name': '119', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4951, 'source': 'item'}
-2026-07-11 08:01:32,881 P2785785 INFO Processing column: {'name': '120', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4046, 'source': 'item'}
-2026-07-11 08:01:32,882 P2785785 INFO Processing column: {'name': '121', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5041300, 'source': 'item'}
-2026-07-11 08:01:33,813 P2785785 INFO Processing column: {'name': '122', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 2389, 'source': 'item'}
-2026-07-11 08:01:33,814 P2785785 INFO Processing column: {'name': '103', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 88}
-2026-07-11 08:01:33,814 P2785785 INFO Processing column: {'name': '104', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-11 08:01:33,814 P2785785 INFO Processing column: {'name': '105', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
-2026-07-11 08:01:33,815 P2785785 INFO Processing column: {'name': '109', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-11 08:01:33,815 P2785785 INFO Processing column: {'name': '106', 'active': True, 'dtype': 'int', 'type': 'sequence', 'max_len': 5, 'vocab_size': 15}
-2026-07-11 08:01:33,815 P2785785 INFO Processing column: {'name': '107', 'active': True, 'dtype': 'int', 'type': 'sequence', 'max_len': 5, 'vocab_size': 20}
-2026-07-11 08:01:33,815 P2785785 INFO Processing column: {'name': '108', 'active': True, 'dtype': 'int', 'type': 'sequence', 'max_len': 5, 'vocab_size': 5}
-2026-07-11 08:01:33,815 P2785785 INFO Processing column: {'name': '110', 'active': True, 'dtype': 'int', 'type': 'sequence', 'max_len': 5, 'vocab_size': 3}
-2026-07-11 08:01:33,815 P2785785 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
-2026-07-11 08:01:33,815 P2785785 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
-2026-07-11 08:01:33,815 P2785785 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
-2026-07-11 08:01:33,815 P2785785 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4, 'source': 'action'}
-2026-07-11 08:01:33,816 P2785785 INFO Set column index...
-2026-07-11 08:01:33,816 P2785785 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/TencentGR_10M_Action/feature_map.json
-2026-07-11 08:01:33,824 P2785785 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/TencentGR_10M_Action/feature_processor.pkl
-2026-07-11 08:01:34,705 P2785785 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/TencentGR_10M_Action/feature_vocab.json
-2026-07-11 08:02:01,060 P2785785 INFO Set feature processor done.
-2026-07-11 08:02:01,073 P2785785 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/TencentGR_10M_Action/feature_map.json
-2026-07-11 08:02:01,077 P2785785 INFO Set column index...
-2026-07-11 08:02:01,077 P2785785 INFO Feature specs: {
+2026-07-13 20:25:15,101 P4055243 INFO Set up feature processor...
+2026-07-13 20:25:15,101 P4055243 INFO Fit feature processor...
+2026-07-13 20:25:15,101 P4055243 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-13 20:25:15,102 P4055243 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-13 20:25:15,102 P4055243 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-13 20:25:15,102 P4055243 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7706779}
+2026-07-13 20:25:16,612 P4055243 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17487677, 'source': 'item'}
+2026-07-13 20:25:19,957 P4055243 INFO Processing column: {'name': '100', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}
+2026-07-13 20:25:19,958 P4055243 INFO Processing column: {'name': '101', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 54, 'source': 'item'}
+2026-07-13 20:25:19,959 P4055243 INFO Processing column: {'name': '102', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 173463, 'source': 'item'}
+2026-07-13 20:25:19,991 P4055243 INFO Processing column: {'name': '112', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 31, 'source': 'item'}
+2026-07-13 20:25:19,991 P4055243 INFO Processing column: {'name': '114', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 34, 'source': 'item'}
+2026-07-13 20:25:19,992 P4055243 INFO Processing column: {'name': '115', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 989, 'source': 'item'}
+2026-07-13 20:25:19,992 P4055243 INFO Processing column: {'name': '116', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 21, 'source': 'item'}
+2026-07-13 20:25:19,992 P4055243 INFO Processing column: {'name': '117', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 559, 'source': 'item'}
+2026-07-13 20:25:19,992 P4055243 INFO Processing column: {'name': '118', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1637, 'source': 'item'}
+2026-07-13 20:25:19,993 P4055243 INFO Processing column: {'name': '119', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4951, 'source': 'item'}
+2026-07-13 20:25:19,994 P4055243 INFO Processing column: {'name': '120', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4046, 'source': 'item'}
+2026-07-13 20:25:19,995 P4055243 INFO Processing column: {'name': '121', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5041300, 'source': 'item'}
+2026-07-13 20:25:20,957 P4055243 INFO Processing column: {'name': '122', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 2389, 'source': 'item'}
+2026-07-13 20:25:20,957 P4055243 INFO Processing column: {'name': '103', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 88}
+2026-07-13 20:25:20,958 P4055243 INFO Processing column: {'name': '104', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-13 20:25:20,958 P4055243 INFO Processing column: {'name': '105', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
+2026-07-13 20:25:20,958 P4055243 INFO Processing column: {'name': '109', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-13 20:25:20,958 P4055243 INFO Processing column: {'name': '106', 'active': True, 'dtype': 'int', 'type': 'sequence', 'max_len': 5, 'vocab_size': 15}
+2026-07-13 20:25:20,958 P4055243 INFO Processing column: {'name': '107', 'active': True, 'dtype': 'int', 'type': 'sequence', 'max_len': 5, 'vocab_size': 20}
+2026-07-13 20:25:20,958 P4055243 INFO Processing column: {'name': '108', 'active': True, 'dtype': 'int', 'type': 'sequence', 'max_len': 5, 'vocab_size': 5}
+2026-07-13 20:25:20,959 P4055243 INFO Processing column: {'name': '110', 'active': True, 'dtype': 'int', 'type': 'sequence', 'max_len': 5, 'vocab_size': 3}
+2026-07-13 20:25:20,959 P4055243 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
+2026-07-13 20:25:20,959 P4055243 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-13 20:25:20,959 P4055243 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
+2026-07-13 20:25:20,959 P4055243 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4, 'source': 'action'}
+2026-07-13 20:25:20,960 P4055243 INFO Set column index...
+2026-07-13 20:25:20,960 P4055243 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/TencentGR_10M_Action/feature_map.json
+2026-07-13 20:25:21,027 P4055243 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/TencentGR_10M_Action/feature_processor.pkl
+2026-07-13 20:25:21,973 P4055243 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/TencentGR_10M_Action/feature_vocab.json
+2026-07-13 20:25:48,692 P4055243 INFO Set feature processor done.
+2026-07-13 20:25:48,706 P4055243 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/TencentGR_10M_Action/feature_map.json
+2026-07-13 20:25:48,710 P4055243 INFO Set column index...
+2026-07-13 20:25:48,710 P4055243 INFO Feature specs: {
     "100": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 7}",
     "101": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 54}",
     "102": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 173463}",
@@ -146,36 +148,37 @@
     "user_id": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 7706779}",
     "user_index": "{'type': 'meta'}"
 }
-2026-07-11 08:02:05,551 P2785785 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=689106), sparse=Adagrad(lr=0.05, params=486785984)
-2026-07-11 08:02:05,553 P2785785 INFO ************ compile start ************
-2026-07-11 08:02:07,085 P2785785 INFO Compiled dense module: unified_tokenizer_layer
-2026-07-11 08:02:07,086 P2785785 INFO Compiled dense module: unified_interaction_layers
-2026-07-11 08:02:07,087 P2785785 INFO Compiled dense module: tower.0
-2026-07-11 08:02:07,088 P2785785 INFO Compiled dense module: tower.1
-2026-07-11 08:02:10,200 P2785785 INFO Total number of parameters: 487475090.
-2026-07-11 08:02:10,200 P2785785 INFO Number of embedding parameters: 486785984.
-2026-07-11 08:02:10,200 P2785785 INFO Number of dense parameters: 689106.
-2026-07-11 08:02:10,200 P2785785 INFO Loading datasets...
-2026-07-11 08:02:10,533 P2785785 INFO Train samples: total/146522949, blocks/4
-2026-07-11 08:02:10,833 P2785785 INFO Validation samples: total/4460723, blocks/2
-2026-07-11 08:02:10,833 P2785785 INFO Loading train and validation data done.
-2026-07-11 08:02:10,834 P2785785 INFO BF16 mixed precision: True
-2026-07-11 08:02:10,834 P2785785 INFO Start training: 17884 local batches/epoch
-2026-07-11 08:02:10,834 P2785785 INFO DDP blocked training: True
-2026-07-11 08:02:10,834 P2785785 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
-2026-07-11 08:02:10,834 P2785785 INFO ************ Epoch=1 start ************
-2026-07-11 08:59:17,851 P2785785 INFO Train loss: 0.298550
-2026-07-11 08:59:17,864 P2785785 INFO Evaluation @epoch 1 - batch 17884: 
-2026-07-11 09:01:00,822 P2785785 INFO [Task: is_click][Metrics] AUC: 0.749180 - logloss: 0.170794 - gAUC: 0.708523
-2026-07-11 09:01:20,809 P2785785 INFO [Task: is_conversion][Metrics] AUC: 0.812575 - logloss: 0.091604 - gAUC: 0.772082
-2026-07-11 09:01:21,059 P2785785 INFO Save best model: monitor(max)=1.521180
-2026-07-11 09:01:23,756 P2785785 INFO ************ Epoch=1 end ************
-2026-07-11 09:01:23,756 P2785785 INFO Training finished.
-2026-07-11 09:01:23,756 P2785785 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/TencentGR_10M_Action/UniMixer_TencentGR_10M_Action.model
-2026-07-11 09:01:33,852 P2785785 INFO ******** Test evaluation ********
-2026-07-11 09:01:33,856 P2785785 INFO Loading datasets...
-2026-07-11 09:01:33,905 P2785785 INFO Test samples: total/38305740, blocks/2
-2026-07-11 09:01:33,905 P2785785 INFO Loading test data done.
-2026-07-11 09:09:10,697 P2785785 INFO [Task: is_click][Metrics] logloss: 0.043222 - AUC: 0.808934 - gAUC: 0.765279
-2026-07-11 09:10:50,690 P2785785 INFO [Task: is_conversion][Metrics] logloss: 0.023713 - AUC: 0.862599 - gAUC: 0.829978
-2026-07-11 09:10:55,639 P2785785 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/TencentGR_10M_Action/UniMixer_TencentGR_10M_Action.model
+2026-07-13 20:25:53,155 P4055243 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=689106), sparse=Adagrad(lr=0.05, params=486785984)
+2026-07-13 20:25:53,156 P4055243 INFO ************ compile start ************
+2026-07-13 20:25:54,682 P4055243 INFO Compiled dense module: unified_tokenizer_layer
+2026-07-13 20:25:54,684 P4055243 INFO Compiled dense module: unified_interaction_layers
+2026-07-13 20:25:54,685 P4055243 INFO Compiled dense module: tower.0
+2026-07-13 20:25:54,686 P4055243 INFO Compiled dense module: tower.1
+2026-07-13 20:25:57,144 P4055243 INFO Total number of parameters: 487475090.
+2026-07-13 20:25:57,144 P4055243 INFO Number of embedding parameters: 486785984.
+2026-07-13 20:25:57,145 P4055243 INFO Number of dense parameters: 689106.
+2026-07-13 20:25:57,145 P4055243 INFO Loading datasets...
+2026-07-13 20:25:57,220 P4055243 INFO Train samples: total/146529893, blocks/4
+2026-07-13 20:25:57,249 P4055243 INFO Validation samples: total/4462587, blocks/2
+2026-07-13 20:25:57,249 P4055243 INFO Loading train and validation data done.
+2026-07-13 20:25:57,254 P4055243 INFO BF16 mixed precision: True
+2026-07-13 20:25:57,254 P4055243 INFO Gradient checkpointing: False
+2026-07-13 20:25:57,254 P4055243 INFO Start training: 17885 local batches/epoch
+2026-07-13 20:25:57,254 P4055243 INFO DDP blocked training: True
+2026-07-13 20:25:57,255 P4055243 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
+2026-07-13 20:25:57,255 P4055243 INFO ************ Epoch=1 start ************
+2026-07-13 21:22:17,950 P4055243 INFO Train loss: 0.397356
+2026-07-13 21:22:17,955 P4055243 INFO Evaluation @epoch 1 - batch 17885: 
+2026-07-13 21:23:56,210 P4055243 INFO [Task: is_click][Metrics] AUC: 0.741177 - logloss: 0.226291 - gAUC: 0.699120
+2026-07-13 21:24:15,985 P4055243 INFO [Task: is_conversion][Metrics] AUC: 0.811300 - logloss: 0.091668 - gAUC: 0.770937
+2026-07-13 21:24:16,195 P4055243 INFO Save best model: monitor(max)=1.511267
+2026-07-13 21:24:19,056 P4055243 INFO ************ Epoch=1 end ************
+2026-07-13 21:24:19,059 P4055243 INFO Training finished.
+2026-07-13 21:24:19,059 P4055243 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/TencentGR_10M_Action/UniMixer_TencentGR_10M_Action.model
+2026-07-13 21:24:28,475 P4055243 INFO ******** Test evaluation ********
+2026-07-13 21:24:28,477 P4055243 INFO Loading datasets...
+2026-07-13 21:24:28,511 P4055243 INFO Test samples: total/38305740, blocks/2
+2026-07-13 21:24:28,511 P4055243 INFO Loading test data done.
+2026-07-13 21:32:08,488 P4055243 INFO [Task: is_click][Metrics] logloss: 0.067267 - AUC: 0.808719 - gAUC: 0.764208
+2026-07-13 21:33:48,737 P4055243 INFO [Task: is_conversion][Metrics] logloss: 0.024597 - AUC: 0.857114 - gAUC: 0.824033
+2026-07-13 21:33:52,835 P4055243 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/TencentGR_10M_Action/UniMixer_TencentGR_10M_Action.model

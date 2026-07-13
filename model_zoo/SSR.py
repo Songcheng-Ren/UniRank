@@ -254,10 +254,11 @@ class SSRBlock(nn.Module):
         if self.is_last:
             # last-layer aggregation: mean of LayerNorm(z_i)  (Eq. 8)
             stacked = torch.stack([self.out_norm(v) for v in view_outputs], dim=1)  # B x b x token_dim
-            return stacked.mean(dim=1)                                               # B x token_dim
+            return stacked.mean(dim=1)                                              # B x token_dim
         else:
             # intermediate aggregation: concat(LN(z_1),...,LN(z_b))  (Eq. 7)
-            return self.out_norm(torch.cat(view_outputs, dim=-1))                    # B x (b*token_dim)
+            concat = torch.cat([self.out_norm(v) for v in view_outputs], dim=-1)
+            return concat                                                           # B x (b*token_dim)
 
 
 class IterativeCompetitiveSparse(nn.Module):

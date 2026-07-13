@@ -118,7 +118,6 @@ class OneTrans(MultiTaskModel):
         batch_dict, item_dict, mask = self.get_inputs(inputs)
         batch_size = mask.shape[0]
 
-        # item_dict 中假设包含 [history_items..., target_item]
         # flatten_emb=True 后再 reshape 成: B x (T+1) x item_info_dim
         item_seq_emb = self.embedding_layer(item_dict, flatten_emb=True)
         item_seq_emb = item_seq_emb.view(batch_size, -1, self.item_info_dim)
@@ -251,55 +250,6 @@ class MixedMHA(nn.Module):
         nn.init.xavier_uniform_(self.W_k_ns)
         nn.init.xavier_uniform_(self.W_v_ns)
 
-    def build_mask(self, B, Ls, qLs, Lns, device, kv_mask=None, q_mask=None):
-        """
-        Args:
-            B: batch size
-            Ls: full S length
-            qLs: pruned S query length
-            Lns: NS length
-            kv_mask: [B, Ls], valid mask for full S key/value
-            q_mask:  [B, qLs], valid mask for pruned S query
-
-        Returns:
-            attn_mask: [B, 1, Lq, L], bool
-        """
-        if kv_mask is None:
-            full_k_mask = torch.ones(B, Ls, dtype=torch.bool, device=device)
-        else:
-            full_k_mask = kv_mask.bool()
-
-        if q_mask is None:
-            pruned_q_mask = torch.ones(B, qLs, dtype=torch.bool, device=device)
-        else:
-            pruned_q_mask = q_mask.bool()
-
-        ns_k_mask = torch.ones(B, Lns, dtype=torch.bool, device=device)
-        ns_q_mask = torch.ones(B, Lns, dtype=torch.bool, device=device)
-
-        key_valid = torch.cat([full_k_mask, ns_k_mask], dim=1)      # [B, Ls + Lns]
-        query_valid = torch.cat([pruned_q_mask, ns_q_mask], dim=1)  # [B, qLs + Lns]
-
-        q_start = Ls - qLs
-
-        s_q_pos = torch.arange(q_start, Ls, device=device)              # [qLs]
-        ns_q_pos = torch.arange(Ls, Ls + Lns, device=device)           # [Lns]
-        q_pos = torch.cat([s_q_pos, ns_q_pos], dim=0)           # [Lq]
-        q_pos = q_pos.unsqueeze(0).expand(B, -1)                       # [B, Lq]
-
-        s_k_pos = torch.arange(Ls, device=device)                      # [Ls]
-        ns_k_pos = torch.arange(Ls, Ls + Lns, device=device)           # [Lns]
-        k_pos = torch.cat([s_k_pos, ns_k_pos], dim=0)           # [L]
-        k_pos = k_pos.unsqueeze(0).expand(B, -1)                       # [B, L]
-
-        causal_mask = k_pos.unsqueeze(1) <= q_pos.unsqueeze(2)         # [B, Lq, L]
-        attn_mask = (
-            causal_mask
-            & query_valid.unsqueeze(-1)
-            & key_valid.unsqueeze(-2)
-        )  # [B, Lq, L]
-        return attn_mask.unsqueeze(1)  # [B, 1, Lq, L]
-
     def forward(self, s_tokens, ps_tokens, ns_tokens, kv_mask=None, q_mask=None):
         """
         s_tokens:  B x Ls x D
@@ -311,7 +261,6 @@ class MixedMHA(nn.Module):
         B, Ls, D = s_tokens.shape
         _, qLs, _ = ps_tokens.shape
         _, Lns, _ = ns_tokens.shape
-        device = s_tokens.device
 
         if kv_mask is not None:
             s_tokens = s_tokens * kv_mask.unsqueeze(-1).float()
@@ -319,7 +268,7 @@ class MixedMHA(nn.Module):
             ps_tokens = ps_tokens * q_mask.unsqueeze(-1).float()
 
         # shared QKV for S-tokens
-        q_s = self.W_q_s(ps_tokens)   # B x qLs x D
+        q_s = self.W_q_s(s_tokens)    # B x Ls x D
         k_s = self.W_k_s(s_tokens)    # B x Ls x D
         v_s = self.W_v_s(s_tokens)    # B x Ls x D
 
@@ -328,39 +277,28 @@ class MixedMHA(nn.Module):
         k_ns = torch.einsum("bld,ldh->blh", ns_tokens, self.W_k_ns)
         v_ns = torch.einsum("bld,ldh->blh", ns_tokens, self.W_v_ns)
 
-        q = torch.cat([q_s, q_ns], dim=1)   # B x (qLs+Lns) x D
+        q = torch.cat([q_s, q_ns], dim=1)   # B x (Ls+Lns) x D
         k = torch.cat([k_s, k_ns], dim=1)   # B x (Ls+Lns) x D
         v = torch.cat([v_s, v_ns], dim=1)   # B x (Ls+Lns) x D
 
         L = Ls + Lns
-        Lq = qLs + Lns
 
         # split heads
-        q = q.view(B, Lq, self.num_heads, self.head_dim).transpose(1, 2)  # B x H x Lq x h
+        q = q.view(B, L, self.num_heads, self.head_dim).transpose(1, 2)   # B x H x L x h
         k = k.view(B, L, self.num_heads, self.head_dim).transpose(1, 2)   # B x H x L x h
         v = v.view(B, L, self.num_heads, self.head_dim).transpose(1, 2)
 
-        attn_mask = self.build_mask(
-            B=B,
-            Ls=Ls,
-            qLs=qLs,
-            Lns=Lns,
-            device=device,
-            kv_mask=kv_mask,
-            q_mask=q_mask
-        )
-
         output = F.scaled_dot_product_attention(
             q, k, v,
-            attn_mask=attn_mask
+            is_causal=True
         )
 
         # concat heads
-        output = output.transpose(1, 2).contiguous().view(B, Lq, D)
+        output = output.transpose(1, 2).contiguous().view(B, L, D)
         output = self.W_o(output)
 
-        ps_out = output[:, :qLs, :]
-        ns_out = output[:, qLs:, :]
+        ps_out = output[:, Ls - qLs:Ls, :]
+        ns_out = output[:, Ls:, :]
 
         if q_mask is not None:
             ps_out = ps_out * q_mask.unsqueeze(-1).float()

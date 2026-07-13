@@ -151,7 +151,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "TokenFormer_QK_Video_Action"
 # run_exp "UniMixer_QK_Video_Action"
 # run_exp "UltraHSTU_QK_Video_Action"
-# run_exp "OneTrans_QK_Video_Action"
+ run_exp "OneTrans_QK_Video_Action"
 # run_exp "HyFormer_QK_Video_Action"
 # run_exp "MixFormer_QK_Video_Action"
 # run_exp "TokenMixer_QK_Video_Action"
@@ -171,7 +171,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "RankMixer_KuaiRand_Video_Action_Large"
 # run_exp "RankMixer_KuaiRand_Video_Action_Ultra"
 # run_exp "UniMixer_KuaiRand_Video_Action"
-# run_exp "OneTrans_KuaiRand_Video_Action"
+ run_exp "OneTrans_KuaiRand_Video_Action"
 # run_exp "HyFormer_KuaiRand_Video_Action"
 # run_exp "MixFormer_KuaiRand_Video_Action"
 # run_exp "TokenMixer_KuaiRand_Video_Action"
@@ -188,8 +188,8 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # ==================================================
 # TencentGR_10M_Action experiments
 # ==================================================
- run_exp "RankMixer_TencentGR_10M_Action"
- run_exp "UniMixer_TencentGR_10M_Action"
+# run_exp "RankMixer_TencentGR_10M_Action"
+# run_exp "UniMixer_TencentGR_10M_Action"
  run_exp "OneTrans_TencentGR_10M_Action"
  run_exp "HyFormer_TencentGR_10M_Action"
  run_exp "MixFormer_TencentGR_10M_Action"
@@ -209,7 +209,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # ==================================================
 # run_exp "RankMixer_Taobao_Action"
 # run_exp "UniMixer_Taobao_Action"
-# run_exp "OneTrans_Taobao_Action"
+ run_exp "OneTrans_Taobao_Action"
 # run_exp "HyFormer_Taobao_Action"
 # run_exp "MixFormer_Taobao_Action"
 # run_exp "TokenMixer_Taobao_Action"
@@ -231,7 +231,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "RankMixer_MerRec_Action_Large"
 # run_exp "RankMixer_MerRec_Action_Ultra"
 # run_exp "UniMixer_MerRec_Action"
-# run_exp "OneTrans_MerRec_Action"
+ run_exp "OneTrans_MerRec_Action"
 # run_exp "HyFormer_MerRec_Action"
 # run_exp "MixFormer_MerRec_Action"
 # run_exp "TokenMixer_MerRec_Action"
