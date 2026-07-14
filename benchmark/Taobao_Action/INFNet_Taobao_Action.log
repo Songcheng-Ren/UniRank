@@ -26,11 +26,11 @@
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
     "max_len": "100",
-    "metrics": "['logloss', 'AUC', 'gAUC']",
+    "metrics": "['logloss', 'AUC']",
     "model": "INFNet",
     "model_id": "INFNet_Taobao_Action",
     "model_root": "./checkpoints/",
-    "monitor": "{'AUC': 1, 'logloss': 0, 'gAUC': 1}",
+    "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
     "num_c_hub_token": "8",
@@ -147,10 +147,10 @@
 2026-07-09 17:25:43,551 P1260441 INFO ************ Epoch=1 start ************
 2026-07-09 17:29:00,278 P1260441 INFO Train loss: 0.262447
 2026-07-09 17:29:00,283 P1260441 INFO Evaluation @epoch 1 - batch 270: 
-2026-07-09 17:29:22,287 P1260441 INFO [Task: is_click][Metrics] AUC: 0.637998 - logloss: 0.185509 - gAUC: 0.605940
-2026-07-09 17:29:23,512 P1260441 INFO [Task: cart][Metrics] AUC: 0.838943 - logloss: 0.020649 - gAUC: 0.769727
-2026-07-09 17:29:24,694 P1260441 INFO [Task: fav][Metrics] AUC: 0.855861 - logloss: 0.015884 - gAUC: 0.775912
-2026-07-09 17:29:25,807 P1260441 INFO [Task: buy][Metrics] AUC: 0.864499 - logloss: 0.008838 - gAUC: 0.785623
+2026-07-09 17:29:22,287 P1260441 INFO [Task: is_click][Metrics] AUC: 0.637998 - logloss: 0.185509
+2026-07-09 17:29:23,512 P1260441 INFO [Task: cart][Metrics] AUC: 0.838943 - logloss: 0.020649
+2026-07-09 17:29:24,694 P1260441 INFO [Task: fav][Metrics] AUC: 0.855861 - logloss: 0.015884
+2026-07-09 17:29:25,807 P1260441 INFO [Task: buy][Metrics] AUC: 0.864499 - logloss: 0.008838
 2026-07-09 17:29:25,866 P1260441 INFO Save best model: monitor(max)=1.533626
 2026-07-09 17:29:26,117 P1260441 INFO ************ Epoch=1 end ************
 2026-07-09 17:29:26,119 P1260441 INFO Training finished.
@@ -159,8 +159,8 @@
 2026-07-09 17:29:26,887 P1260441 INFO Loading datasets...
 2026-07-09 17:29:26,905 P1260441 INFO Test samples: total/726005, blocks/2
 2026-07-09 17:29:26,906 P1260441 INFO Loading test data done.
-2026-07-09 17:29:35,195 P1260441 INFO [Task: is_click][Metrics] logloss: 0.187018 - AUC: 0.632517 - gAUC: 0.601044
-2026-07-09 17:29:36,526 P1260441 INFO [Task: cart][Metrics] logloss: 0.018404 - AUC: 0.831975 - gAUC: 0.757473
-2026-07-09 17:29:37,840 P1260441 INFO [Task: fav][Metrics] logloss: 0.014107 - AUC: 0.850655 - gAUC: 0.771542
-2026-07-09 17:29:39,033 P1260441 INFO [Task: buy][Metrics] logloss: 0.006386 - AUC: 0.852461 - gAUC: 0.778599
+2026-07-09 17:29:35,195 P1260441 INFO [Task: is_click][Metrics] logloss: 0.187018 - AUC: 0.632517
+2026-07-09 17:29:36,526 P1260441 INFO [Task: cart][Metrics] logloss: 0.018404 - AUC: 0.831975
+2026-07-09 17:29:37,840 P1260441 INFO [Task: fav][Metrics] logloss: 0.014107 - AUC: 0.850655
+2026-07-09 17:29:39,033 P1260441 INFO [Task: buy][Metrics] logloss: 0.006386 - AUC: 0.852461
 2026-07-09 17:29:39,680 P1260441 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/Taobao_Action/INFNet_Taobao_Action.model

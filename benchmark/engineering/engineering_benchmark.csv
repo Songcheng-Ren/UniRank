@@ -1,7 +1,0 @@
-optimization,baseline_peak_memory_gib,optimized_peak_memory_gib,baseline_samples_per_second,optimized_training_time_seconds
-Activation Checkpointing,,,,
-BF16 + torch.compile,,,,
-Flash Attention,,,,
-Flex Attention,,,,
-BF16 + Activation Checkpointing,,,,
-4-GPU DDP,-,-,～4x,～4x

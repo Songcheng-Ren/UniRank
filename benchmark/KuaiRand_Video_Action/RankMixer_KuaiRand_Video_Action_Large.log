@@ -28,11 +28,11 @@
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
     "max_len": "400",
-    "metrics": "['logloss', 'AUC', 'gAUC']",
+    "metrics": "['logloss', 'AUC']",
     "model": "RankMixer",
     "model_id": "RankMixer_KuaiRand_Video_Action_Large",
     "model_root": "./checkpoints/",
-    "monitor": "{'AUC': 1, 'logloss': 0, 'gAUC': 1}",
+    "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
     "num_layers": "3",
@@ -180,12 +180,12 @@
 2026-07-13 02:41:28,246 P3918118 INFO ************ Epoch=1 start ************
 2026-07-13 03:43:26,869 P3918118 INFO Train loss: 1.031358
 2026-07-13 03:43:26,880 P3918118 INFO Evaluation @epoch 1 - batch 7834: 
-2026-07-13 03:46:44,800 P3918118 INFO [Task: is_click][Metrics] AUC: 0.714655 - logloss: 0.604584 - gAUC: 0.689647
-2026-07-13 03:47:02,459 P3918118 INFO [Task: is_follow][Metrics] AUC: 0.816704 - logloss: 0.007208 - gAUC: 0.689692
-2026-07-13 03:47:20,864 P3918118 INFO [Task: is_like][Metrics] AUC: 0.867934 - logloss: 0.066899 - gAUC: 0.774174
-2026-07-13 03:47:38,756 P3918118 INFO [Task: is_comment][Metrics] AUC: 0.835555 - logloss: 0.016366 - gAUC: 0.752961
-2026-07-13 03:47:56,126 P3918118 INFO [Task: is_forward][Metrics] AUC: 0.821746 - logloss: 0.005950 - gAUC: 0.724175
-2026-07-13 03:48:16,654 P3918118 INFO [Task: long_view][Metrics] AUC: 0.704570 - logloss: 0.538389 - gAUC: 0.685436
+2026-07-13 03:46:44,800 P3918118 INFO [Task: is_click][Metrics] AUC: 0.714655 - logloss: 0.604584
+2026-07-13 03:47:02,459 P3918118 INFO [Task: is_follow][Metrics] AUC: 0.816704 - logloss: 0.007208
+2026-07-13 03:47:20,864 P3918118 INFO [Task: is_like][Metrics] AUC: 0.867934 - logloss: 0.066899
+2026-07-13 03:47:38,756 P3918118 INFO [Task: is_comment][Metrics] AUC: 0.835555 - logloss: 0.016366
+2026-07-13 03:47:56,126 P3918118 INFO [Task: is_forward][Metrics] AUC: 0.821746 - logloss: 0.005950
+2026-07-13 03:48:16,654 P3918118 INFO [Task: long_view][Metrics] AUC: 0.704570 - logloss: 0.538389
 2026-07-13 03:48:17,694 P3918118 INFO Save best model: monitor(max)=1.512875
 2026-07-13 03:48:21,129 P3918118 INFO ************ Epoch=1 end ************
 2026-07-13 03:48:21,129 P3918118 INFO Training finished.
@@ -194,10 +194,10 @@
 2026-07-13 03:48:24,924 P3918118 INFO Loading datasets...
 2026-07-13 03:48:24,959 P3918118 INFO Test samples: total/8254836, blocks/2
 2026-07-13 03:48:24,959 P3918118 INFO Loading test data done.
-2026-07-13 03:51:24,813 P3918118 INFO [Task: is_click][Metrics] logloss: 0.607387 - AUC: 0.714895 - gAUC: 0.690657
-2026-07-13 03:51:42,406 P3918118 INFO [Task: is_follow][Metrics] logloss: 0.007094 - AUC: 0.809057 - gAUC: 0.691973
-2026-07-13 03:52:00,241 P3918118 INFO [Task: is_like][Metrics] logloss: 0.067172 - AUC: 0.866510 - gAUC: 0.774446
-2026-07-13 03:52:18,022 P3918118 INFO [Task: is_comment][Metrics] logloss: 0.016293 - AUC: 0.831173 - gAUC: 0.753713
-2026-07-13 03:52:35,180 P3918118 INFO [Task: is_forward][Metrics] logloss: 0.006054 - AUC: 0.821686 - gAUC: 0.715923
-2026-07-13 03:52:54,831 P3918118 INFO [Task: long_view][Metrics] logloss: 0.543551 - AUC: 0.704059 - gAUC: 0.685653
+2026-07-13 03:51:24,813 P3918118 INFO [Task: is_click][Metrics] logloss: 0.607387 - AUC: 0.714895
+2026-07-13 03:51:42,406 P3918118 INFO [Task: is_follow][Metrics] logloss: 0.007094 - AUC: 0.809057
+2026-07-13 03:52:00,241 P3918118 INFO [Task: is_like][Metrics] logloss: 0.067172 - AUC: 0.866510
+2026-07-13 03:52:18,022 P3918118 INFO [Task: is_comment][Metrics] logloss: 0.016293 - AUC: 0.831173
+2026-07-13 03:52:35,180 P3918118 INFO [Task: is_forward][Metrics] logloss: 0.006054 - AUC: 0.821686
+2026-07-13 03:52:54,831 P3918118 INFO [Task: long_view][Metrics] logloss: 0.543551 - AUC: 0.704059
 2026-07-13 03:52:56,659 P3918118 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/KuaiRand_Video_Action/RankMixer_KuaiRand_Video_Action_Large.model

@@ -27,11 +27,11 @@
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
     "max_len": "100",
-    "metrics": "['logloss', 'AUC', 'gAUC']",
+    "metrics": "['logloss', 'AUC']",
     "model": "HyFormer",
     "model_id": "HyFormer_QK_Video_Action",
     "model_root": "./checkpoints/",
-    "monitor": "{'AUC': 1, 'logloss': 0, 'gAUC': 1}",
+    "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
     "num_global_token": "4",
@@ -120,10 +120,10 @@
 2026-07-09 19:07:04,681 P1455231 INFO ************ Epoch=1 start ************
 2026-07-09 19:44:56,468 P1455231 INFO Train loss: 0.431432
 2026-07-09 19:44:56,470 P1455231 INFO Evaluation @epoch 1 - batch 12036: 
-2026-07-09 19:47:17,965 P1455231 INFO [Task: click][Metrics] AUC: 0.846395 - logloss: 0.417148 - gAUC: 0.836484
-2026-07-09 19:47:47,215 P1455231 INFO [Task: follow][Metrics] AUC: 0.756020 - logloss: 0.008866 - gAUC: 0.713198
-2026-07-09 19:48:24,642 P1455231 INFO [Task: like][Metrics] AUC: 0.840468 - logloss: 0.065964 - gAUC: 0.761175
-2026-07-09 19:48:54,976 P1455231 INFO [Task: share][Metrics] AUC: 0.848825 - logloss: 0.009219 - gAUC: 0.825682
+2026-07-09 19:47:17,965 P1455231 INFO [Task: click][Metrics] AUC: 0.846395 - logloss: 0.417148
+2026-07-09 19:47:47,215 P1455231 INFO [Task: follow][Metrics] AUC: 0.756020 - logloss: 0.008866
+2026-07-09 19:48:24,642 P1455231 INFO [Task: like][Metrics] AUC: 0.840468 - logloss: 0.065964
+2026-07-09 19:48:54,976 P1455231 INFO [Task: share][Metrics] AUC: 0.848825 - logloss: 0.009219
 2026-07-09 19:48:56,008 P1455231 INFO Save best model: monitor(max)=1.607061
 2026-07-09 19:48:56,823 P1455231 INFO ************ Epoch=1 end ************
 2026-07-09 19:48:56,825 P1455231 INFO Training finished.
@@ -132,8 +132,8 @@
 2026-07-09 19:48:58,982 P1455231 INFO Loading datasets...
 2026-07-09 19:48:59,023 P1455231 INFO Test samples: total/12144989, blocks/2
 2026-07-09 19:48:59,023 P1455231 INFO Loading test data done.
-2026-07-09 19:51:12,622 P1455231 INFO [Task: click][Metrics] logloss: 0.343650 - AUC: 0.874415 - gAUC: 0.865696
-2026-07-09 19:51:41,614 P1455231 INFO [Task: follow][Metrics] logloss: 0.006339 - AUC: 0.774200 - gAUC: 0.727923
-2026-07-09 19:52:16,842 P1455231 INFO [Task: like][Metrics] logloss: 0.049164 - AUC: 0.850511 - gAUC: 0.768005
-2026-07-09 19:52:46,284 P1455231 INFO [Task: share][Metrics] logloss: 0.006378 - AUC: 0.877987 - gAUC: 0.855813
+2026-07-09 19:51:12,622 P1455231 INFO [Task: click][Metrics] logloss: 0.343650 - AUC: 0.874415
+2026-07-09 19:51:41,614 P1455231 INFO [Task: follow][Metrics] logloss: 0.006339 - AUC: 0.774200
+2026-07-09 19:52:16,842 P1455231 INFO [Task: like][Metrics] logloss: 0.049164 - AUC: 0.850511
+2026-07-09 19:52:46,284 P1455231 INFO [Task: share][Metrics] logloss: 0.006378 - AUC: 0.877987
 2026-07-09 19:52:48,027 P1455231 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/QK_Video_Action/HyFormer_QK_Video_Action.model

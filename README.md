@@ -13,7 +13,7 @@ Instead of treating data preparation, sequential modeling, feature interaction, 
 | Datasets | QK-Video, KuaiRand, TencentGR-10M/TAAC2025, Taobao, MerRec |
 | Registered models | 15 unified ranking architectures |
 | Learning objectives | Multiple binary feedback tasks with independent task heads and losses |
-| Metrics | Logloss, AUC, and user-grouped gAUC for every task |
+| Metrics | Logloss and AUC for every task |
 | Sequence representation | Chronological item, action, and timestamp histories with target-aware truncation |
 | Data scale | Blocked Parquet datasets with block-local side information and per-rank load balancing |
 | Training | Single GPU or `torchrun` DDP, `torch.compile`, dense/sparse optimizers, bf16, gradient accumulation |
@@ -75,7 +75,7 @@ UniRank deliberately separates target supervision from history representation:
 
 - **Labels** are stored as independent binary columns. A row may activate multiple tasks, so the configured datasets support multi-hot feedback; for TencentGR, conversion is treated as also implying click.
 - **Action** is a categorical history feature. Preprocessors compact a feedback combination into one action ID, with ID `0` reserved for padding/unknown values.
-- **Task heads** predict every configured label independently. Loss and AUC/gAUC are therefore reported per task rather than as a single multi-class objective.
+- **Task heads** predict every configured label independently. Logloss and AUC are therefore reported per task rather than as a single multi-class objective.
 
 This distinction allows a historical event to preserve rich feedback semantics while keeping the current target compatible with standard multi-task binary ranking losses.
 
@@ -107,7 +107,7 @@ The sample organization must be paired with an evaluation protocol that preserve
 
 Chronological evaluation is not universally superior to a user-disjoint protocol. It measures warm-start future ranking, whereas user-disjoint evaluation measures cold-start generalization; UniRank's reported results should be interpreted according to the former objective.
 
-During DDP validation and testing, every rank performs inference on its assigned blocks. Predictions, labels, and group IDs are gathered across ranks before metrics are computed, so reported AUC covers the complete split and gAUC groups the complete split by the configured `group_id` (normally `user_index`). Validation selects the monitored checkpoint; testing runs after training with the best checkpoint.
+During DDP validation and testing, every rank performs inference on its assigned blocks. Predictions and labels are gathered across ranks before metrics are computed, so the reported logloss and AUC cover the evaluated split. Grouped metrics remain implemented for optional experiments but are not enabled in the default model configurations. Validation selects the monitored checkpoint; testing runs after training with the best checkpoint.
 
 ## Framework Workflow
 
@@ -119,7 +119,7 @@ An experiment passes through the following components:
 4. **Action-aware loading** reads matching `data`, `user_info`, and `item_info` blocks and constructs target-specific history tensors.
 5. **Model interaction** maps fields and histories into model-specific tokens, then applies either stacked unified interaction or layer-wise unified interaction.
 6. **Multi-task prediction** produces one probability per label and optimizes the configured binary losses.
-7. **Distributed evaluation** aggregates all rank outputs and reports logloss, AUC, and gAUC per task.
+7. **Distributed evaluation** aggregates all rank outputs and reports logloss and AUC per task.
 
 The main entry point is `run_expid.py`. Model and dataset selection is configuration-driven, so the same training/evaluation loop can be reused across architectures without model-specific runner scripts.
 
@@ -288,7 +288,7 @@ The following snapshot reports preliminary results with sequence length 100 and 
   <img width="1215" alt="Preliminary UniRank benchmark results" src="./assets/figures/preliminary_benchmark_results.png">
 </p>
 
-**Figure 3. Preliminary benchmark results.** AUC and gAUC are reported for each feedback task. Bold values indicate the strongest results for a task-metric pair within this snapshot. When extending the table, keep preprocessing, split boundaries, sequence length, features, model size, and random seeds fixed.
+**Figure 3. Preliminary benchmark results.** The embedded snapshot reports impression-weighted gAUC but does not contain UAUC. Current experiments additionally compute UAUC by averaging the AUC of every user containing both positive and negative samples with equal user weight. Regenerate the table before adding UAUC comparisons, while keeping preprocessing, grouping IDs, split boundaries, sequence length, features, model size, and random seeds fixed.
 
 ## Installation
 
@@ -412,7 +412,7 @@ All current models expose their main interaction block through the shared activa
 
 - Compare models on identical generated dataset files, not only identical raw sources.
 - Keep label construction windows and action-token rules fixed across experiments.
-- Report both global AUC and user-grouped gAUC; they measure different aggregation behavior.
+- Report logloss and global AUC under the default protocol; enable grouped metrics only when required by a separate comparison protocol.
 - Preserve chronological split boundaries when evaluating warm-start future ranking.
 - Use several seeds for small reported gains, especially when model differences are below normal run-to-run variation.
 - Record model size, sequence length, token dimension, batch size, precision, and GPU count together with accuracy metrics.

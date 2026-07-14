@@ -233,9 +233,9 @@ class SSRBlock(nn.Module):
         self.act = nn.GELU()
         self.dropout = nn.Dropout(net_dropout) if net_dropout and net_dropout > 0 else nn.Identity()
 
-        # LayerNorm for aggregation; output dim = token_dim (last) or b*token_dim (intermediate)
-        out_dim = token_dim if is_last else num_ns_token * token_dim
-        self.out_norm = nn.LayerNorm(out_dim)
+        # Normalize each view before mean/concat aggregation. Every view has
+        # shape [B, token_dim], including intermediate blocks.
+        self.out_norm = nn.LayerNorm(token_dim)
 
     def forward(self, x):
         """

@@ -137,7 +137,7 @@ class FeatureProcessor(object):
                     train_ddf.select(name).collect().to_series().to_pandas() if self.rebuild_dataset
                     else None
                 )
-                if col["type"] == "meta": # e.g. set group_id in gAUC
+                if col["type"] == "meta": # e.g. set group_id in UAUC
                     self.fit_meta_col(col)
                 elif col["type"] == "numeric":
                     self.fit_numeric_col(col, col_series)

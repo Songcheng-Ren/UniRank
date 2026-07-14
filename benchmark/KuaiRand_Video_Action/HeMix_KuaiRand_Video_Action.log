@@ -27,11 +27,11 @@
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
     "low_rank_dim": "16",
     "max_len": "100",
-    "metrics": "['logloss', 'AUC', 'gAUC']",
+    "metrics": "['logloss', 'AUC']",
     "model": "HeMix",
     "model_id": "HeMix_KuaiRand_Video_Action",
     "model_root": "./checkpoints/",
-    "monitor": "{'AUC': 1, 'logloss': 0, 'gAUC': 1}",
+    "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
     "num_glocal_token": "4",
@@ -182,12 +182,12 @@
 2026-07-10 21:27:15,909 P2308790 INFO ************ Epoch=1 start ************
 2026-07-10 21:44:42,307 P2308790 INFO Train loss: 1.133394
 2026-07-10 21:44:42,315 P2308790 INFO Evaluation @epoch 1 - batch 7877: 
-2026-07-10 21:45:58,086 P2308790 INFO [Task: is_click][Metrics] AUC: 0.753728 - logloss: 0.586696 - gAUC: 0.732019
-2026-07-10 21:46:16,550 P2308790 INFO [Task: is_follow][Metrics] AUC: 0.808091 - logloss: 0.007800 - gAUC: 0.702658
-2026-07-10 21:46:35,503 P2308790 INFO [Task: is_like][Metrics] AUC: 0.862230 - logloss: 0.087978 - gAUC: 0.769239
-2026-07-10 21:46:54,111 P2308790 INFO [Task: is_comment][Metrics] AUC: 0.787221 - logloss: 0.020915 - gAUC: 0.733692
-2026-07-10 21:47:12,737 P2308790 INFO [Task: is_forward][Metrics] AUC: 0.763229 - logloss: 0.006550 - gAUC: 0.700788
-2026-07-10 21:47:33,891 P2308790 INFO [Task: long_view][Metrics] AUC: 0.752530 - logloss: 0.495807 - gAUC: 0.733733
+2026-07-10 21:45:58,086 P2308790 INFO [Task: is_click][Metrics] AUC: 0.753728 - logloss: 0.586696
+2026-07-10 21:46:16,550 P2308790 INFO [Task: is_follow][Metrics] AUC: 0.808091 - logloss: 0.007800
+2026-07-10 21:46:35,503 P2308790 INFO [Task: is_like][Metrics] AUC: 0.862230 - logloss: 0.087978
+2026-07-10 21:46:54,111 P2308790 INFO [Task: is_comment][Metrics] AUC: 0.787221 - logloss: 0.020915
+2026-07-10 21:47:12,737 P2308790 INFO [Task: is_forward][Metrics] AUC: 0.763229 - logloss: 0.006550
+2026-07-10 21:47:33,891 P2308790 INFO [Task: long_view][Metrics] AUC: 0.752530 - logloss: 0.495807
 2026-07-10 21:47:34,911 P2308790 INFO Save best model: monitor(max)=1.516526
 2026-07-10 21:47:37,962 P2308790 INFO ************ Epoch=1 end ************
 2026-07-10 21:47:37,963 P2308790 INFO Training finished.
@@ -196,10 +196,10 @@
 2026-07-10 21:47:42,041 P2308790 INFO Loading datasets...
 2026-07-10 21:47:42,085 P2308790 INFO Test samples: total/4127418, blocks/1
 2026-07-10 21:47:42,085 P2308790 INFO Loading test data done.
-2026-07-10 21:49:13,250 P2308790 INFO [Task: is_click][Metrics] logloss: 0.587462 - AUC: 0.755083 - gAUC: 0.733713
-2026-07-10 21:49:30,260 P2308790 INFO [Task: is_follow][Metrics] logloss: 0.007604 - AUC: 0.804722 - gAUC: 0.706297
-2026-07-10 21:49:47,953 P2308790 INFO [Task: is_like][Metrics] logloss: 0.088237 - AUC: 0.861063 - gAUC: 0.770917
-2026-07-10 21:50:05,580 P2308790 INFO [Task: is_comment][Metrics] logloss: 0.020771 - AUC: 0.784907 - gAUC: 0.733505
-2026-07-10 21:50:22,933 P2308790 INFO [Task: is_forward][Metrics] logloss: 0.006744 - AUC: 0.761842 - gAUC: 0.701379
-2026-07-10 21:50:43,100 P2308790 INFO [Task: long_view][Metrics] logloss: 0.498921 - AUC: 0.752443 - gAUC: 0.734004
+2026-07-10 21:49:13,250 P2308790 INFO [Task: is_click][Metrics] logloss: 0.587462 - AUC: 0.755083
+2026-07-10 21:49:30,260 P2308790 INFO [Task: is_follow][Metrics] logloss: 0.007604 - AUC: 0.804722
+2026-07-10 21:49:47,953 P2308790 INFO [Task: is_like][Metrics] logloss: 0.088237 - AUC: 0.861063
+2026-07-10 21:50:05,580 P2308790 INFO [Task: is_comment][Metrics] logloss: 0.020771 - AUC: 0.784907
+2026-07-10 21:50:22,933 P2308790 INFO [Task: is_forward][Metrics] logloss: 0.006744 - AUC: 0.761842
+2026-07-10 21:50:43,100 P2308790 INFO [Task: long_view][Metrics] logloss: 0.498921 - AUC: 0.752443
 2026-07-10 21:50:44,502 P2308790 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/KuaiRand_Video_Action/HeMix_KuaiRand_Video_Action.model

@@ -30,7 +30,7 @@ def evaluate_metrics(y_true, y_pred, metrics, group_id=None):
             return_dict[metric] = float(log_loss(y_true, y_pred))
         elif metric == "AUC":
             return_dict[metric] = _auc(y_true, y_pred)
-        elif metric in ["gAUC", "avgAUC", "MRR"] or metric.startswith("NDCG"):
+        elif metric in ["UAUC", "gAUC", "MRR"] or metric.startswith("NDCG"):
             group_metrics.append(metric)
         else:
             raise ValueError("metric={} not supported.".format(metric))
@@ -44,8 +44,8 @@ def evaluate_metrics(y_true, y_pred, metrics, group_id=None):
     return return_dict
 
 
-def avgAUC(y_true, y_pred):
-    """avgAUC used in MIND news recommendation."""
+def UAUC(y_true, y_pred):
+    """User-Averaged AUC: each valid user has equal weight."""
     y_true = _to_1d(y_true)
     y_pred = _to_1d(y_pred)
     yb = (y_true > 0).astype(np.int8)
@@ -58,7 +58,7 @@ def avgAUC(y_true, y_pred):
 
 
 def gAUC(y_true, y_pred):
-    """gAUC defined in DIN paper."""
+    """Impression-weighted user-level AUC defined in the DIN paper."""
     y_true = _to_1d(y_true)
     y_pred = _to_1d(y_pred)
     yb = (y_true > 0).astype(np.int8)
@@ -186,7 +186,7 @@ def _evaluate_group_metrics(y_true, y_pred, group_id, group_metrics):
     wts = {m: 0.0 for m in group_metrics}
 
     need_gauc = "gAUC" in group_metrics
-    need_avgauc = "avgAUC" in group_metrics
+    need_uauc = "UAUC" in group_metrics
     need_mrr = "MRR" in group_metrics
     ndcg_funcs = {m: _parse_ndcg(m) for m in group_metrics if m.startswith("NDCG")}
 
@@ -200,14 +200,14 @@ def _evaluate_group_metrics(y_true, y_pred, group_id, group_metrics):
         neg = gsize - pos
         valid_auc_group = (pos > 0 and neg > 0)
 
-        if (need_gauc or need_avgauc) and valid_auc_group:
+        if (need_gauc or need_uauc) and valid_auc_group:
             auc = _binary_auc_rank(yb, yp)
             if need_gauc:
                 sums["gAUC"] += auc * gsize
                 wts["gAUC"] += gsize
-            if need_avgauc:
-                sums["avgAUC"] += auc
-                wts["avgAUC"] += 1.0
+            if need_uauc:
+                sums["UAUC"] += auc
+                wts["UAUC"] += 1.0
 
         if need_mrr:
             sums["MRR"] += MRR(yb, yp)

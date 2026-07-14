@@ -29,11 +29,11 @@
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
     "max_len": "100",
-    "metrics": "['logloss', 'AUC', 'gAUC']",
+    "metrics": "['logloss', 'AUC']",
     "model": "Zenith",
     "model_id": "Zenith_MerRec_Action",
     "model_root": "./checkpoints/",
-    "monitor": "{'AUC': 1, 'logloss': 0, 'gAUC': 1}",
+    "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
     "num_layers": "3",
@@ -140,11 +140,11 @@
 2026-07-12 22:01:58,162 P3774774 INFO ************ Epoch=1 start ************
 2026-07-12 22:18:47,508 P3774774 INFO Train loss: 0.419418
 2026-07-12 22:18:47,535 P3774774 INFO Evaluation @epoch 1 - batch 4405: 
-2026-07-12 22:19:34,718 P3774774 INFO [Task: Like][Metrics] AUC: 0.740600 - logloss: 0.335752 - gAUC: 0.676377
-2026-07-12 22:19:45,465 P3774774 INFO [Task: Cart][Metrics] AUC: 0.795426 - logloss: 0.057551 - gAUC: 0.722761
-2026-07-12 22:19:55,314 P3774774 INFO [Task: Offer][Metrics] AUC: 0.772879 - logloss: 0.025853 - gAUC: 0.720030
-2026-07-12 22:20:04,361 P3774774 INFO [Task: Checkout][Metrics] AUC: 0.845995 - logloss: 0.013095 - gAUC: 0.770042
-2026-07-12 22:20:13,161 P3774774 INFO [Task: Purchase][Metrics] AUC: 0.847844 - logloss: 0.008310 - gAUC: 0.771915
+2026-07-12 22:19:34,718 P3774774 INFO [Task: Like][Metrics] AUC: 0.740600 - logloss: 0.335752
+2026-07-12 22:19:45,465 P3774774 INFO [Task: Cart][Metrics] AUC: 0.795426 - logloss: 0.057551
+2026-07-12 22:19:55,314 P3774774 INFO [Task: Offer][Metrics] AUC: 0.772879 - logloss: 0.025853
+2026-07-12 22:20:04,361 P3774774 INFO [Task: Checkout][Metrics] AUC: 0.845995 - logloss: 0.013095
+2026-07-12 22:20:13,161 P3774774 INFO [Task: Purchase][Metrics] AUC: 0.847844 - logloss: 0.008310
 2026-07-12 22:20:13,554 P3774774 INFO Save best model: monitor(max)=1.532774
 2026-07-12 22:20:24,272 P3774774 INFO ************ Epoch=1 end ************
 2026-07-12 22:20:24,272 P3774774 INFO Training finished.
@@ -153,9 +153,9 @@
 2026-07-12 22:20:30,644 P3774774 INFO Loading datasets...
 2026-07-12 22:20:30,680 P3774774 INFO Test samples: total/2919932, blocks/2
 2026-07-12 22:20:30,680 P3774774 INFO Loading test data done.
-2026-07-12 22:21:00,951 P3774774 INFO [Task: Like][Metrics] logloss: 0.334370 - AUC: 0.735846 - gAUC: 0.671460
-2026-07-12 22:21:09,251 P3774774 INFO [Task: Cart][Metrics] logloss: 0.054791 - AUC: 0.794930 - gAUC: 0.718242
-2026-07-12 22:21:16,624 P3774774 INFO [Task: Offer][Metrics] logloss: 0.023320 - AUC: 0.765872 - gAUC: 0.712466
-2026-07-12 22:21:23,063 P3774774 INFO [Task: Checkout][Metrics] logloss: 0.012188 - AUC: 0.843877 - gAUC: 0.767247
-2026-07-12 22:21:29,700 P3774774 INFO [Task: Purchase][Metrics] logloss: 0.007686 - AUC: 0.844321 - gAUC: 0.773666
+2026-07-12 22:21:00,951 P3774774 INFO [Task: Like][Metrics] logloss: 0.334370 - AUC: 0.735846
+2026-07-12 22:21:09,251 P3774774 INFO [Task: Cart][Metrics] logloss: 0.054791 - AUC: 0.794930
+2026-07-12 22:21:16,624 P3774774 INFO [Task: Offer][Metrics] logloss: 0.023320 - AUC: 0.765872
+2026-07-12 22:21:23,063 P3774774 INFO [Task: Checkout][Metrics] logloss: 0.012188 - AUC: 0.843877
+2026-07-12 22:21:29,700 P3774774 INFO [Task: Purchase][Metrics] logloss: 0.007686 - AUC: 0.844321
 2026-07-12 22:21:31,710 P3774774 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/Zenith_MerRec_Action.model

@@ -28,11 +28,11 @@
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
     "max_len": "100",
-    "metrics": "['logloss', 'AUC', 'gAUC']",
+    "metrics": "['logloss', 'AUC']",
     "model": "TokenMixer",
     "model_id": "TokenMixer_Taobao_Action",
     "model_root": "./checkpoints/",
-    "monitor": "{'AUC': 1, 'logloss': 0, 'gAUC': 1}",
+    "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
     "num_group_token": "4",
@@ -144,10 +144,10 @@
 2026-07-11 01:16:21,879 P2556583 INFO ************ Epoch=1 start ************
 2026-07-11 01:17:57,804 P2556583 INFO Train loss: 0.302394
 2026-07-11 01:17:57,805 P2556583 INFO Evaluation @epoch 1 - batch 270: 
-2026-07-11 01:18:11,131 P2556583 INFO [Task: is_click][Metrics] AUC: 0.649751 - logloss: 0.183910 - gAUC: 0.622156
-2026-07-11 01:18:12,557 P2556583 INFO [Task: cart][Metrics] AUC: 0.843931 - logloss: 0.020155 - gAUC: 0.782095
-2026-07-11 01:18:13,820 P2556583 INFO [Task: fav][Metrics] AUC: 0.861282 - logloss: 0.015098 - gAUC: 0.784828
-2026-07-11 01:18:15,116 P2556583 INFO [Task: buy][Metrics] AUC: 0.869449 - logloss: 0.008634 - gAUC: 0.807874
+2026-07-11 01:18:11,131 P2556583 INFO [Task: is_click][Metrics] AUC: 0.649751 - logloss: 0.183910
+2026-07-11 01:18:12,557 P2556583 INFO [Task: cart][Metrics] AUC: 0.843931 - logloss: 0.020155
+2026-07-11 01:18:13,820 P2556583 INFO [Task: fav][Metrics] AUC: 0.861282 - logloss: 0.015098
+2026-07-11 01:18:15,116 P2556583 INFO [Task: buy][Metrics] AUC: 0.869449 - logloss: 0.008634
 2026-07-11 01:18:15,168 P2556583 INFO Save best model: monitor(max)=1.555341
 2026-07-11 01:18:15,346 P2556583 INFO ************ Epoch=1 end ************
 2026-07-11 01:18:15,346 P2556583 INFO Training finished.
@@ -156,8 +156,8 @@
 2026-07-11 01:18:15,880 P2556583 INFO Loading datasets...
 2026-07-11 01:18:15,898 P2556583 INFO Test samples: total/726005, blocks/2
 2026-07-11 01:18:15,898 P2556583 INFO Loading test data done.
-2026-07-11 01:18:21,599 P2556583 INFO [Task: is_click][Metrics] logloss: 0.185467 - AUC: 0.645728 - gAUC: 0.617941
-2026-07-11 01:18:22,974 P2556583 INFO [Task: cart][Metrics] logloss: 0.017551 - AUC: 0.836596 - gAUC: 0.770212
-2026-07-11 01:18:24,276 P2556583 INFO [Task: fav][Metrics] logloss: 0.013284 - AUC: 0.858901 - gAUC: 0.784840
-2026-07-11 01:18:25,542 P2556583 INFO [Task: buy][Metrics] logloss: 0.006244 - AUC: 0.854685 - gAUC: 0.801357
+2026-07-11 01:18:21,599 P2556583 INFO [Task: is_click][Metrics] logloss: 0.185467 - AUC: 0.645728
+2026-07-11 01:18:22,974 P2556583 INFO [Task: cart][Metrics] logloss: 0.017551 - AUC: 0.836596
+2026-07-11 01:18:24,276 P2556583 INFO [Task: fav][Metrics] logloss: 0.013284 - AUC: 0.858901
+2026-07-11 01:18:25,542 P2556583 INFO [Task: buy][Metrics] logloss: 0.006244 - AUC: 0.854685
 2026-07-11 01:18:25,958 P2556583 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/Taobao_Action/TokenMixer_Taobao_Action.model

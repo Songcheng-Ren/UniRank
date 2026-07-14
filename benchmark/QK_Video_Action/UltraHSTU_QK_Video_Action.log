@@ -28,11 +28,11 @@
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
     "max_len": "100",
-    "metrics": "['logloss', 'AUC', 'gAUC']",
+    "metrics": "['logloss', 'AUC']",
     "model": "UltraHSTU",
     "model_id": "UltraHSTU_QK_Video_Action",
     "model_root": "./checkpoints/",
-    "monitor": "{'AUC': 1, 'logloss': 0, 'gAUC': 1}",
+    "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
     "num_heads": "1",
@@ -118,10 +118,10 @@
 2026-07-11 01:44:22,571 P2613734 INFO ************ Epoch=1 start ************
 2026-07-11 03:16:56,084 P2613734 INFO Train loss: 0.422712
 2026-07-11 03:16:56,087 P2613734 INFO Evaluation @epoch 1 - batch 12036: 
-2026-07-11 03:24:03,383 P2613734 INFO [Task: click][Metrics] AUC: 0.854862 - logloss: 0.409921 - gAUC: 0.842181
-2026-07-11 03:24:33,042 P2613734 INFO [Task: follow][Metrics] AUC: 0.844418 - logloss: 0.007857 - gAUC: 0.769341
-2026-07-11 03:25:09,620 P2613734 INFO [Task: like][Metrics] AUC: 0.915406 - logloss: 0.057783 - gAUC: 0.823586
-2026-07-11 03:25:39,335 P2613734 INFO [Task: share][Metrics] AUC: 0.880893 - logloss: 0.008739 - gAUC: 0.831076
+2026-07-11 03:24:03,383 P2613734 INFO [Task: click][Metrics] AUC: 0.854862 - logloss: 0.409921
+2026-07-11 03:24:33,042 P2613734 INFO [Task: follow][Metrics] AUC: 0.844418 - logloss: 0.007857
+2026-07-11 03:25:09,620 P2613734 INFO [Task: like][Metrics] AUC: 0.915406 - logloss: 0.057783
+2026-07-11 03:25:39,335 P2613734 INFO [Task: share][Metrics] AUC: 0.880893 - logloss: 0.008739
 2026-07-11 03:25:40,311 P2613734 INFO Save best model: monitor(max)=1.690441
 2026-07-11 03:25:41,106 P2613734 INFO ************ Epoch=1 end ************
 2026-07-11 03:25:41,106 P2613734 INFO Training finished.
@@ -130,8 +130,8 @@
 2026-07-11 03:25:43,159 P2613734 INFO Loading datasets...
 2026-07-11 03:25:43,240 P2613734 INFO Test samples: total/12144989, blocks/2
 2026-07-11 03:25:43,241 P2613734 INFO Loading test data done.
-2026-07-11 03:32:15,428 P2613734 INFO [Task: click][Metrics] logloss: 0.337162 - AUC: 0.881358 - gAUC: 0.869862
-2026-07-11 03:32:43,458 P2613734 INFO [Task: follow][Metrics] logloss: 0.005648 - AUC: 0.851129 - gAUC: 0.771210
-2026-07-11 03:33:17,973 P2613734 INFO [Task: like][Metrics] logloss: 0.045487 - AUC: 0.918069 - gAUC: 0.823310
-2026-07-11 03:33:46,349 P2613734 INFO [Task: share][Metrics] logloss: 0.006062 - AUC: 0.900917 - gAUC: 0.853090
+2026-07-11 03:32:15,428 P2613734 INFO [Task: click][Metrics] logloss: 0.337162 - AUC: 0.881358
+2026-07-11 03:32:43,458 P2613734 INFO [Task: follow][Metrics] logloss: 0.005648 - AUC: 0.851129
+2026-07-11 03:33:17,973 P2613734 INFO [Task: like][Metrics] logloss: 0.045487 - AUC: 0.918069
+2026-07-11 03:33:46,349 P2613734 INFO [Task: share][Metrics] logloss: 0.006062 - AUC: 0.900917
 2026-07-11 03:33:48,027 P2613734 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/QK_Video_Action/UltraHSTU_QK_Video_Action.model

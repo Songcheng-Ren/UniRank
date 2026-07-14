@@ -26,11 +26,11 @@
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
     "max_len": "100",
-    "metrics": "['logloss', 'AUC', 'gAUC']",
+    "metrics": "['logloss', 'AUC']",
     "model": "MixFormer",
     "model_id": "MixFormer_MerRec_Action",
     "model_root": "./checkpoints/",
-    "monitor": "{'AUC': 1, 'logloss': 0, 'gAUC': 1}",
+    "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
     "num_layers": "3",
@@ -137,11 +137,11 @@
 2026-07-12 19:45:10,303 P3631960 INFO ************ Epoch=1 start ************
 2026-07-12 20:12:11,872 P3631960 INFO Train loss: 0.367253
 2026-07-12 20:12:11,885 P3631960 INFO Evaluation @epoch 1 - batch 4405: 
-2026-07-12 20:13:21,486 P3631960 INFO [Task: Like][Metrics] AUC: 0.730953 - logloss: 0.347846 - gAUC: 0.664588
-2026-07-12 20:13:32,328 P3631960 INFO [Task: Cart][Metrics] AUC: 0.797458 - logloss: 0.057109 - gAUC: 0.710058
-2026-07-12 20:13:42,199 P3631960 INFO [Task: Offer][Metrics] AUC: 0.755726 - logloss: 0.024243 - gAUC: 0.679211
-2026-07-12 20:13:51,010 P3631960 INFO [Task: Checkout][Metrics] AUC: 0.854443 - logloss: 0.006505 - gAUC: 0.740496
-2026-07-12 20:13:59,691 P3631960 INFO [Task: Purchase][Metrics] AUC: 0.856653 - logloss: 0.004461 - gAUC: 0.744413
+2026-07-12 20:13:21,486 P3631960 INFO [Task: Like][Metrics] AUC: 0.730953 - logloss: 0.347846
+2026-07-12 20:13:32,328 P3631960 INFO [Task: Cart][Metrics] AUC: 0.797458 - logloss: 0.057109
+2026-07-12 20:13:42,199 P3631960 INFO [Task: Offer][Metrics] AUC: 0.755726 - logloss: 0.024243
+2026-07-12 20:13:51,010 P3631960 INFO [Task: Checkout][Metrics] AUC: 0.854443 - logloss: 0.006505
+2026-07-12 20:13:59,691 P3631960 INFO [Task: Purchase][Metrics] AUC: 0.856653 - logloss: 0.004461
 2026-07-12 20:14:00,133 P3631960 INFO Save best model: monitor(max)=1.506800
 2026-07-12 20:14:04,550 P3631960 INFO ************ Epoch=1 end ************
 2026-07-12 20:14:04,550 P3631960 INFO Training finished.
@@ -150,9 +150,9 @@
 2026-07-12 20:14:07,645 P3631960 INFO Loading datasets...
 2026-07-12 20:14:07,685 P3631960 INFO Test samples: total/2919932, blocks/2
 2026-07-12 20:14:07,685 P3631960 INFO Loading test data done.
-2026-07-12 20:14:57,824 P3631960 INFO [Task: Like][Metrics] logloss: 0.343278 - AUC: 0.731176 - gAUC: 0.663221
-2026-07-12 20:15:05,809 P3631960 INFO [Task: Cart][Metrics] logloss: 0.053723 - AUC: 0.801221 - gAUC: 0.708051
-2026-07-12 20:15:13,046 P3631960 INFO [Task: Offer][Metrics] logloss: 0.021236 - AUC: 0.756290 - gAUC: 0.676576
-2026-07-12 20:15:19,421 P3631960 INFO [Task: Checkout][Metrics] logloss: 0.005509 - AUC: 0.855206 - gAUC: 0.738613
-2026-07-12 20:15:25,787 P3631960 INFO [Task: Purchase][Metrics] logloss: 0.003678 - AUC: 0.856082 - gAUC: 0.745343
+2026-07-12 20:14:57,824 P3631960 INFO [Task: Like][Metrics] logloss: 0.343278 - AUC: 0.731176
+2026-07-12 20:15:05,809 P3631960 INFO [Task: Cart][Metrics] logloss: 0.053723 - AUC: 0.801221
+2026-07-12 20:15:13,046 P3631960 INFO [Task: Offer][Metrics] logloss: 0.021236 - AUC: 0.756290
+2026-07-12 20:15:19,421 P3631960 INFO [Task: Checkout][Metrics] logloss: 0.005509 - AUC: 0.855206
+2026-07-12 20:15:25,787 P3631960 INFO [Task: Purchase][Metrics] logloss: 0.003678 - AUC: 0.856082
 2026-07-12 20:15:27,075 P3631960 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/MixFormer_MerRec_Action.model
