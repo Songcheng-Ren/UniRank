@@ -23,7 +23,7 @@ Base:
     save_best_only: True
     eval_steps: null
     debug_mode: False
-    group_id: user_index
+    group_id: user_id
     use_features: null
     feature_specs: null
     feature_config: null
