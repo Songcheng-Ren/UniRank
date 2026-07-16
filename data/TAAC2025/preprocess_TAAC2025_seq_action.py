@@ -1187,9 +1187,9 @@ def preprocess_and_split_blocked(
     output_dir: str = "../TencentGR_10M_Action_Blocked",
     min_user_interactions: int = 10,
     n_user_parts: int = 32,
-    seq_batch_rows: int = 50000,
-    buffer_flush_size: int = 500000,
-    train_blocks: int = 16,
+    seq_batch_rows: int = 4_000_000,
+    buffer_flush_size: int = 1_000_000,
+    train_blocks: int = 32,
     valid_blocks: int = 8,
     test_blocks: int = 8,
     overwrite: bool = False,
@@ -1197,6 +1197,17 @@ def preprocess_and_split_blocked(
 ):
     data_dir = Path(data_dir)
     output_dir = Path(output_dir)
+
+    block_counts = (int(train_blocks), int(valid_blocks), int(test_blocks))
+    if min(block_counts) <= 0:
+        raise ValueError("train_blocks / valid_blocks / test_blocks 必须为正整数。")
+    target_blocks = max(block_counts)
+    if n_user_parts < target_blocks:
+        print(
+            f"[Config] n_user_parts={n_user_parts} 小于最大目标 block 数 {target_blocks}，"
+            f"自动调整为 {target_blocks}，避免目标 block 无法全部生成。"
+        )
+        n_user_parts = target_blocks
 
     prepare_output_dir(output_dir, overwrite=overwrite, data_dir=data_dir)
     tmp_dir = output_dir / "_tmp_partitions"
@@ -1453,6 +1464,7 @@ def preprocess_and_split_blocked(
             "freq_source": "基于日志中 user/item 出现次数 * 特征值计算",
         },
         "blocked_layout": {
+            "n_user_parts": int(n_user_parts),
             "train_blocks": int(train_blocks),
             "valid_blocks": int(valid_blocks),
             "test_blocks": int(test_blocks),
@@ -1584,12 +1596,12 @@ def parse_args():
 
     parser.add_argument("--n_user_parts", type=int, default=20,
                         help="Phase1 按 user hash 的临时分区数，建议 >= max(train_blocks, valid_blocks, test_blocks)")
-    parser.add_argument("--seq_batch_rows", type=int, default=1_000_000,
+    parser.add_argument("--seq_batch_rows", type=int, default=4_000_000,
                         help="读取 seq.parquet 时单次处理多少行 user-record")
-    parser.add_argument("--buffer_flush_size", type=int, default=2_000_000,
+    parser.add_argument("--buffer_flush_size", type=int, default=1_000_000,
                         help="临时分区缓存多少 interaction 后落盘")
 
-    parser.add_argument("--train_blocks", type=int, default=16)
+    parser.add_argument("--train_blocks", type=int, default=32)
     parser.add_argument("--valid_blocks", type=int, default=8)
     parser.add_argument("--test_blocks", type=int, default=8)
 

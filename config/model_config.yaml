@@ -1,6 +1,6 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -48,6 +48,7 @@ RankMixer_QK_Video_Action: # This is a config template
     expansion_factor: 2
     token_dim: 256
     num_ns_token: 4
+    tokenizer_type: Chunk
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -60,7 +61,7 @@ RankMixer_QK_Video_Action: # This is a config template
     max_len: 100
     accumulation_steps: 1
 
-RankMixer_KuaiRand_Video_Action_Small: # This is a config template
+RankMixer_KuaiRand_Video_Action_Small: &rankmixer_kuairand_tokenizer_base # This is a config template
     model: RankMixer
     dataset_id: KuaiRand_Video_Action
     loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
@@ -73,6 +74,7 @@ RankMixer_KuaiRand_Video_Action_Small: # This is a config template
     expansion_factor: 2
     token_dim: 256
     num_ns_token: 4
+    tokenizer_type: Chunk
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -84,6 +86,19 @@ RankMixer_KuaiRand_Video_Action_Small: # This is a config template
     monitor_mode: 'max'
     max_len: 100
     accumulation_steps: 1
+
+RankMixer_KuaiRand_Video_Action_Tokenizer_Auto:
+    <<: *rankmixer_kuairand_tokenizer_base
+    tokenizer_type: Auto
+
+RankMixer_KuaiRand_Video_Action_Tokenizer_Field:
+    <<: *rankmixer_kuairand_tokenizer_base
+    token_dim: 128
+    tokenizer_type: Field
+
+RankMixer_KuaiRand_Video_Action_Tokenizer_Random:
+    <<: *rankmixer_kuairand_tokenizer_base
+    tokenizer_type: Random
 
 RankMixer_KuaiRand_Video_Action_Mid: # This is a config template
     model: RankMixer
@@ -98,6 +113,7 @@ RankMixer_KuaiRand_Video_Action_Mid: # This is a config template
     expansion_factor: 2
     token_dim: 512
     num_ns_token: 8
+    tokenizer_type: Chunk
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -123,6 +139,7 @@ RankMixer_KuaiRand_Video_Action_Large: # This is a config template
     expansion_factor: 2
     token_dim: 1024
     num_ns_token: 16
+    tokenizer_type: Chunk
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -142,12 +159,13 @@ RankMixer_KuaiRand_Video_Action_Ultra: # This is a config template
     num_tasks: 6
     metrics: ['logloss', 'AUC']
     task: binary_classification
-    batch_size: 8192
+    batch_size: 4096
     embedding_dim: 16
     num_layers: 3
     expansion_factor: 2
     token_dim: 1024
     num_ns_token: 16
+    tokenizer_type: Chunk
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -158,7 +176,7 @@ RankMixer_KuaiRand_Video_Action_Ultra: # This is a config template
     monitor: {'AUC': 1, 'logloss': 0}
     monitor_mode: 'max'
     max_len: 1000
-    accumulation_steps: 1
+    accumulation_steps: 2
     gradient_checkpointing: True
 
 RankMixer_TencentGR_10M_Action: # This is a config template
@@ -174,6 +192,7 @@ RankMixer_TencentGR_10M_Action: # This is a config template
     expansion_factor: 2
     token_dim: 256
     num_ns_token: 4
+    tokenizer_type: Chunk
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -199,6 +218,7 @@ RankMixer_Taobao_Action: # This is a config template
     expansion_factor: 2
     token_dim: 256
     num_ns_token: 4
+    tokenizer_type: Chunk
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -211,7 +231,7 @@ RankMixer_Taobao_Action: # This is a config template
     max_len: 100
     accumulation_steps: 1
 
-RankMixer_MerRec_Action_Small: # This is a config template
+RankMixer_MerRec_Action: &rankmixer_merrec_tokenizer_base # This is a config template
     model: RankMixer
     dataset_id: MerRec_Action
     loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
@@ -224,6 +244,7 @@ RankMixer_MerRec_Action_Small: # This is a config template
     expansion_factor: 2
     token_dim: 256
     num_ns_token: 4
+    tokenizer_type: Chunk
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -236,81 +257,18 @@ RankMixer_MerRec_Action_Small: # This is a config template
     max_len: 100
     accumulation_steps: 1
 
-RankMixer_MerRec_Action_Mid: # This is a config template
-    model: RankMixer
-    dataset_id: MerRec_Action
-    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
-    num_tasks: 5
-    metrics: ['logloss', 'AUC']
-    task: binary_classification
-    batch_size: 8192
-    embedding_dim: 16
-    num_layers: 3
-    expansion_factor: 2
-    token_dim: 512
-    num_ns_token: 8
-    tower_hidden_units: [128, 64]
-    tower_activations: ReLU
-    attention_dropout: 0
-    net_dropout: 0
-    epochs: 1
-    shuffle: True
-    seed: 20262027
-    monitor: {'AUC': 1, 'logloss': 0}
-    monitor_mode: 'max'
-    max_len: 200
-    accumulation_steps: 1
+RankMixer_MerRec_Action_Tokenizer_Auto:
+    <<: *rankmixer_merrec_tokenizer_base
+    tokenizer_type: Auto
 
-RankMixer_MerRec_Action_Large: # This is a config template
-    model: RankMixer
-    dataset_id: MerRec_Action
-    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
-    num_tasks: 5
-    metrics: ['logloss', 'AUC']
-    task: binary_classification
-    batch_size: 8192
-    embedding_dim: 16
-    num_layers: 3
-    expansion_factor: 2
-    token_dim: 1024
-    num_ns_token: 16
-    tower_hidden_units: [128, 64]
-    tower_activations: ReLU
-    attention_dropout: 0
-    net_dropout: 0
-    epochs: 1
-    shuffle: True
-    seed: 20262027
-    monitor: {'AUC': 1, 'logloss': 0}
-    monitor_mode: 'max'
-    max_len: 400
-    accumulation_steps: 1
+RankMixer_MerRec_Action_Tokenizer_Field:
+    <<: *rankmixer_merrec_tokenizer_base
+    token_dim: 128
+    tokenizer_type: Field
 
-RankMixer_MerRec_Action_Ultra: # This is a config template
-    model: RankMixer
-    dataset_id: MerRec_Action
-    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
-    num_tasks: 5
-    metrics: ['logloss', 'AUC']
-    task: binary_classification
-    batch_size: 8192
-    embedding_dim: 16
-    num_layers: 3
-    expansion_factor: 2
-    token_dim: 1024
-    num_ns_token: 16
-    tower_hidden_units: [128, 64]
-    tower_activations: ReLU
-    attention_dropout: 0
-    net_dropout: 0
-    epochs: 1
-    shuffle: True
-    seed: 20262027
-    monitor: {'AUC': 1, 'logloss': 0}
-    monitor_mode: 'max'
-    max_len: 1000
-    accumulation_steps: 1
-    gradient_checkpointing: True
+RankMixer_MerRec_Action_Tokenizer_Random:
+    <<: *rankmixer_merrec_tokenizer_base
+    tokenizer_type: Random
 
 UniMixer_QK_Video_Action: # This is a config template
     model: UniMixer
@@ -506,6 +464,7 @@ OneTrans_QK_Video_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
+    tokenizer_type: Auto
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -517,7 +476,7 @@ OneTrans_QK_Video_Action: # This is a config template
     max_len: 100
     accumulation_steps: 1
 
-OneTrans_KuaiRand_Video_Action: # This is a config template
+OneTrans_KuaiRand_Video_Action: &onetrans_kuairand_tokenizer_base # This is a config template
     model: OneTrans
     dataset_id: KuaiRand_Video_Action
     loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
@@ -531,6 +490,7 @@ OneTrans_KuaiRand_Video_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
+    tokenizer_type: Auto
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -541,6 +501,19 @@ OneTrans_KuaiRand_Video_Action: # This is a config template
     monitor_mode: 'max'
     max_len: 100
     accumulation_steps: 1
+
+OneTrans_KuaiRand_Video_Action_Tokenizer_Chunk:
+    <<: *onetrans_kuairand_tokenizer_base
+    tokenizer_type: Chunk
+
+OneTrans_KuaiRand_Video_Action_Tokenizer_Field:
+    <<: *onetrans_kuairand_tokenizer_base
+    token_dim: 128
+    tokenizer_type: Field
+
+OneTrans_KuaiRand_Video_Action_Tokenizer_Random:
+    <<: *onetrans_kuairand_tokenizer_base
+    tokenizer_type: Random
 
 OneTrans_TencentGR_10M_Action: # This is a config template
     model: OneTrans
@@ -556,6 +529,7 @@ OneTrans_TencentGR_10M_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
+    tokenizer_type: Auto
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -581,6 +555,7 @@ OneTrans_Taobao_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
+    tokenizer_type: Auto
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -592,7 +567,7 @@ OneTrans_Taobao_Action: # This is a config template
     max_len: 100
     accumulation_steps: 1
 
-OneTrans_MerRec_Action: # This is a config template
+OneTrans_MerRec_Action: &onetrans_merrec_tokenizer_base # This is a config template
     model: OneTrans
     dataset_id: MerRec_Action
     loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
@@ -606,6 +581,7 @@ OneTrans_MerRec_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
+    tokenizer_type: Auto
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -616,6 +592,19 @@ OneTrans_MerRec_Action: # This is a config template
     monitor_mode: 'max'
     max_len: 100
     accumulation_steps: 1
+
+OneTrans_MerRec_Action_Tokenizer_Chunk:
+    <<: *onetrans_merrec_tokenizer_base
+    tokenizer_type: Chunk
+
+OneTrans_MerRec_Action_Tokenizer_Field:
+    <<: *onetrans_merrec_tokenizer_base
+    token_dim: 128
+    tokenizer_type: Field
+
+OneTrans_MerRec_Action_Tokenizer_Random:
+    <<: *onetrans_merrec_tokenizer_base
+    tokenizer_type: Random
 
 HyFormer_QK_Video_Action: # This is a config template
     model: HyFormer
@@ -631,7 +620,7 @@ HyFormer_QK_Video_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
-    num_global_token: 4
+    num_global_token: 2
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -657,7 +646,7 @@ HyFormer_KuaiRand_Video_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
-    num_global_token: 4
+    num_global_token: 2
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -683,7 +672,7 @@ HyFormer_TencentGR_10M_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
-    num_global_token: 4
+    num_global_token: 2
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -709,7 +698,7 @@ HyFormer_Taobao_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
-    num_global_token: 4
+    num_global_token: 2
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -735,7 +724,7 @@ HyFormer_MerRec_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
-    num_global_token: 4
+    num_global_token: 2
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -1129,7 +1118,7 @@ INFNet_QK_Video_Action: # This is a config template
     num_tasks: 4
     num_layers: 3
     token_dim: 256
-    num_c_hub_token: 8
+    num_c_hub_token: 4
     num_t_hub_token: 2
     tower_activations: ReLU
     net_dropout: 0
@@ -1153,7 +1142,7 @@ INFNet_KuaiRand_Video_Action: # This is a config template
     num_tasks: 6
     num_layers: 3
     token_dim: 256
-    num_c_hub_token: 8
+    num_c_hub_token: 4
     num_t_hub_token: 2
     tower_activations: ReLU
     net_dropout: 0
@@ -1177,7 +1166,7 @@ INFNet_TencentGR_10M_Action: # This is a config template
     num_tasks: 2
     num_layers: 3
     token_dim: 256
-    num_c_hub_token: 8
+    num_c_hub_token: 4
     num_t_hub_token: 2
     tower_activations: ReLU
     net_dropout: 0
@@ -1201,7 +1190,7 @@ INFNet_Taobao_Action: # This is a config template
     num_tasks: 4
     num_layers: 3
     token_dim: 256
-    num_c_hub_token: 8
+    num_c_hub_token: 4
     num_t_hub_token: 2
     tower_activations: ReLU
     net_dropout: 0
@@ -1225,7 +1214,7 @@ INFNet_MerRec_Action: # This is a config template
     num_tasks: 5
     num_layers: 3
     token_dim: 256
-    num_c_hub_token: 8
+    num_c_hub_token: 4
     num_t_hub_token: 2
     tower_activations: ReLU
     net_dropout: 0
@@ -1505,7 +1494,7 @@ Zenith_QK_Video_Action: # This is a config template
     expansion_factor: 2
     id_dim: 48
     token_dim: 256
-    num_token: 4
+    num_token: 2
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -1531,7 +1520,7 @@ Zenith_KuaiRand_Video_Action: # This is a config template
     expansion_factor: 2
     id_dim: 48
     token_dim: 256
-    num_token: 4
+    num_token: 2
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -1557,7 +1546,7 @@ Zenith_TencentGR_10M_Action: # This is a config template
     expansion_factor: 2
     id_dim: 48
     token_dim: 256
-    num_token: 4
+    num_token: 2
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -1583,7 +1572,7 @@ Zenith_Taobao_Action: # This is a config template
     expansion_factor: 2
     id_dim: 48
     token_dim: 256
-    num_token: 4
+    num_token: 2
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -1609,7 +1598,7 @@ Zenith_MerRec_Action: # This is a config template
     expansion_factor: 2
     id_dim: 48
     token_dim: 256
-    num_token: 4
+    num_token: 2
     tower_hidden_units: [128, 64]
     tower_activations: ReLU
     attention_dropout: 0
@@ -1634,7 +1623,7 @@ HeMix_QK_Video_Action: # This is a config template
     num_tasks: 4
     num_layers: 3
     token_dim: 256
-    num_glocal_token: 4
+    num_glocal_token: 2
     num_real_token: 2
     num_mix_heads: 2
     low_rank_dim: 16
@@ -1661,7 +1650,7 @@ HeMix_KuaiRand_Video_Action: # This is a config template
     num_tasks: 6
     num_layers: 3
     token_dim: 256
-    num_glocal_token: 4
+    num_glocal_token: 2
     num_real_token: 2
     num_mix_heads: 2
     low_rank_dim: 16
@@ -1688,7 +1677,7 @@ HeMix_TencentGR_10M_Action: # This is a config template
     num_tasks: 2
     num_layers: 3
     token_dim: 256
-    num_glocal_token: 4
+    num_glocal_token: 2
     num_real_token: 2
     num_mix_heads: 2
     low_rank_dim: 16
@@ -1715,7 +1704,7 @@ HeMix_Taobao_Action: # This is a config template
     num_tasks: 4
     num_layers: 3
     token_dim: 256
-    num_glocal_token: 4
+    num_glocal_token: 2
     num_real_token: 2
     num_mix_heads: 2
     low_rank_dim: 16
@@ -1742,7 +1731,7 @@ HeMix_MerRec_Action: # This is a config template
     num_tasks: 5
     num_layers: 3
     token_dim: 256
-    num_glocal_token: 4
+    num_glocal_token: 2
     num_real_token: 2
     num_mix_heads: 2
     low_rank_dim: 16

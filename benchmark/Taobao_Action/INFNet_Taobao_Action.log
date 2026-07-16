@@ -1,5 +1,4 @@
-2026-07-09 17:25:39,448 P1260441 INFO UniRank version: 2.3.7
-2026-07-09 17:25:39,449 P1260441 INFO Params: {
+2026-07-15 22:02:29,364 P1899072 INFO Params: {
     "accumulation_steps": "1",
     "batch_size": "8192",
     "block_cache_size": "2",
@@ -15,13 +14,15 @@
     "early_stop_patience": "2",
     "embedding_dim": "16",
     "enable_bf16": "True",
+    "enable_torch_compile": "True",
     "epochs": "1",
     "eval_steps": "None",
-    "feature_cols": "[{'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 470571}, {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 846812, 'source': 'item'}, {'name': 'cate_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 6409, 'source': 'item'}, {'name': 'campaign_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 354106, 'source': 'item'}, {'name': 'customer_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 2, 'source': 'item'}, {'name': 'brand', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 88145, 'source': 'item'}, {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11, 'source': 'item'}, {'name': 'cms_segid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 99}, {'name': 'cms_group_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 15}, {'name': 'final_gender_code', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'age_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}, {'name': 'pvalue_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'shopping_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'occupation', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'new_user_class_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 2}, {'name': 'pid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}, {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}, {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}, {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17, 'source': 'action'}]",
+    "feature_cols": "[{'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 470571}, {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 846812, 'source': 'item'}, {'name': 'cate_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 6409, 'source': 'item'}, {'name': 'campaign_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 354106, 'source': 'item'}, {'name': 'customer_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 220826, 'source': 'item'}, {'name': 'brand', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 88145, 'source': 'item'}, {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11, 'source': 'item'}, {'name': 'cms_segid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 99}, {'name': 'cms_group_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 15}, {'name': 'final_gender_code', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'age_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}, {'name': 'pvalue_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'shopping_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'occupation', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'new_user_class_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 6}, {'name': 'pid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}, {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}, {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17, 'source': 'action'}]",
     "feature_config": "None",
     "feature_specs": "None",
     "gpu": "0",
-    "group_id": "user_index",
+    "gradient_checkpointing": "False",
+    "group_id": "user_id",
     "label_col": "[{'name': 'is_click', 'dtype': 'float'}, {'name': 'cart', 'dtype': 'float'}, {'name': 'fav', 'dtype': 'float'}, {'name': 'buy', 'dtype': 'float'}]",
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
@@ -33,7 +34,7 @@
     "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
-    "num_c_hub_token": "8",
+    "num_c_hub_token": "4",
     "num_layers": "3",
     "num_t_hub_token": "2",
     "num_tasks": "4",
@@ -63,39 +64,38 @@
     "verbose": "1",
     "world_size": "4"
 }
-2026-07-09 17:25:39,451 P1260441 INFO Set up feature processor...
-2026-07-09 17:25:39,451 P1260441 INFO Fit feature processor...
-2026-07-09 17:25:39,451 P1260441 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-09 17:25:39,451 P1260441 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-09 17:25:39,451 P1260441 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-09 17:25:39,451 P1260441 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 470571}
-2026-07-09 17:25:39,541 P1260441 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 846812, 'source': 'item'}
-2026-07-09 17:25:39,708 P1260441 INFO Processing column: {'name': 'cate_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 6409, 'source': 'item'}
-2026-07-09 17:25:39,710 P1260441 INFO Processing column: {'name': 'campaign_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 354106, 'source': 'item'}
-2026-07-09 17:25:39,777 P1260441 INFO Processing column: {'name': 'customer_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 2, 'source': 'item'}
-2026-07-09 17:25:39,777 P1260441 INFO Processing column: {'name': 'brand', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 88145, 'source': 'item'}
-2026-07-09 17:25:39,792 P1260441 INFO Processing column: {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11, 'source': 'item'}
-2026-07-09 17:25:39,792 P1260441 INFO Processing column: {'name': 'cms_segid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 99}
-2026-07-09 17:25:39,792 P1260441 INFO Processing column: {'name': 'cms_group_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 15}
-2026-07-09 17:25:39,792 P1260441 INFO Processing column: {'name': 'final_gender_code', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-09 17:25:39,793 P1260441 INFO Processing column: {'name': 'age_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
-2026-07-09 17:25:39,793 P1260441 INFO Processing column: {'name': 'pvalue_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-09 17:25:39,793 P1260441 INFO Processing column: {'name': 'shopping_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-09 17:25:39,793 P1260441 INFO Processing column: {'name': 'occupation', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-09 17:25:39,793 P1260441 INFO Processing column: {'name': 'new_user_class_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 2}
-2026-07-09 17:25:39,793 P1260441 INFO Processing column: {'name': 'pid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-09 17:25:39,793 P1260441 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
-2026-07-09 17:25:39,793 P1260441 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
-2026-07-09 17:25:39,793 P1260441 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
-2026-07-09 17:25:39,793 P1260441 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17, 'source': 'action'}
-2026-07-09 17:25:39,794 P1260441 INFO Set column index...
-2026-07-09 17:25:39,794 P1260441 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_map.json
-2026-07-09 17:25:39,860 P1260441 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_processor.pkl
-2026-07-09 17:25:39,983 P1260441 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_vocab.json
-2026-07-09 17:25:41,625 P1260441 INFO Set feature processor done.
-2026-07-09 17:25:41,651 P1260441 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_map.json
-2026-07-09 17:25:41,652 P1260441 INFO Set column index...
-2026-07-09 17:25:41,653 P1260441 INFO Feature specs: {
+2026-07-15 22:02:29,366 P1899072 INFO Set up feature processor...
+2026-07-15 22:02:29,366 P1899072 INFO Fit feature processor...
+2026-07-15 22:02:29,366 P1899072 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 22:02:29,367 P1899072 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 22:02:29,367 P1899072 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 22:02:29,367 P1899072 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 470571}
+2026-07-15 22:02:29,455 P1899072 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 846812, 'source': 'item'}
+2026-07-15 22:02:29,615 P1899072 INFO Processing column: {'name': 'cate_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 6409, 'source': 'item'}
+2026-07-15 22:02:29,620 P1899072 INFO Processing column: {'name': 'campaign_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 354106, 'source': 'item'}
+2026-07-15 22:02:29,689 P1899072 INFO Processing column: {'name': 'customer_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 220826, 'source': 'item'}
+2026-07-15 22:02:29,729 P1899072 INFO Processing column: {'name': 'brand', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 88145, 'source': 'item'}
+2026-07-15 22:02:29,744 P1899072 INFO Processing column: {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11, 'source': 'item'}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'cms_segid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 99}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'cms_group_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 15}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'final_gender_code', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'age_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'pvalue_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'shopping_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'occupation', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'new_user_class_level', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 6}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'pid', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-15 22:02:29,745 P1899072 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
+2026-07-15 22:02:29,746 P1899072 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17, 'source': 'action'}
+2026-07-15 22:02:29,746 P1899072 INFO Set column index...
+2026-07-15 22:02:29,746 P1899072 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_map.json
+2026-07-15 22:02:29,811 P1899072 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_processor.pkl
+2026-07-15 22:02:29,939 P1899072 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_vocab.json
+2026-07-15 22:02:31,709 P1899072 INFO Set feature processor done.
+2026-07-15 22:02:31,729 P1899072 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action/feature_map.json
+2026-07-15 22:02:31,730 P1899072 INFO Set column index...
+2026-07-15 22:02:31,730 P1899072 INFO Feature specs: {
     "action": "{'source': 'action', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 17}",
     "age_level": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 9}",
     "brand": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 88145}",
@@ -103,14 +103,13 @@
     "cate_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 6409}",
     "cms_group_id": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 15}",
     "cms_segid": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 99}",
-    "customer_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 2}",
-    "day_of_week": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 8}",
+    "customer_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 220826}",
     "final_gender_code": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 4}",
     "hour": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 25}",
     "is_weekend": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 3}",
     "item_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 846812}",
     "item_index": "{'type': 'meta'}",
-    "new_user_class_level": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 2}",
+    "new_user_class_level": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 6}",
     "occupation": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 4}",
     "pid": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 4}",
     "price_bucket": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 11}",
@@ -120,47 +119,48 @@
     "user_id": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 470571}",
     "user_index": "{'type': 'meta'}"
 }
-2026-07-09 17:25:42,005 P1260441 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=23515396), sparse=Adagrad(lr=0.05, params=28260096)
-2026-07-09 17:25:42,006 P1260441 INFO ************ compile start ************
-2026-07-09 17:25:43,117 P1260441 INFO Compiled dense module: tokenizer_layer
-2026-07-09 17:25:43,119 P1260441 INFO Compiled dense module: seq_org_proj
-2026-07-09 17:25:43,120 P1260441 INFO Compiled dense module: unified_layers
-2026-07-09 17:25:43,121 P1260441 INFO Compiled dense module: seq_hub_projs.0
-2026-07-09 17:25:43,122 P1260441 INFO Compiled dense module: seq_hub_projs.1
-2026-07-09 17:25:43,123 P1260441 INFO Compiled dense module: seq_hub_projs.2
-2026-07-09 17:25:43,124 P1260441 INFO Compiled dense module: seq_hub_projs.3
-2026-07-09 17:25:43,125 P1260441 INFO Compiled dense module: tower.0
-2026-07-09 17:25:43,126 P1260441 INFO Compiled dense module: tower.1
-2026-07-09 17:25:43,127 P1260441 INFO Compiled dense module: tower.2
-2026-07-09 17:25:43,128 P1260441 INFO Compiled dense module: tower.3
-2026-07-09 17:25:43,490 P1260441 INFO Total number of parameters: 51775492.
-2026-07-09 17:25:43,490 P1260441 INFO Number of embedding parameters: 28260096.
-2026-07-09 17:25:43,490 P1260441 INFO Number of dense parameters: 23515396.
-2026-07-09 17:25:43,490 P1260441 INFO Loading datasets...
-2026-07-09 17:25:43,525 P1260441 INFO Train samples: total/2218860, blocks/2
-2026-07-09 17:25:43,542 P1260441 INFO Validation samples: total/722353, blocks/2
-2026-07-09 17:25:43,542 P1260441 INFO Loading train and validation data done.
-2026-07-09 17:25:43,551 P1260441 INFO BF16 mixed precision: True
-2026-07-09 17:25:43,551 P1260441 INFO Start training: 270 local batches/epoch
-2026-07-09 17:25:43,551 P1260441 INFO DDP blocked training: True
-2026-07-09 17:25:43,551 P1260441 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
-2026-07-09 17:25:43,551 P1260441 INFO ************ Epoch=1 start ************
-2026-07-09 17:29:00,278 P1260441 INFO Train loss: 0.262447
-2026-07-09 17:29:00,283 P1260441 INFO Evaluation @epoch 1 - batch 270: 
-2026-07-09 17:29:22,287 P1260441 INFO [Task: is_click][Metrics] AUC: 0.637998 - logloss: 0.185509
-2026-07-09 17:29:23,512 P1260441 INFO [Task: cart][Metrics] AUC: 0.838943 - logloss: 0.020649
-2026-07-09 17:29:24,694 P1260441 INFO [Task: fav][Metrics] AUC: 0.855861 - logloss: 0.015884
-2026-07-09 17:29:25,807 P1260441 INFO [Task: buy][Metrics] AUC: 0.864499 - logloss: 0.008838
-2026-07-09 17:29:25,866 P1260441 INFO Save best model: monitor(max)=1.533626
-2026-07-09 17:29:26,117 P1260441 INFO ************ Epoch=1 end ************
-2026-07-09 17:29:26,119 P1260441 INFO Training finished.
-2026-07-09 17:29:26,119 P1260441 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/Taobao_Action/INFNet_Taobao_Action.model
-2026-07-09 17:29:26,886 P1260441 INFO ******** Test evaluation ********
-2026-07-09 17:29:26,887 P1260441 INFO Loading datasets...
-2026-07-09 17:29:26,905 P1260441 INFO Test samples: total/726005, blocks/2
-2026-07-09 17:29:26,906 P1260441 INFO Loading test data done.
-2026-07-09 17:29:35,195 P1260441 INFO [Task: is_click][Metrics] logloss: 0.187018 - AUC: 0.632517
-2026-07-09 17:29:36,526 P1260441 INFO [Task: cart][Metrics] logloss: 0.018404 - AUC: 0.831975
-2026-07-09 17:29:37,840 P1260441 INFO [Task: fav][Metrics] logloss: 0.014107 - AUC: 0.850655
-2026-07-09 17:29:39,033 P1260441 INFO [Task: buy][Metrics] logloss: 0.006386 - AUC: 0.852461
-2026-07-09 17:29:39,680 P1260441 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/Taobao_Action/INFNet_Taobao_Action.model
+2026-07-15 22:02:32,090 P1899072 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=20017668), sparse=Adagrad(lr=0.05, params=31793216)
+2026-07-15 22:02:32,091 P1899072 INFO ************ compile start ************
+2026-07-15 22:02:33,225 P1899072 INFO Compiled dense module: unified_tokenizer_layer
+2026-07-15 22:02:33,227 P1899072 INFO Compiled dense module: seq_org_proj
+2026-07-15 22:02:33,228 P1899072 INFO Compiled dense module: unified_interaction_layers
+2026-07-15 22:02:33,229 P1899072 INFO Compiled dense module: seq_hub_projs.0
+2026-07-15 22:02:33,230 P1899072 INFO Compiled dense module: seq_hub_projs.1
+2026-07-15 22:02:33,231 P1899072 INFO Compiled dense module: seq_hub_projs.2
+2026-07-15 22:02:33,232 P1899072 INFO Compiled dense module: seq_hub_projs.3
+2026-07-15 22:02:33,233 P1899072 INFO Compiled dense module: tower.0
+2026-07-15 22:02:33,234 P1899072 INFO Compiled dense module: tower.1
+2026-07-15 22:02:33,235 P1899072 INFO Compiled dense module: tower.2
+2026-07-15 22:02:33,236 P1899072 INFO Compiled dense module: tower.3
+2026-07-15 22:02:33,713 P1899072 INFO Total number of parameters: 51810884.
+2026-07-15 22:02:33,713 P1899072 INFO Number of embedding parameters: 31793216.
+2026-07-15 22:02:33,713 P1899072 INFO Number of dense parameters: 20017668.
+2026-07-15 22:02:33,713 P1899072 INFO Loading datasets...
+2026-07-15 22:02:33,922 P1899072 INFO Train samples: total/4448389, blocks/8
+2026-07-15 22:02:33,938 P1899072 INFO Validation samples: total/716424, blocks/2
+2026-07-15 22:02:33,938 P1899072 INFO Loading train and validation data done.
+2026-07-15 22:02:33,938 P1899072 INFO BF16 mixed precision: True
+2026-07-15 22:02:33,939 P1899072 INFO Gradient checkpointing: False
+2026-07-15 22:02:33,939 P1899072 INFO Start training: 540 local batches/epoch
+2026-07-15 22:02:33,939 P1899072 INFO DDP blocked training: True
+2026-07-15 22:02:33,939 P1899072 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
+2026-07-15 22:02:33,939 P1899072 INFO ************ Epoch=1 start ************
+2026-07-15 22:05:48,486 P1899072 INFO Train loss: 0.248484
+2026-07-15 22:05:48,486 P1899072 INFO Evaluation @epoch 1 - batch 540:
+2026-07-15 22:06:09,490 P1899072 INFO [Task: is_click][Metrics] AUC: 0.638374 - logloss: 0.185067
+2026-07-15 22:06:10,460 P1899072 INFO [Task: cart][Metrics] AUC: 0.840938 - logloss: 0.020934
+2026-07-15 22:06:11,414 P1899072 INFO [Task: fav][Metrics] AUC: 0.859222 - logloss: 0.015456
+2026-07-15 22:06:12,392 P1899072 INFO [Task: buy][Metrics] AUC: 0.868262 - logloss: 0.009139
+2026-07-15 22:06:12,455 P1899072 INFO Save best model: monitor(max)=0.801699
+2026-07-15 22:06:12,760 P1899072 INFO ************ Epoch=1 end ************
+2026-07-15 22:06:12,762 P1899072 INFO Training finished.
+2026-07-15 22:06:12,762 P1899072 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/Taobao_Action/INFNet_Taobao_Action.model
+2026-07-15 22:06:13,557 P1899072 INFO ******** Test evaluation ********
+2026-07-15 22:06:13,557 P1899072 INFO Loading datasets...
+2026-07-15 22:06:13,578 P1899072 INFO Test samples: total/728294, blocks/2
+2026-07-15 22:06:13,578 P1899072 INFO Loading test data done.
+2026-07-15 22:06:22,455 P1899072 INFO [Task: is_click][Metrics] logloss: 0.188685 - AUC: 0.632201
+2026-07-15 22:06:23,358 P1899072 INFO [Task: cart][Metrics] logloss: 0.018765 - AUC: 0.836575
+2026-07-15 22:06:24,283 P1899072 INFO [Task: fav][Metrics] logloss: 0.013731 - AUC: 0.859673
+2026-07-15 22:06:25,160 P1899072 INFO [Task: buy][Metrics] logloss: 0.006807 - AUC: 0.859909
+2026-07-15 22:06:25,739 P1899072 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/Taobao_Action/INFNet_Taobao_Action.model

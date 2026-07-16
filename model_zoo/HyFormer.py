@@ -1,6 +1,6 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,7 +22,7 @@ from unirank.pytorch.models import MultiTaskModel
 from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MaskedAveragePooling, MultiHeadTokenMixing, PerTokenFeedForward, ScaledDotProductAttention
 from unirank.pytorch.torch_utils import get_activation
 from unirank.utils import not_in_whitelist
-from unirank.pytorch.layers.tokenization import AutoSplitTokenizer
+from unirank.pytorch.layers.tokenization import AutoSplitTokenizer, ChunkTokenizer
 
 class HyFormer(MultiTaskModel):
     def __init__(self,
@@ -76,7 +76,7 @@ class HyFormer(MultiTaskModel):
         self.embedding_layer = FeatureEmbedding(feature_map, embedding_dim)
 
         # 非序列特征 + target item -> NS tokens
-        self.ns_tokenizer = AutoSplitTokenizer(
+        self.ns_tokenizer = ChunkTokenizer(
             input_dim=self.non_item_dim + self.item_info_dim,
             token_dim=token_dim,
             num_tokens=num_ns_token

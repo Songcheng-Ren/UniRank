@@ -14,7 +14,7 @@ preprocess_QK_seq_action.py — QK-Video (内存优化版, 分块分区处理, b
 
 处理流程:
   Phase 1 — CSV 分块读取 → 清洗 → 按用户哈希分区写入 Parquet 临时文件
-             同时收集全局统计信息（用户交互数、物品集、特征唯一值、特征值频次）
+             同时收集全局统计信息（用户交互数、物品类别映射、特征唯一值、特征值频次）
   Phase 2 — 逐分区: 编码特征 + 按用户序列比例切分 + 直接写 block data/user_info
   Phase 3 — 为每个 block 构建 item_info + 保存 meta_data/block_manifest + 清理临时文件
 
@@ -217,7 +217,7 @@ def phase1_partition_to_parquet(
     逐 chunk 读取 CSV → 清洗 → 按 user_id 哈希分区写入 Parquet。
     同时收集:
       - user_counts: {user_id_str: 交互数}
-      - item_ids:    set of all item_id_str
+      - item_category_codes: {item_id_str: video_category_code}
       - unique_values: {feature_name: [按首次出现排序的唯一值]}
       - feat_value_counters: {feature_name: {value_str: count}}
         用于后续 OOV 低频特征过滤
@@ -238,7 +238,7 @@ def phase1_partition_to_parquet(
 
     # ---- 全局统计容器 ----
     user_counts = defaultdict(int)
-    item_ids_set = set()
+    item_category_codes = {}
 
     # 按首次出现顺序追踪唯一值
     unique_trackers = {
@@ -289,11 +289,17 @@ def phase1_partition_to_parquet(
         vc = chunk["user_id"].value_counts(sort=False)
         for uid, cnt in zip(vc.index, vc.values):
             user_counts[uid] += int(cnt)
-        item_ids_set.update(chunk["item_id"].unique().tolist())
-
         for feat_name in unique_trackers:
             for v in chunk[feat_name].unique():
-                unique_trackers[feat_name].setdefault(v, None)
+                tracker = unique_trackers[feat_name]
+                tracker.setdefault(v, len(tracker))
+
+        # video_category 是 item 静态特征。使用紧凑类别编号保存
+        # item_id -> category 的映射；重复 item 保留最后一次出现的值。
+        category_codes = chunk["video_category"].map(
+            unique_trackers["video_category"]
+        ).to_numpy(dtype=np.int16, copy=False)
+        item_category_codes.update(zip(chunk["item_id"], category_codes))
 
         # ---- 统计 OOV_FILTER_FEATURES 频次 ----
         for feat_name in feat_value_counters:
@@ -339,9 +345,9 @@ def phase1_partition_to_parquet(
 
     print(
         f"  完成: {total_rows:,} 行, "
-        f"{len(user_counts):,} 用户, {len(item_ids_set):,} 物品\n"
+        f"{len(user_counts):,} 用户, {len(item_category_codes):,} 物品\n"
     )
-    return dict(user_counts), item_ids_set, unique_values, feat_value_counters_plain
+    return dict(user_counts), item_category_codes, unique_values, feat_value_counters_plain
 
 
 # ================================================================
@@ -740,39 +746,36 @@ class SplitBlockManager:
 
 def build_global_item_lookup(
     item_idx_map: dict,
-    feat_value_counters: dict,
+    item_category_codes: dict,
+    category_values: list,
     vocabs: dict,
 ) -> pd.DataFrame:
-    """构建 global item lookup 表 (indexed by global item_index)。
-
-    由于 QK-Video 的 item 静态特征 (video_category) 在日志中与 item_id 关联，
-    这里从 feat_value_counters 中提取每个 item_id 对应的 video_category 值，
-    然后用 vocabs 映射为 int 编码。
-
-    Args:
-        item_idx_map: {item_id_str: global_item_index}
-        feat_value_counters: {feature_name: {value_str: count}} (用于 OOV 过滤)
-        vocabs: {feature_name: {value_str: int_id}}
-
-    Returns:
-        DataFrame indexed by global_item_index, 列为 ITEM_STATIC_FEATURES
-    """
-    # 由于 QK-Video 的 item 特征值来自日志，且每个 item_id 对应一个 video_category 值,
-    # 我们需要从日志统计中提取 item_id -> video_category 的映射
-    # 但 feat_value_counters 只统计了 video_category 值的总频次, 不区分 item_id
-    # 所以这里改为: 构建一个简单的 lookup, 使用 vocabs 中的最大 id 作为默认值
-    # 实际的 item_info 在 process_partition 中已经按 item 维度编码
-
-    # 为简化实现, 这里返回一个空的 lookup, 实际 item 特征编码在 process_partition 完成
-    # write_item_info_blocks 会使用 item_map 中的 global item_index, 但 lookup 为空时
-    # 所有 item 的 video_category 都会被填为 0
-    # 这不影响正确性, 因为 video_category 已经在 data 中编码了
-
-    # 创建一个包含所有 global item_index 的空 DataFrame
+    """构建按 global item_index 索引的真实 video_category lookup。"""
     num_items = max(item_idx_map.values()) if item_idx_map else 0
-    idx = np.arange(num_items + 1, dtype=np.int32)
-    data = {col: np.zeros(num_items + 1, dtype=np.int32) for col in ITEM_STATIC_FEATURES}
-    df = pd.DataFrame(data, index=idx)
+    category_vocab = vocabs["video_category"]
+    encoded_by_code = np.fromiter(
+        (category_vocab.get(value, 0) for value in category_values),
+        dtype=np.int32,
+        count=len(category_values),
+    )
+    global_item_indices = np.fromiter(
+        (item_idx_map[item_id] for item_id in item_category_codes),
+        dtype=np.int32,
+        count=len(item_category_codes),
+    )
+    category_codes = np.fromiter(
+        item_category_codes.values(),
+        dtype=np.int32,
+        count=len(item_category_codes),
+    )
+
+    encoded_categories = np.zeros(num_items + 1, dtype=np.int32)
+    encoded_categories[global_item_indices] = encoded_by_code[category_codes]
+
+    df = pd.DataFrame(
+        {"video_category": encoded_categories},
+        index=np.arange(num_items + 1, dtype=np.int32),
+    )
     df.index.name = "global_item_index"
     return df
 
@@ -789,11 +792,11 @@ def preprocess_and_split(
     valid_ratio=0.1,
     test_ratio=0.1,
     n_user_parts=20,
-    chunk_size=1_000_000,
-    buffer_flush_size=300_000,
-    train_blocks=8,
-    valid_blocks=4,
-    test_blocks=4,
+    chunk_size=4_000_000,
+    buffer_flush_size=1_000_000,
+    train_blocks=32,
+    valid_blocks=8,
+    test_blocks=8,
     min_feat_count=MIN_FEAT_COUNT,
     overwrite=False,
 ):
@@ -805,6 +808,17 @@ def preprocess_and_split(
 
     input_file_path = Path(input_file).resolve()
     output_dir = Path(output_dir).resolve()
+
+    block_counts = (int(train_blocks), int(valid_blocks), int(test_blocks))
+    if min(block_counts) <= 0:
+        raise ValueError("train_blocks / valid_blocks / test_blocks 必须为正整数。")
+    target_blocks = max(block_counts)
+    if n_user_parts < target_blocks:
+        print(
+            f"[Config] n_user_parts={n_user_parts} 小于最大目标 block 数 {target_blocks}，"
+            f"自动调整为 {target_blocks}，避免目标 block 无法全部生成。"
+        )
+        n_user_parts = target_blocks
 
     # 安全检查：禁止 output_dir 是 input_file 所在目录或其祖先，
     # 否则 overwrite 会连带删除原始数据。
@@ -831,7 +845,7 @@ def preprocess_and_split(
     # ================================================================
     #  Step 1/8: Phase 1 — CSV → 分区 Parquet + 全局统计
     # ================================================================
-    user_counts, item_ids_set, unique_values, feat_value_counters = phase1_partition_to_parquet(
+    user_counts, item_category_codes, unique_values, feat_value_counters = phase1_partition_to_parquet(
         input_file=input_file,
         tmp_dir=tmp_dir,
         n_parts=n_user_parts,
@@ -868,7 +882,7 @@ def preprocess_and_split(
     user_idx_map = {u: i for i, u in enumerate(sorted_users)}
 
     # item_idx_map: 1-based, 0 = padding
-    sorted_items = sorted(item_ids_set)
+    sorted_items = sorted(item_category_codes)
     item_idx_map = {it: i + 1 for i, it in enumerate(sorted_items)}
     print(f"  物品数:   {len(item_idx_map):,}")
 
@@ -876,6 +890,13 @@ def preprocess_and_split(
     print(f"  [OOV Filter] min_feat_count={min_feat_count}")
     vocabs = build_vocabs_with_oov_filter(
         unique_values, feat_value_counters, min_feat_count=min_feat_count
+    )
+
+    global_item_lookup = build_global_item_lookup(
+        item_idx_map=item_idx_map,
+        item_category_codes=item_category_codes,
+        category_values=unique_values["video_category"],
+        vocabs=vocabs,
     )
 
     # vocab_size (含 padding 位)
@@ -892,7 +913,7 @@ def preprocess_and_split(
     }
     print(f"  action 种类: {len(vocabs['action'])}")
 
-    del user_counts, item_ids_set, unique_values, feat_value_counters, sorted_users, sorted_items
+    del user_counts, item_category_codes, unique_values, feat_value_counters, sorted_users, sorted_items
     gc.collect()
 
     # ================================================================
@@ -981,16 +1002,6 @@ def preprocess_and_split(
     # ================================================================
     print(f"\n[Step 4/8] 为每个 block 构建 item_info")
 
-    # QK-Video 的 item 静态特征 (video_category) 已在 data 中编码
-    # item_info 主要提供 item_index -> item_id 的映射
-    # video_category 在 item_info 中填 0 (实际使用 data 中的值)
-    # 这里构建一个简单的 global_item_lookup
-    global_item_lookup = pd.DataFrame(
-        {"video_category": np.zeros(len(vocabs["video_category"]) + 2, dtype=np.int32)},
-        index=np.arange(len(vocabs["video_category"]) + 2, dtype=np.int32),
-    )
-    global_item_lookup.index.name = "global_item_index"
-
     for split_name in ["train", "valid", "test"]:
         print(f"  [Build item_info] {split_name}")
         managers[split_name].write_item_info_blocks(global_item_lookup)
@@ -1017,6 +1028,7 @@ def preprocess_and_split(
             "rule": "特征值出现次数 < min_feat_count 的统一映射为 0 (unknown/padding)",
         },
         "blocked_layout": {
+            "n_user_parts": int(n_user_parts),
             "train_blocks": int(train_blocks),
             "valid_blocks": int(valid_blocks),
             "test_blocks": int(test_blocks),
@@ -1134,13 +1146,13 @@ def parse_args():
     parser.add_argument("--test_ratio", type=float, default=0.1)
     parser.add_argument("--n_user_parts", type=int, default=10,
                         help="Phase1 按 user hash 的临时分区数")
-    parser.add_argument("--chunk_size", type=int, default=2_000_000,
+    parser.add_argument("--chunk_size", type=int, default=4_000_000,
                         help="读取 CSV 时单次处理多少行")
-    parser.add_argument("--buffer_flush_size", type=int, default=500_000,
+    parser.add_argument("--buffer_flush_size", type=int, default=1_000_000,
                         help="临时分区缓存多少 interaction 后落盘")
-    parser.add_argument("--train_blocks", type=int, default=8)
-    parser.add_argument("--valid_blocks", type=int, default=4)
-    parser.add_argument("--test_blocks", type=int, default=4)
+    parser.add_argument("--train_blocks", type=int, default=32)
+    parser.add_argument("--valid_blocks", type=int, default=8)
+    parser.add_argument("--test_blocks", type=int, default=8)
     parser.add_argument("--min_feat_count", type=int, default=MIN_FEAT_COUNT,
                         help="OOV 过滤阈值: 特征值出现次数 < 此值的统一映射为 0")
     parser.add_argument("--overwrite", action="store_true", default=False,

@@ -1,6 +1,6 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -153,11 +153,11 @@ class HeMix(MultiTaskModel):
         real_sequence_tokens = self.item_token_proj(real_sequence_emb)
         glocal_sequence_tokens = self.item_token_proj(glocal_sequence_emb)
 
-        real_mask, glocal_mask = None, None
         if mask is not None:
-            seq_mask = mask[:, :-1].bool()  # 去掉 target item 对应位置
-            real_mask = seq_mask[:, -self.real_seq_len:]
-            glocal_mask = seq_mask[:, :-self.real_seq_len]
+            real_mask = mask[:, -self.real_seq_len:]
+            glocal_mask = mask[:, :-self.real_seq_len]
+            real_sequence_tokens = real_sequence_tokens * real_mask.unsqueeze(-1).float()
+            glocal_sequence_tokens = glocal_sequence_tokens * glocal_mask.unsqueeze(-1).float()
 
         # 非序列特征 + target item -> NS tokens
         user_context_emb = self.embedding_layer(batch_dict, flatten_emb=True)  # B x non_item_dim
@@ -167,9 +167,7 @@ class HeMix(MultiTaskModel):
         unified_tokens = self.unified_tokenizer_layer(
             feature_embeddings,
             real_sequence_tokens,
-            glocal_sequence_tokens,
-            real_mask=real_mask,
-            glocal_mask=glocal_mask
+            glocal_sequence_tokens
         )
 
         # HeteroMixer interaction
@@ -215,8 +213,7 @@ class HeMixTokenizer(nn.Module):
         nn.init.xavier_uniform_(self.cls_tokens_glocal)
         nn.init.xavier_uniform_(self.cls_tokens_real)
 
-    def forward(self, feature_embeddings, real_sequence_emb, glocal_sequence_emb,
-                real_mask=None, glocal_mask=None):
+    def forward(self, feature_embeddings, real_sequence_emb, glocal_sequence_emb):
         if feature_embeddings.dim() > 2:
             feature_embeddings = torch.flatten(feature_embeddings, start_dim=1)
         B = feature_embeddings.size(0)
@@ -231,13 +228,11 @@ class HeMixTokenizer(nn.Module):
 
         tokens_real = self.mha_real(
             s_tokens=real_sequence_emb,
-            ns_tokens=real_queries,
-            mask=real_mask,
+            ns_tokens=real_queries
         )
         tokens_glocal = self.mha_glocal(
             s_tokens=glocal_sequence_emb,
-            ns_tokens=glocal_queries,
-            mask=glocal_mask,
+            ns_tokens=glocal_queries
         )
         seq_tokens = torch.cat([tokens_real, tokens_glocal], dim=1)
         return torch.cat([seq_tokens, ns_tokens], dim=1)
@@ -261,7 +256,7 @@ class MixedHeteroAttention(nn.Module):
         nn.init.xavier_uniform_(self.W_v_s.weight)
         nn.init.xavier_uniform_(self.W_o.weight)
 
-    def forward(self, s_tokens, ns_tokens, mask=None):
+    def forward(self, s_tokens, ns_tokens):
         B, Ls, D = s_tokens.shape
         _, Lns, _ = ns_tokens.shape
         if Ls == 0:

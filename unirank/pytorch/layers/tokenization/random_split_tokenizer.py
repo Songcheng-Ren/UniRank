@@ -1,6 +1,6 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,7 +22,17 @@ from unirank.pytorch.layers.blocks import MLP_Block
 class RandomSplitTokenizer(nn.Module):
     def __init__(self, input_dim, token_dim, num_tokens, num_fields, activation="SiLU"):
         super(RandomSplitTokenizer, self).__init__()
-        self.field_permutation = torch.randperm(num_fields)
+        if num_tokens <= 0:
+            raise ValueError("num_tokens must be positive.")
+        if num_fields < num_tokens:
+            raise ValueError(
+                "num_fields ({}) must be greater than or equal to num_tokens ({}).".format(
+                    num_fields, num_tokens
+                )
+            )
+        self.input_dim = input_dim
+        self.num_fields = num_fields
+        self.register_buffer("field_permutation", torch.randperm(num_fields))
         base_group_size, remainder = divmod(num_fields, num_tokens)
         self.group_sizes = tuple(
             base_group_size + (1 if index < remainder else 0)
@@ -39,6 +49,19 @@ class RandomSplitTokenizer(nn.Module):
         ])
 
     def forward(self, feature_embeddings):
+        if feature_embeddings.dim() != 3:
+            raise ValueError(
+                "RandomSplitTokenizer expects a 3D tensor, got shape {}.".format(
+                    tuple(feature_embeddings.shape)
+                )
+            )
+        if (feature_embeddings.size(1) != self.num_fields or
+                feature_embeddings.size(2) != self.input_dim):
+            raise ValueError(
+                "RandomSplitTokenizer expects shape [B, {}, {}], got {}.".format(
+                    self.num_fields, self.input_dim, tuple(feature_embeddings.shape)
+                )
+            )
         shuffled_embeddings = feature_embeddings.index_select(
             dim=1,
             index=self.field_permutation,

@@ -1,6 +1,6 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -299,11 +299,7 @@ class GatedMultiHeadAttentionLayer(nn.Module):
         )
         self._block_mask_cache = {}
 
-    def forward(self,
-                x: torch.Tensor,
-                valid_mask=None,
-                attn_mode="full",
-                window_size=None):
+    def forward(self, x: torch.Tensor, valid_mask=None, attn_mode="full", window_size=None):
         """
         Args:
             x: B x S x D

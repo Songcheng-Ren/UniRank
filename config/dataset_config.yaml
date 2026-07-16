@@ -1,6 +1,6 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -184,7 +184,7 @@ Taobao_Action:
         - {name: item_id, active: True, dtype: int, type: categorical, vocab_size: 846812, source: item}
         - {name: cate_id, active: True, dtype: int, type: categorical, vocab_size: 6409, source: item}
         - {name: campaign_id, active: True, dtype: int, type: categorical, vocab_size: 354106, source: item}
-        - {name: customer_id, active: True, dtype: int, type: categorical, vocab_size: 2, source: item}
+        - {name: customer_id, active: True, dtype: int, type: categorical, vocab_size: 220826, source: item}
         - {name: brand, active: True, dtype: int, type: categorical, vocab_size: 88145, source: item}
         - {name: price_bucket, active: True, dtype: int, type: categorical, vocab_size: 11, source: item}
         - {name: cms_segid, active: True, dtype: int, type: categorical, vocab_size: 99}
@@ -194,9 +194,8 @@ Taobao_Action:
         - {name: pvalue_level, active: True, dtype: int, type: categorical, vocab_size: 5}
         - {name: shopping_level, active: True, dtype: int, type: categorical, vocab_size: 5}
         - {name: occupation, active: True, dtype: int, type: categorical, vocab_size: 4}
-        - {name: new_user_class_level, active: True, dtype: int, type: categorical, vocab_size: 2}
+        - {name: new_user_class_level, active: True, dtype: int, type: categorical, vocab_size: 6}
         - {name: pid, active: True, dtype: int, type: categorical, vocab_size: 4}
-        - {name: day_of_week, active: True, dtype: int, type: categorical, vocab_size: 8}
         - {name: is_weekend, active: True, dtype: int, type: categorical, vocab_size: 3}
         - {name: hour, active: True, dtype: int, type: categorical, vocab_size: 25}
         - {name: action, active: True, dtype: int, type: categorical, vocab_size: 17, source: action}

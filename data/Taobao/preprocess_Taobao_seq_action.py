@@ -112,7 +112,7 @@ USER_STATIC_FEATURES = [
     "occupation",
     "new_user_class_level",
 ]
-CONTEXT_FEATURES = ["pid", "day_of_week", "is_weekend", "hour"]
+CONTEXT_FEATURES = ["pid", "is_weekend", "hour"]
 ITEM_STATIC_FEATURES = ["cate_id", "campaign_id", "customer_id", "brand", "price_bucket"]
 
 FINAL_COLUMNS = (
@@ -388,6 +388,10 @@ def load_user_features(data_dir: Path) -> pd.DataFrame:
     fp = find_csv_file(data_dir, USER_PROFILE_STEM)
     print(f"  [Load] {fp.name}")
     uf = read_csv_file(fp)
+    uf.rename(
+        columns=lambda col: col.strip() if isinstance(col, str) else col,
+        inplace=True,
+    )
     if "userid" in uf.columns and "user_id" not in uf.columns:
         uf.rename(columns={"userid": "user_id"}, inplace=True)
     if "user_id" not in uf.columns:
@@ -418,6 +422,10 @@ def load_ad_features(data_dir: Path) -> pd.DataFrame:
     af = read_csv_file(fp)
     if "adgroup_id" not in af.columns:
         raise ValueError("ad_feature 中缺少 adgroup_id 列")
+
+    # 官方 ad_feature 使用 customer，框架中统一命名为 customer_id。
+    if "customer_id" not in af.columns and "customer" in af.columns:
+        af.rename(columns={"customer": "customer_id"}, inplace=True)
 
     keep_cols = ["adgroup_id"] + [c for c in ["cate_id", "campaign_id", "customer_id", "brand", "price"] if c in af.columns]
     af = af[keep_cols].copy()
@@ -517,7 +525,6 @@ def _preprocess_raw_chunk(
     chunk["time_stamp"] = pd.to_numeric(chunk["time_stamp"], errors="coerce").fillna(0).astype(np.int64)
     dt = timestamp_to_datetime(chunk["time_stamp"], timestamp_unit)
     chunk["date"] = (dt.dt.year * 10000 + dt.dt.month * 100 + dt.dt.day).fillna(0).astype(np.int32)
-    chunk["day_of_week"] = dt.dt.dayofweek.fillna(0).astype(np.int8)
     chunk["is_weekend"] = (dt.dt.dayofweek.fillna(0) >= 5).astype(np.int8)
     chunk["hour"] = dt.dt.hour.fillna(0).astype(np.int8)
     del dt
@@ -884,7 +891,6 @@ def process_partition(
     df["user_id"] = (df["user_index"] + 1).astype(np.int32)
 
     df["pid"] = df["pid"].map(vocabs["pid"]).fillna(0).astype(np.int32)
-    df["day_of_week"] = (df["day_of_week"].astype(np.int32) + 1).astype(np.int32)
     df["is_weekend"] = (df["is_weekend"].astype(np.int32) + 1).astype(np.int32)
     df["hour"] = (df["hour"].astype(np.int32) + 1).astype(np.int32)
     for col in LABEL_COLUMNS:
@@ -1113,11 +1119,11 @@ def preprocess_and_split(
     valid_ratio: float = 0.1,
     test_ratio: float = 0.1,
     n_user_parts: int = 64,
-    chunk_size: int = 2_000_000,
-    buffer_flush_size: int = 500_000,
-    train_blocks: int = 8,
-    valid_blocks: int = 2,
-    test_blocks: int = 2,
+    chunk_size: int = 4_000_000,
+    buffer_flush_size: int = 1_000_000,
+    train_blocks: int = 32,
+    valid_blocks: int = 8,
+    test_blocks: int = 8,
     min_feat_count: int = MIN_FEAT_COUNT,
     timestamp_unit: str = "auto",
     use_behavior_labels: bool = True,
@@ -1126,6 +1132,18 @@ def preprocess_and_split(
 ):
     data_dir = Path(data_dir).resolve()
     output_dir = Path(output_dir).resolve()
+
+    block_counts = (int(train_blocks), int(valid_blocks), int(test_blocks))
+    if min(block_counts) <= 0:
+        raise ValueError("train_blocks / valid_blocks / test_blocks 必须为正整数。")
+    target_blocks = max(block_counts)
+    if n_user_parts < target_blocks:
+        print(
+            f"[Config] n_user_parts={n_user_parts} 小于最大目标 block 数 {target_blocks}，"
+            f"自动调整为 {target_blocks}，避免目标 block 无法全部生成。"
+        )
+        n_user_parts = target_blocks
+
     raw_fp = find_csv_file(data_dir, RAW_SAMPLE_STEM)
     behavior_fp = find_csv_file(data_dir, BEHAVIOR_LOG_STEM) if use_behavior_labels else None
 
@@ -1226,7 +1244,6 @@ def preprocess_and_split(
         "item_id": len(item_idx_map) + 1,
         "action": len(action_name2code) + 1,
         "timestamp": 0,
-        "day_of_week": 8,
         "is_weekend": 3,
         "hour": 25,
     }
@@ -1337,6 +1354,7 @@ def preprocess_and_split(
             "freq_source": "基于 raw_sample 中 user/item 出现次数 * 静态特征值统计",
         },
         "blocked_layout": {
+            "n_user_parts": int(n_user_parts),
             "train_blocks": int(train_blocks),
             "valid_blocks": int(valid_blocks),
             "test_blocks": int(test_blocks),
@@ -1405,16 +1423,16 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Preprocess Taobao Ali_Display_Ad_Click into blocked seq-action parquet data."
     )
-    parser.add_argument("--data_dir", type=str, default="/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/ft_local/Taobao")
-    parser.add_argument("--output_dir", type=str, default="/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_Action")
+    parser.add_argument("--data_dir", type=str, default="./Taobao")
+    parser.add_argument("--output_dir", type=str, default="./Taobao_Action")
     parser.add_argument("--min_user_interactions", type=int, default=10)
     parser.add_argument("--train_ratio", type=float, default=0.8)
     parser.add_argument("--valid_ratio", type=float, default=0.1)
     parser.add_argument("--test_ratio", type=float, default=0.1)
-    parser.add_argument("--n_user_parts", type=int, default=64, help="按 user hash 的临时分区数；behavior_log 很大，内存不足可调到 128/256")
+    parser.add_argument("--n_user_parts", type=int, default=32, help="按 user hash 的临时分区数；behavior_log 很大，内存不足可调到 128/256")
     parser.add_argument("--chunk_size", type=int, default=4_000_000, help="读取 raw_sample 时单个 chunk 行数")
     parser.add_argument("--buffer_flush_size", type=int, default=1_000_000, help="临时分区缓存多少行后落盘")
-    parser.add_argument("--train_blocks", type=int, default=16)
+    parser.add_argument("--train_blocks", type=int, default=32)
     parser.add_argument("--valid_blocks", type=int, default=8)
     parser.add_argument("--test_blocks", type=int, default=8)
     parser.add_argument("--min_feat_count", type=int, default=MIN_FEAT_COUNT)

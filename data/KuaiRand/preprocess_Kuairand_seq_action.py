@@ -43,6 +43,7 @@ import gc
 import json
 import shutil
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -587,7 +588,13 @@ def process_partition(
 
     # ---- 编码 ID ----
     df["user_index"] = df["user_id"].map(user_idx_map).astype(np.int32)
-    df["item_index"] = df["video_id"].map(item_idx_map).fillna(0).astype(np.int32)
+    global_item_index = df["video_id"].map(item_idx_map)
+    if global_item_index.isna().any():
+        bad_video_ids = df.loc[global_item_index.isna(), "video_id"].drop_duplicates().head(10).tolist()
+        raise ValueError(
+            f"partition={pid} 存在未进入全局 item 映射的 video_id: {bad_video_ids}"
+        )
+    df["item_index"] = global_item_index.astype(np.int32)
     df["user_id"] = (df["user_index"] + 1).astype(np.int32)
 
     # ---- 标签 → float32 ----
@@ -649,6 +656,88 @@ def process_partition(
     del df, train_df, valid_df, test_df
     gc.collect()
     return result
+
+
+_PHASE2_WORKER_STATE = {}
+
+
+def _init_phase2_worker(
+    tmp_dir,
+    result_dir,
+    valid_users,
+    user_idx_map,
+    item_idx_map,
+    uf_enc,
+    vocabs,
+    pat2name,
+    name2code,
+    valid_start_date,
+    test_start_date,
+):
+    """初始化 Phase 2 worker，只保存只读状态。"""
+    global _PHASE2_WORKER_STATE
+    _PHASE2_WORKER_STATE = {
+        "tmp_dir": Path(tmp_dir),
+        "result_dir": Path(result_dir),
+        "valid_users": valid_users,
+        "user_idx_map": user_idx_map,
+        "item_idx_map": item_idx_map,
+        "uf_enc": uf_enc,
+        "vocabs": vocabs,
+        "pat2name": pat2name,
+        "name2code": name2code,
+        "valid_start_date": valid_start_date,
+        "test_start_date": test_start_date,
+    }
+
+
+def _process_partition_to_temp(pid: int):
+    """并行处理单个用户分区，并将大结果写入临时 Parquet。"""
+    state = _PHASE2_WORKER_STATE
+    result = process_partition(
+        state["tmp_dir"],
+        pid,
+        state["valid_users"],
+        state["user_idx_map"],
+        state["item_idx_map"],
+        state["uf_enc"],
+        state["vocabs"],
+        state["pat2name"],
+        state["name2code"],
+        state["valid_start_date"],
+        state["test_start_date"],
+    )
+    if result is None:
+        return {"pid": int(pid), "empty": True}
+
+    part_result_dir = state["result_dir"] / f"part_{pid:03d}"
+    if part_result_dir.exists():
+        shutil.rmtree(part_result_dir)
+    part_result_dir.mkdir(parents=True, exist_ok=True)
+
+    user_info_rows = result["user_info"]
+    user_info_file = part_result_dir / "user_info.parquet"
+    pd.DataFrame(user_info_rows).to_parquet(user_info_file, index=False, engine="pyarrow")
+
+    split_files = {}
+    for split_name in ["train", "valid", "test"]:
+        sdf = result[split_name]
+        if len(sdf) == 0:
+            continue
+        split_file = part_result_dir / f"{split_name}.parquet"
+        sdf.to_parquet(split_file, index=False, engine="pyarrow")
+        split_files[split_name] = str(split_file)
+
+    payload = {
+        "pid": int(pid),
+        "empty": False,
+        "result_dir": str(part_result_dir),
+        "user_info_file": str(user_info_file),
+        "split_files": split_files,
+    }
+    del result, user_info_rows
+    gc.collect()
+    return payload
 
 
 # ================================================================
@@ -766,7 +855,15 @@ class SplitBlockManager:
             g_item_seq = row.get("full_item_seq", [])
             if not isinstance(g_item_seq, (list, tuple, np.ndarray)):
                 g_item_seq = []
-            l_item_seq = [self._get_or_add_item_local(bid, safe_int(x, 0)) for x in g_item_seq]
+            l_item_seq = []
+            for x in g_item_seq:
+                g_item = safe_int(x, -1)
+                if g_item <= 0:
+                    raise ValueError(
+                        f"[{self.split_name}] partition={pid} user_index={g_user} "
+                        f"的 full_item_seq 包含非法全局 item_index={g_item}。"
+                    )
+                l_item_seq.append(self._get_or_add_item_local(bid, g_item))
 
             g_action_seq = row.get("full_action_seq", [])
             if not isinstance(g_action_seq, (list, tuple, np.ndarray)):
@@ -792,7 +889,19 @@ class SplitBlockManager:
 
         out_df = split_df.copy()
         out_df["user_index"] = out_df["user_index"].map(user_map).astype(np.int32)
-        out_df["item_index"] = out_df["item_index"].map(item_map).astype(np.int32)
+        local_item_index = out_df["item_index"].map(item_map)
+        if local_item_index.isna().any() or (local_item_index <= 0).any():
+            bad_global_items = (
+                out_df.loc[local_item_index.isna() | (local_item_index <= 0), "item_index"]
+                .drop_duplicates()
+                .head(10)
+                .tolist()
+            )
+            raise ValueError(
+                f"[{self.split_name}] partition={pid} 当前样本存在未写入完整历史映射的 "
+                f"global item_index: {bad_global_items}"
+            )
+        out_df["item_index"] = local_item_index.astype(np.int32)
 
         data_fp = self.data_dir / f"part-{bid:05d}.parquet"
         ui_fp = self.user_info_dir / f"part-{bid:05d}.parquet"
@@ -1031,16 +1140,31 @@ def preprocess_and_split(
     valid_ratio: float = 0.1,
     test_ratio: float = 0.1,
     n_user_parts: int = 50,
-    chunk_size: int = 2_000_000,
-    buffer_flush_size: int = 500_000,
-    train_blocks: int = 8,
-    valid_blocks: int = 4,
-    test_blocks: int = 4,
+    chunk_size: int = 4_000_000,
+    buffer_flush_size: int = 1_000_000,
+    train_blocks: int = 32,
+    valid_blocks: int = 8,
+    test_blocks: int = 8,
     min_feat_count: int = MIN_FEAT_COUNT,
+    num_workers: int = 4,
     overwrite: bool = False,
 ):
     data_dir = Path(data_dir).resolve()
     output_dir = Path(output_dir).resolve()
+
+    block_counts = (int(train_blocks), int(valid_blocks), int(test_blocks))
+    if min(block_counts) <= 0:
+        raise ValueError("train_blocks / valid_blocks / test_blocks 必须为正整数。")
+    target_blocks = max(block_counts)
+    if n_user_parts < target_blocks:
+        print(
+            f"[Config] n_user_parts={n_user_parts} 小于最大目标 block 数 {target_blocks}，"
+            f"自动调整为 {target_blocks}，避免目标 block 无法全部生成。"
+        )
+        n_user_parts = target_blocks
+    num_workers = int(num_workers)
+    if num_workers <= 0:
+        raise ValueError("num_workers 必须为正整数。")
 
     # 安全检查：禁止 output_dir 等于 data_dir 或为 data_dir 的祖先目录，
     # 否则 overwrite 会连带删除原始数据。
@@ -1186,22 +1310,10 @@ def preprocess_and_split(
     )
     del uf_phase2
 
-    for pid in range(n_user_parts):
-        result = process_partition(
-            tmp_dir,
-            pid,
-            valid_users,
-            user_idx_map,
-            item_idx_map,
-            uf_enc_phase2,
-            vocabs,
-            pat2name,
-            name2code,
-            valid_start_date,
-            test_start_date,
-        )
+    def consume_partition_result(pid, result):
+        nonlocal max_seq
         if result is None:
-            continue
+            return
 
         user_info_rows = result["user_info"]
         if len(user_info_rows) > 0:
@@ -1224,8 +1336,85 @@ def preprocess_and_split(
         done = sum(sample_counts.values())
         print(f"  partition {pid + 1:3d}/{n_user_parts}: 累计 {done:,} 行")
 
-        del result
         gc.collect()
+
+    if num_workers == 1:
+        for pid in range(n_user_parts):
+            result = process_partition(
+                tmp_dir,
+                pid,
+                valid_users,
+                user_idx_map,
+                item_idx_map,
+                uf_enc_phase2,
+                vocabs,
+                pat2name,
+                name2code,
+                valid_start_date,
+                test_start_date,
+            )
+            consume_partition_result(pid, result)
+            del result
+    else:
+        phase2_result_dir = tmp_dir / "_phase2_results"
+        phase2_result_dir.mkdir(parents=True, exist_ok=True)
+        actual_workers = min(int(num_workers), int(n_user_parts))
+        print(f"  Phase 2 multiprocessing: num_workers={actual_workers}")
+
+        with ProcessPoolExecutor(
+            max_workers=actual_workers,
+            initializer=_init_phase2_worker,
+            initargs=(
+                tmp_dir,
+                phase2_result_dir,
+                valid_users,
+                user_idx_map,
+                item_idx_map,
+                uf_enc_phase2,
+                vocabs,
+                pat2name,
+                name2code,
+                valid_start_date,
+                test_start_date,
+            ),
+        ) as executor:
+            pending = {}
+            next_submit_pid = 0
+            while next_submit_pid < actual_workers:
+                pending[next_submit_pid] = executor.submit(
+                    _process_partition_to_temp, next_submit_pid
+                )
+                next_submit_pid += 1
+
+            for pid in range(n_user_parts):
+                payload = pending.pop(pid).result()
+                if payload["pid"] != pid:
+                    raise RuntimeError(
+                        f"Phase 2 worker 返回 pid={payload['pid']}，预期 pid={pid}。"
+                    )
+                if next_submit_pid < n_user_parts:
+                    pending[next_submit_pid] = executor.submit(
+                        _process_partition_to_temp, next_submit_pid
+                    )
+                    next_submit_pid += 1
+
+                if payload["empty"]:
+                    continue
+
+                user_info_df = pd.read_parquet(payload["user_info_file"])
+                user_info_rows = user_info_df.to_dict(orient="records")
+                result = {"user_info": user_info_rows}
+                for split_name in ["train", "valid", "test"]:
+                    split_file = payload["split_files"].get(split_name)
+                    if split_file is None:
+                        result[split_name] = pd.DataFrame(columns=FINAL_COLUMNS)
+                    else:
+                        result[split_name] = pd.read_parquet(split_file)
+
+                consume_partition_result(pid, result)
+                shutil.rmtree(payload["result_dir"], ignore_errors=True)
+                del result, user_info_df, user_info_rows, payload
+                gc.collect()
 
     for mgr in managers.values():
         mgr.close_writers()
@@ -1306,6 +1495,8 @@ def preprocess_and_split(
             "rule": "特征值出现次数 < min_feat_count 的统一映射为 0 (unknown/padding)",
         },
         "blocked_layout": {
+            "n_user_parts": int(n_user_parts),
+            "num_workers": int(num_workers),
             "train_blocks": int(train_blocks),
             "valid_blocks": int(valid_blocks),
             "test_blocks": int(test_blocks),
@@ -1416,8 +1607,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Preprocess KuaiRand-27K seq-action data into blocked train/valid/test with OOV filtering."
     )
-    parser.add_argument("--data_dir", type=str, default="/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand-27K/data")
-    parser.add_argument("--output_dir", type=str, default="/mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action")
+    parser.add_argument("--data_dir", type=str, default="./KuaiRand-27K/data")
+    parser.add_argument("--output_dir", type=str, default="../KuaiRand_Video_Action")
     parser.add_argument("--min_user_interactions", type=int, default=10)
     parser.add_argument("--train_ratio", type=float, default=0.8)
     parser.add_argument("--valid_ratio", type=float, default=0.1)
@@ -1428,11 +1619,13 @@ def parse_args():
                         help="读取 CSV 时单次处理多少行")
     parser.add_argument("--buffer_flush_size", type=int, default=1_000_000,
                         help="临时分区缓存多少 interaction 后落盘")
-    parser.add_argument("--train_blocks", type=int, default=16)
-    parser.add_argument("--valid_blocks", type=int, default=2)
-    parser.add_argument("--test_blocks", type=int, default=2)
+    parser.add_argument("--train_blocks", type=int, default=32)
+    parser.add_argument("--valid_blocks", type=int, default=8)
+    parser.add_argument("--test_blocks", type=int, default=8)
     parser.add_argument("--min_feat_count", type=int, default=MIN_FEAT_COUNT,
                         help="OOV 过滤阈值: 特征值出现次数 < 此值的统一映射为 0")
+    parser.add_argument("--num_workers", type=int, default=4,
+                        help="Phase 2 用户分区并行进程数；设为 1 使用串行处理")
     parser.add_argument("--overwrite", action="store_true", default=False,
                         help="若输出目录已存在，则删除后重建")
     return parser.parse_args()
@@ -1454,5 +1647,6 @@ if __name__ == "__main__":
         valid_blocks=args.valid_blocks,
         test_blocks=args.test_blocks,
         min_feat_count=args.min_feat_count,
+        num_workers=args.num_workers,
         overwrite=args.overwrite,
     )

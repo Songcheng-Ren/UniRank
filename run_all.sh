@@ -148,7 +148,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # Taobao_Action experiments
 # ==================================================
 # run_exp "RankMixer_Taobao_Action"
- run_exp "UniMixer_Taobao_Action"
+# run_exp "UniMixer_Taobao_Action"
 # run_exp "OneTrans_Taobao_Action"
 # run_exp "HyFormer_Taobao_Action"
 # run_exp "MixFormer_Taobao_Action"
@@ -161,16 +161,13 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_Taobao_Action"
 # run_exp "TokenFormer_Taobao_Action"
 # run_exp "UltraHSTU_Taobao_Action"
- run_exp "SSR_Taobao_Action"
+# run_exp "SSR_Taobao_Action"
 
 # ==================================================
 # MerRec_Action experiments
 # ==================================================
-# run_exp "RankMixer_MerRec_Action_Small"
-# run_exp "RankMixer_MerRec_Action_Mid"
-# run_exp "RankMixer_MerRec_Action_Large"
-# run_exp "RankMixer_MerRec_Action_Ultra"
- run_exp "UniMixer_MerRec_Action"
+# run_exp "RankMixer_MerRec_Action"
+# run_exp "UniMixer_MerRec_Action"
 # run_exp "OneTrans_MerRec_Action"
 # run_exp "HyFormer_MerRec_Action"
 # run_exp "MixFormer_MerRec_Action"
@@ -183,14 +180,14 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_MerRec_Action"
 # run_exp "TokenFormer_MerRec_Action"
 # run_exp "UltraHSTU_MerRec_Action"
- run_exp "SSR_MerRec_Action"
+# run_exp "SSR_MerRec_Action"
 
 # ==================================================
 # QK_Video_Action experiments
 # ==================================================
 # run_exp "RankMixer_QK_Video_Action"
 # run_exp "TokenFormer_QK_Video_Action"
- run_exp "UniMixer_QK_Video_Action"
+# run_exp "UniMixer_QK_Video_Action"
 # run_exp "UltraHSTU_QK_Video_Action"
 # run_exp "OneTrans_QK_Video_Action"
 # run_exp "HyFormer_QK_Video_Action"
@@ -202,16 +199,13 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "LONGER_QK_Video_Action"
 # run_exp "Zenith_QK_Video_Action"
 # run_exp "HeMix_QK_Video_Action"
- run_exp "SSR_QK_Video_Action"
+# run_exp "SSR_QK_Video_Action"
 
 # ==================================================
 # KuaiRand_Video_Action experiments
 # ==================================================
 # run_exp "RankMixer_KuaiRand_Video_Action_Small"
-# run_exp "RankMixer_KuaiRand_Video_Action_Mid"
-# run_exp "RankMixer_KuaiRand_Video_Action_Large"
-# run_exp "RankMixer_KuaiRand_Video_Action_Ultra"
- run_exp "UniMixer_KuaiRand_Video_Action"
+# run_exp "UniMixer_KuaiRand_Video_Action"
 # run_exp "OneTrans_KuaiRand_Video_Action"
 # run_exp "HyFormer_KuaiRand_Video_Action"
 # run_exp "MixFormer_KuaiRand_Video_Action"
@@ -224,7 +218,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_KuaiRand_Video_Action"
 # run_exp "TokenFormer_KuaiRand_Video_Action"
 # run_exp "UltraHSTU_KuaiRand_Video_Action"
- run_exp "SSR_KuaiRand_Video_Action"
+# run_exp "SSR_KuaiRand_Video_Action"
 
 # ==================================================
 # TencentGR_10M_Action experiments
@@ -241,8 +235,31 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "LONGER_TencentGR_10M_Action"
 # run_exp "Zenith_TencentGR_10M_Action"
 # run_exp "HeMix_TencentGR_10M_Action"
-# run_exp "TokenFormer_TencentGR_10M_Action"
+# run_exp "TokenFormer_TencentGR_10M_ Action"
 # run_exp "UltraHSTU_TencentGR_10M_Action"
 # run_exp "SSR_TencentGR_10M_Action"
+
+# ==================================================
+# Tokenizer ablations for KuaiRand and MerRec
+# RankMixer already uses Chunk and OneTrans already uses Auto, so those
+# baseline runs are intentionally omitted.
+# ==================================================
+#run_exp "RankMixer_KuaiRand_Video_Action_Tokenizer_Auto"
+#run_exp "RankMixer_KuaiRand_Video_Action_Tokenizer_Field"
+#run_exp "RankMixer_KuaiRand_Video_Action_Tokenizer_Random"
+#run_exp "OneTrans_KuaiRand_Video_Action_Tokenizer_Chunk"
+#run_exp "OneTrans_KuaiRand_Video_Action_Tokenizer_Field"
+#run_exp "OneTrans_KuaiRand_Video_Action_Tokenizer_Random"
+
+#run_exp "RankMixer_MerRec_Action_Tokenizer_Auto"
+run_exp "RankMixer_MerRec_Action_Tokenizer_Field"
+#run_exp "RankMixer_MerRec_Action_Tokenizer_Random"
+#run_exp "OneTrans_MerRec_Action_Tokenizer_Chunk"
+run_exp "OneTrans_MerRec_Action_Tokenizer_Field"
+#run_exp "OneTrans_MerRec_Action_Tokenizer_Random"
+
+run_exp "RankMixer_KuaiRand_Video_Action_Mid"
+run_exp "RankMixer_KuaiRand_Video_Action_Large"
+run_exp "RankMixer_KuaiRand_Video_Action_Ultra"
 
 echo "All experiments completed successfully."

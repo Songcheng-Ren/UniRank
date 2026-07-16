@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -764,17 +764,29 @@ def preprocess_and_split(
     test_ratio: float = 0.1,
     split_strategy: str = "auto",
     n_user_parts: int = 64,
-    batch_size: int = 500_000,
-    buffer_flush_size: int = 500_000,
-    train_blocks: int = 16,
-    valid_blocks: int = 4,
-    test_blocks: int = 4,
+    batch_size: int = 4_000_000,
+    buffer_flush_size: int = 1_000_000,
+    train_blocks: int = 32,
+    valid_blocks: int = 8,
+    test_blocks: int = 8,
     min_feat_count: int = MIN_FEAT_COUNT,
     overwrite: bool = False,
 ):
     data_dir = Path(data_dir).resolve()
     raw_data_dir = resolve_raw_data_dir(data_dir)
     output_dir = Path(output_dir).resolve()
+
+    block_counts = (int(train_blocks), int(valid_blocks), int(test_blocks))
+    if min(block_counts) <= 0:
+        raise ValueError("train_blocks / valid_blocks / test_blocks 必须为正整数。")
+    target_blocks = max(block_counts)
+    if n_user_parts < target_blocks:
+        print(
+            f"[Config] n_user_parts={n_user_parts} 小于最大目标 block 数 {target_blocks}，"
+            f"自动调整为 {target_blocks}，避免目标 block 无法全部生成。"
+        )
+        n_user_parts = target_blocks
+
     if raw_data_dir == output_dir or raw_data_dir.is_relative_to(output_dir):
         raise ValueError(f"output_dir must not contain raw data dir: {raw_data_dir}")
     if output_dir.exists():
@@ -912,6 +924,7 @@ def preprocess_and_split(
             "rule": "feature values with count < min_feat_count are mapped to 0",
         },
         "blocked_layout": {
+            "n_user_parts": int(n_user_parts),
             "train_blocks": int(train_blocks),
             "valid_blocks": int(valid_blocks),
             "test_blocks": int(test_blocks),
@@ -983,11 +996,11 @@ def parse_args():
     parser.add_argument("--test_ratio", type=float, default=0.1)
     parser.add_argument("--split_strategy", type=str, default="auto", choices=["auto", "date", "user_ratio"])
     parser.add_argument("--n_user_parts", type=int, default=8)
-    parser.add_argument("--batch_size", type=int, default=2_000_000)
+    parser.add_argument("--batch_size", type=int, default=4_000_000)
     parser.add_argument("--buffer_flush_size", type=int, default=1_000_000)
     parser.add_argument("--train_blocks", type=int, default=32)
-    parser.add_argument("--valid_blocks", type=int, default=16)
-    parser.add_argument("--test_blocks", type=int, default=16)
+    parser.add_argument("--valid_blocks", type=int, default=8)
+    parser.add_argument("--test_blocks", type=int, default=8)
     parser.add_argument("--min_feat_count", type=int, default=MIN_FEAT_COUNT)
     parser.add_argument("--overwrite", action="store_true", default=False)
     return parser.parse_args()

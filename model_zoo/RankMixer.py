@@ -1,6 +1,6 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -21,7 +21,7 @@ from unirank.pytorch.models import MultiTaskModel
 from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MultiHeadTargetAttention, PerTokenFeedForward, MultiHeadTokenMixing
 from unirank.pytorch.torch_utils import get_activation
 from unirank.utils import not_in_whitelist
-from unirank.pytorch.layers.tokenization import ChunkTokenizer
+from unirank.pytorch.layers.tokenization import build_unified_tokenizer
 
 
 class RankMixer(MultiTaskModel):
@@ -40,6 +40,7 @@ class RankMixer(MultiTaskModel):
                  token_dim=64,
                  attention_dim=None,
                  num_ns_token=4,
+                 tokenizer_type="Chunk",
                  net_dropout=0,
                  accumulation_steps=1,
                  **kwargs):
@@ -51,12 +52,13 @@ class RankMixer(MultiTaskModel):
         self.feature_map = feature_map
         self.embedding_dim = embedding_dim
         self.token_dim = token_dim
-        self.num_ns_token = num_ns_token
         self.accumulation_steps = accumulation_steps
 
         # 统计非 item 特征维度、item 特征维度
         self.item_info_dim = 0
         self.non_item_dim = 0
+        self.num_item_fields = 0
+        self.num_non_item_fields = 0
         for feat, spec in self.feature_map.features.items():
             if feat in self.feature_map.labels:
                 continue
@@ -65,16 +67,25 @@ class RankMixer(MultiTaskModel):
             emb_dim = spec.get("embedding_dim", embedding_dim)
             if spec.get("source") in ["item", "action"]:
                 self.item_info_dim += emb_dim
+                self.num_item_fields += 1
             else:
                 self.non_item_dim += emb_dim
+                self.num_non_item_fields += 1
 
         self.embedding_layer = FeatureEmbedding(feature_map, embedding_dim)
         input_dim = feature_map.sum_emb_out_dim() + self.item_info_dim
-        self.unified_tokenizer_layer = ChunkTokenizer(
+        self.num_tokenizer_fields = self.num_non_item_fields + 2 * self.num_item_fields
+        (self.unified_tokenizer_layer,
+         self.num_ns_token,
+         self.tokenizer_uses_field_input) = build_unified_tokenizer(
+            tokenizer_type=tokenizer_type,
             input_dim=input_dim,
+            field_dim=embedding_dim,
             token_dim=token_dim,
-            num_tokens=num_ns_token
+            num_tokens=num_ns_token,
+            num_fields=self.num_tokenizer_fields,
         )
+        self.tokenizer_type = str(tokenizer_type).strip().title()
 
         self.attention_layers = MultiHeadTargetAttention(
             input_dim=self.item_info_dim,
@@ -122,7 +133,11 @@ class RankMixer(MultiTaskModel):
         # 其它非序列特征 -> NS tokens
         user_context_emb = self.embedding_layer(batch_dict, flatten_emb=True)       # B x non_item_dim
         feature_embeddings = torch.cat([user_context_emb, target_emb, seq_pooling_emb], dim=-1)
-        unified_tokens = self.unified_tokenizer_layer(feature_embeddings)                     # B x num_ns_token x token_dim
+        if self.tokenizer_uses_field_input:
+            feature_embeddings = feature_embeddings.reshape(
+                batch_size, self.num_tokenizer_fields, self.embedding_dim
+            )
+        unified_tokens = self.unified_tokenizer_layer(feature_embeddings)           # B x num_ns_token x token_dim
 
 
         # unified model
