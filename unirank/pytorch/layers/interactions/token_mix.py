@@ -26,7 +26,6 @@ class MultiHeadTokenMixing(nn.Module):
         self.pad_dim = (-input_dim) % num_token
         self.padded_input_dim = input_dim + self.pad_dim
         self.head_dim = self.padded_input_dim // num_token
-
         valid_mask = torch.arange(self.padded_input_dim) < input_dim
         valid_mask = valid_mask.expand(num_token, -1)
         valid_mask = valid_mask.reshape(

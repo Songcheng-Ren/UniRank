@@ -16,9 +16,8 @@
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 from unirank.pytorch.models import MultiTaskModel
-from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MaskedAveragePooling
+from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MaskedAveragePooling, ScaledDotProductAttention
 from unirank.utils import not_in_whitelist
 from unirank.pytorch.layers.tokenization import AutoSplitTokenizer, FieldWiseTokenizer
 
@@ -262,12 +261,14 @@ class HubSpecificAggregator(nn.Module):
         self.q_proj = nn.Linear(token_dim, token_dim)
         self.fuse = nn.Linear(token_dim * 3, token_dim)
         self.norm = nn.LayerNorm(token_dim)
+        self.dot_attention = ScaledDotProductAttention()
 
     def forward(self, hubs, K_c, V_c, K_s, V_s, K_t, V_t):
         Q = self.q_proj(hubs)
-        Z_c = F.scaled_dot_product_attention(Q, K_c, V_c)
-        Z_s = F.scaled_dot_product_attention(Q, K_s, V_s)
-        Z_t = F.scaled_dot_product_attention(Q, K_t, V_t)
+        scale = Q.size(-1) ** 0.5
+        Z_c, _ = self.dot_attention(Q, K_c, V_c, scale=scale)
+        Z_s, _ = self.dot_attention(Q, K_s, V_s, scale=scale)
+        Z_t, _ = self.dot_attention(Q, K_t, V_t, scale=scale)
         Z_fused = self.fuse(torch.cat([Z_c, Z_s, Z_t], dim=-1))
         return self.norm(hubs + Z_fused)
 

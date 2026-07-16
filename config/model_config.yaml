@@ -491,6 +491,7 @@ OneTrans_KuaiRand_Video_Action: &onetrans_kuairand_tokenizer_base # This is a co
     token_dim: 256
     num_ns_token: 4
     tokenizer_type: Auto
+    attention_activation_type: SoftMax
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -514,6 +515,34 @@ OneTrans_KuaiRand_Video_Action_Tokenizer_Field:
 OneTrans_KuaiRand_Video_Action_Tokenizer_Random:
     <<: *onetrans_kuairand_tokenizer_base
     tokenizer_type: Random
+
+OneTrans_KuaiRand_Video_Action_AttentionActivation_None:
+    <<: *onetrans_kuairand_tokenizer_base
+    attention_activation_type: None
+
+OneTrans_KuaiRand_Video_Action_AttentionActivation_ReLU:
+    <<: *onetrans_kuairand_tokenizer_base
+    attention_activation_type: ReLU
+
+OneTrans_KuaiRand_Video_Action_AttentionActivation_SoftPlus:
+    <<: *onetrans_kuairand_tokenizer_base
+    attention_activation_type: SoftPlus
+
+OneTrans_KuaiRand_Video_Action_AttentionActivation_SiLU:
+    <<: *onetrans_kuairand_tokenizer_base
+    attention_activation_type: SiLU
+
+OneTrans_KuaiRand_Video_Action_AttentionActivation_GeLU:
+    <<: *onetrans_kuairand_tokenizer_base
+    attention_activation_type: GeLU
+
+OneTrans_KuaiRand_Video_Action_AttentionActivation_Sigmoid:
+    <<: *onetrans_kuairand_tokenizer_base
+    attention_activation_type: Sigmoid
+
+OneTrans_KuaiRand_Video_Action_AttentionActivation_Mish:
+    <<: *onetrans_kuairand_tokenizer_base
+    attention_activation_type: Mish
 
 OneTrans_TencentGR_10M_Action: # This is a config template
     model: OneTrans
@@ -582,6 +611,7 @@ OneTrans_MerRec_Action: &onetrans_merrec_tokenizer_base # This is a config templ
     token_dim: 256
     num_ns_token: 4
     tokenizer_type: Auto
+    attention_activation_type: SoftMax
     dnn_activations: ReLU
     tower_activations: ReLU
     net_dropout: 0
@@ -605,6 +635,34 @@ OneTrans_MerRec_Action_Tokenizer_Field:
 OneTrans_MerRec_Action_Tokenizer_Random:
     <<: *onetrans_merrec_tokenizer_base
     tokenizer_type: Random
+
+OneTrans_MerRec_Action_AttentionActivation_None:
+    <<: *onetrans_merrec_tokenizer_base
+    attention_activation_type: None
+
+OneTrans_MerRec_Action_AttentionActivation_ReLU:
+    <<: *onetrans_merrec_tokenizer_base
+    attention_activation_type: ReLU
+
+OneTrans_MerRec_Action_AttentionActivation_SoftPlus:
+    <<: *onetrans_merrec_tokenizer_base
+    attention_activation_type: SoftPlus
+
+OneTrans_MerRec_Action_AttentionActivation_SiLU:
+    <<: *onetrans_merrec_tokenizer_base
+    attention_activation_type: SiLU
+
+OneTrans_MerRec_Action_AttentionActivation_GeLU:
+    <<: *onetrans_merrec_tokenizer_base
+    attention_activation_type: GeLU
+
+OneTrans_MerRec_Action_AttentionActivation_Sigmoid:
+    <<: *onetrans_merrec_tokenizer_base
+    attention_activation_type: Sigmoid
+
+OneTrans_MerRec_Action_AttentionActivation_Mish:
+    <<: *onetrans_merrec_tokenizer_base
+    attention_activation_type: Mish
 
 HyFormer_QK_Video_Action: # This is a config template
     model: HyFormer

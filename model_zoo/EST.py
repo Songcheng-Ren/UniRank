@@ -16,9 +16,8 @@
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 from unirank.pytorch.models import MultiTaskModel
-from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MultiHeadTokenMixing, PerTokenSwiGLU, SwiGLU
+from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MultiHeadTokenMixing, PerTokenSwiGLU, SwiGLU, ScaledDotProductAttention
 from unirank.pytorch.torch_utils import get_activation
 from unirank.utils import not_in_whitelist
 from unirank.pytorch.layers.tokenization import FieldWiseTokenizer
@@ -223,6 +222,7 @@ class LightweightCrossAttention(nn.Module):
         # shape: [num_ns_token, input_dim, input_dim]
         self.W_q_ns = nn.Parameter(torch.empty(num_ns_token, input_dim, input_dim))
         self.W_o = nn.Parameter(torch.empty(num_ns_token, input_dim, input_dim))
+        self.dot_attention = ScaledDotProductAttention()
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -256,7 +256,12 @@ class LightweightCrossAttention(nn.Module):
         v = v_s.view(B, Ls, self.num_heads, self.head_dim).transpose(1, 2) # B x H x Ls x h
 
         # unified causal attention
-        output = F.scaled_dot_product_attention(q, k, v) # B x H x Lns x h
+        output, _ = self.dot_attention(
+            q,
+            k,
+            v,
+            scale=self.head_dim ** 0.5,
+        )  # B x H x Lns x h
 
         # concat heads
         output = output.transpose(1, 2).contiguous().view(B, Lns, D)

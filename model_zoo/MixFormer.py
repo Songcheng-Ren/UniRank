@@ -16,9 +16,8 @@
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 from unirank.pytorch.models import MultiTaskModel
-from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MultiHeadTokenMixing, PerTokenSwiGLU, SwiGLU
+from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MultiHeadTokenMixing, PerTokenSwiGLU, SwiGLU, ScaledDotProductAttention
 from unirank.pytorch.torch_utils import get_activation
 from unirank.utils import not_in_whitelist
 from unirank.pytorch.layers.tokenization import ChunkTokenizer
@@ -241,6 +240,7 @@ class CrossAttention(nn.Module):
         # A set of K/V projections for each query head
         self.k_proj = nn.Linear(input_dim, input_dim * num_ns_token)
         self.v_proj = nn.Linear(input_dim, input_dim * num_ns_token)
+        self.dot_attention = ScaledDotProductAttention()
 
     def forward(self, s_tokens, ns_tokens, mask=None):
         """
@@ -261,7 +261,8 @@ class CrossAttention(nn.Module):
         q = ns_tokens.unsqueeze(2) # B × N x 1 x D
 
         # B x N x D
-        ns_tokens = F.scaled_dot_product_attention(q, k, v).squeeze(2) + ns_tokens
+        attention_output, _ = self.dot_attention(q, k, v, scale=self.input_dim ** 0.5)
+        ns_tokens = attention_output.squeeze(2) + ns_tokens
         return s_tokens, ns_tokens
 
 class OutputFusion(nn.Module):
