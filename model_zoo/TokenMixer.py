@@ -52,7 +52,7 @@ class TokenMixer(MultiTaskModel):
         self.num_group_token = num_group_token
         self.accumulation_steps = accumulation_steps
 
-        # 统计非 item 特征维度、item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.non_item_dim = 0
         num_field = feature_map.get_num_fields()
@@ -110,8 +110,8 @@ class TokenMixer(MultiTaskModel):
     def forward(self, inputs):
         batch_dict, item_dict, mask = self.get_inputs(inputs)
         batch_size = mask.shape[0]
-        # item_dict 中假设包含 [history_items..., target_item]
-        # flatten_emb=True 后再 reshape 成: B x (T+1) x item_info_dim
+        # item_dict contains [history_items..., target_item]
+        # Reshape flattened embeddings to B x (T+1) x item_info_dim
         item_seq_emb = self.embedding_layer(item_dict, flatten_emb=True)
         item_seq_emb = item_seq_emb.view(batch_size, -1, self.item_info_dim)
 
@@ -120,7 +120,7 @@ class TokenMixer(MultiTaskModel):
 
         seq_pooling_emb = self.attention_layers(target_emb, sequence_emb, mask) # B x item_info_dim
 
-        # 其它非序列特征 -> NS tokens
+        # Other non-sequential features -> NS tokens
         user_context_emb = self.embedding_layer(batch_dict, flatten_emb=False)       # B x F × embedding_dim
         feature_embeddings = torch.cat([user_context_emb, target_emb.view(batch_size, -1, self.embedding_dim),
                                         seq_pooling_emb.view(batch_size, -1, self.embedding_dim)], dim=1)

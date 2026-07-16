@@ -1,5 +1,4 @@
-2026-07-09 22:54:11,478 P1580554 INFO UniRank version: 2.3.7
-2026-07-09 22:54:11,479 P1580554 INFO Params: {
+2026-07-15 11:25:22,950 P1439591 INFO Params: {
     "accumulation_steps": "1",
     "batch_size": "8192",
     "block_cache_size": "2",
@@ -16,13 +15,15 @@
     "early_stop_patience": "2",
     "embedding_dim": "16",
     "enable_bf16": "True",
+    "enable_torch_compile": "True",
     "epochs": "1",
     "eval_steps": "None",
     "feature_cols": "[{'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4996177}, {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3753437, 'source': 'item'}, {'name': 'video_category', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5, 'source': 'item'}, {'name': 'watching_times', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 419}, {'name': 'gender', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'age', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}, {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17, 'source': 'action'}]",
     "feature_config": "None",
     "feature_specs": "None",
     "gpu": "0",
-    "group_id": "user_index",
+    "gradient_checkpointing": "False",
+    "group_id": "user_id",
     "label_col": "[{'name': 'click', 'dtype': 'float'}, {'name': 'follow', 'dtype': 'float'}, {'name': 'like', 'dtype': 'float'}, {'name': 'share', 'dtype': 'float'}]",
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
@@ -66,26 +67,26 @@
     "verbose": "1",
     "world_size": "4"
 }
-2026-07-09 22:54:11,480 P1580554 INFO Set up feature processor...
-2026-07-09 22:54:11,481 P1580554 INFO Fit feature processor...
-2026-07-09 22:54:11,481 P1580554 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-09 22:54:11,481 P1580554 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-09 22:54:11,481 P1580554 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-09 22:54:11,481 P1580554 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4996177}
-2026-07-09 22:54:12,436 P1580554 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3753437, 'source': 'item'}
-2026-07-09 22:54:13,172 P1580554 INFO Processing column: {'name': 'video_category', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5, 'source': 'item'}
-2026-07-09 22:54:13,177 P1580554 INFO Processing column: {'name': 'watching_times', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 419}
-2026-07-09 22:54:13,180 P1580554 INFO Processing column: {'name': 'gender', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-09 22:54:13,184 P1580554 INFO Processing column: {'name': 'age', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}
-2026-07-09 22:54:13,188 P1580554 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17, 'source': 'action'}
-2026-07-09 22:54:13,197 P1580554 INFO Set column index...
-2026-07-09 22:54:13,197 P1580554 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/QK_Video_Action/feature_map.json
-2026-07-09 22:54:13,204 P1580554 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/QK_Video_Action/feature_processor.pkl
-2026-07-09 22:54:13,483 P1580554 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/QK_Video_Action/feature_vocab.json
-2026-07-09 22:54:21,492 P1580554 INFO Set feature processor done.
-2026-07-09 22:54:21,514 P1580554 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/QK_Video_Action/feature_map.json
-2026-07-09 22:54:21,518 P1580554 INFO Set column index...
-2026-07-09 22:54:21,518 P1580554 INFO Feature specs: {
+2026-07-15 11:25:22,952 P1439591 INFO Set up feature processor...
+2026-07-15 11:25:22,953 P1439591 INFO Fit feature processor...
+2026-07-15 11:25:22,953 P1439591 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 11:25:22,953 P1439591 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 11:25:22,953 P1439591 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 11:25:22,953 P1439591 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4996177}
+2026-07-15 11:25:23,918 P1439591 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3753437, 'source': 'item'}
+2026-07-15 11:25:24,665 P1439591 INFO Processing column: {'name': 'video_category', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5, 'source': 'item'}
+2026-07-15 11:25:24,666 P1439591 INFO Processing column: {'name': 'watching_times', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 419}
+2026-07-15 11:25:24,666 P1439591 INFO Processing column: {'name': 'gender', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-15 11:25:24,666 P1439591 INFO Processing column: {'name': 'age', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}
+2026-07-15 11:25:24,666 P1439591 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 17, 'source': 'action'}
+2026-07-15 11:25:24,667 P1439591 INFO Set column index...
+2026-07-15 11:25:24,667 P1439591 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/QK_Video_Action/feature_map.json
+2026-07-15 11:25:24,738 P1439591 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/QK_Video_Action/feature_processor.pkl
+2026-07-15 11:25:25,073 P1439591 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/QK_Video_Action/feature_vocab.json
+2026-07-15 11:25:32,643 P1439591 INFO Set feature processor done.
+2026-07-15 11:25:32,670 P1439591 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/QK_Video_Action/feature_map.json
+2026-07-15 11:25:32,674 P1439591 INFO Set column index...
+2026-07-15 11:25:32,674 P1439591 INFO Feature specs: {
     "action": "{'source': 'action', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 17}",
     "age": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 10}",
     "gender": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 5}",
@@ -97,43 +98,44 @@
     "video_category": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 5}",
     "watching_times": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 419}"
 }
-2026-07-09 22:54:22,834 P1580554 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=10334212), sparse=Adagrad(lr=0.05, params=140001120)
-2026-07-09 22:54:22,835 P1580554 INFO ************ compile start ************
-2026-07-09 22:54:24,051 P1580554 INFO Compiled dense module: tokenizer_layer
-2026-07-09 22:54:24,053 P1580554 INFO Compiled dense module: item_token_proj
-2026-07-09 22:54:24,054 P1580554 INFO Compiled dense module: unified_layers
-2026-07-09 22:54:24,055 P1580554 INFO Compiled dense module: tower.0
-2026-07-09 22:54:24,056 P1580554 INFO Compiled dense module: tower.1
-2026-07-09 22:54:24,057 P1580554 INFO Compiled dense module: tower.2
-2026-07-09 22:54:24,058 P1580554 INFO Compiled dense module: tower.3
-2026-07-09 22:54:24,872 P1580554 INFO Total number of parameters: 150335332.
-2026-07-09 22:54:24,877 P1580554 INFO Number of embedding parameters: 140001120.
-2026-07-09 22:54:24,880 P1580554 INFO Number of dense parameters: 10334212.
-2026-07-09 22:54:24,884 P1580554 INFO Loading datasets...
-2026-07-09 22:54:24,922 P1580554 INFO Train samples: total/98608038, blocks/2
-2026-07-09 22:54:24,956 P1580554 INFO Validation samples: total/12519757, blocks/2
-2026-07-09 22:54:24,956 P1580554 INFO Loading train and validation data done.
-2026-07-09 22:54:24,957 P1580554 INFO BF16 mixed precision: True
-2026-07-09 22:54:24,957 P1580554 INFO Start training: 12036 local batches/epoch
-2026-07-09 22:54:24,957 P1580554 INFO DDP blocked training: True
-2026-07-09 22:54:24,957 P1580554 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
-2026-07-09 22:54:24,957 P1580554 INFO ************ Epoch=1 start ************
-2026-07-09 23:26:14,926 P1580554 INFO Train loss: 0.425133
-2026-07-09 23:26:14,928 P1580554 INFO Evaluation @epoch 1 - batch 12036: 
-2026-07-09 23:28:21,145 P1580554 INFO [Task: click][Metrics] AUC: 0.845472 - logloss: 0.410567
-2026-07-09 23:28:50,386 P1580554 INFO [Task: follow][Metrics] AUC: 0.760827 - logloss: 0.008836
-2026-07-09 23:29:26,956 P1580554 INFO [Task: like][Metrics] AUC: 0.846492 - logloss: 0.064995
-2026-07-09 23:29:56,767 P1580554 INFO [Task: share][Metrics] AUC: 0.847395 - logloss: 0.009168
-2026-07-09 23:29:57,731 P1580554 INFO Save best model: monitor(max)=1.608743
-2026-07-09 23:29:58,611 P1580554 INFO ************ Epoch=1 end ************
-2026-07-09 23:29:58,611 P1580554 INFO Training finished.
-2026-07-09 23:29:58,611 P1580554 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/QK_Video_Action/LONGER_QK_Video_Action.model
-2026-07-09 23:30:00,558 P1580554 INFO ******** Test evaluation ********
-2026-07-09 23:30:00,559 P1580554 INFO Loading datasets...
-2026-07-09 23:30:00,606 P1580554 INFO Test samples: total/12144989, blocks/2
-2026-07-09 23:30:00,607 P1580554 INFO Loading test data done.
-2026-07-09 23:32:01,505 P1580554 INFO [Task: click][Metrics] logloss: 0.337727 - AUC: 0.873654
-2026-07-09 23:32:28,935 P1580554 INFO [Task: follow][Metrics] logloss: 0.006406 - AUC: 0.773354
-2026-07-09 23:33:02,245 P1580554 INFO [Task: like][Metrics] logloss: 0.048569 - AUC: 0.856972
-2026-07-09 23:33:30,811 P1580554 INFO [Task: share][Metrics] logloss: 0.006357 - AUC: 0.877850
-2026-07-09 23:33:32,450 P1580554 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/QK_Video_Action/LONGER_QK_Video_Action.model
+2026-07-15 11:25:34,021 P1439591 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=10334212), sparse=Adagrad(lr=0.05, params=140001120)
+2026-07-15 11:25:34,021 P1439591 INFO ************ compile start ************
+2026-07-15 11:25:35,329 P1439591 INFO Compiled dense module: unified_tokenizer_layer
+2026-07-15 11:25:35,331 P1439591 INFO Compiled dense module: item_token_proj
+2026-07-15 11:25:35,332 P1439591 INFO Compiled dense module: unified_interaction_layers
+2026-07-15 11:25:35,333 P1439591 INFO Compiled dense module: tower.0
+2026-07-15 11:25:35,334 P1439591 INFO Compiled dense module: tower.1
+2026-07-15 11:25:35,335 P1439591 INFO Compiled dense module: tower.2
+2026-07-15 11:25:35,336 P1439591 INFO Compiled dense module: tower.3
+2026-07-15 11:25:36,114 P1439591 INFO Total number of parameters: 150335332.
+2026-07-15 11:25:36,114 P1439591 INFO Number of embedding parameters: 140001120.
+2026-07-15 11:25:36,115 P1439591 INFO Number of dense parameters: 10334212.
+2026-07-15 11:25:36,115 P1439591 INFO Loading datasets...
+2026-07-15 11:25:36,175 P1439591 INFO Train samples: total/98652130, blocks/8
+2026-07-15 11:25:36,207 P1439591 INFO Validation samples: total/12510789, blocks/2
+2026-07-15 11:25:36,208 P1439591 INFO Loading train and validation data done.
+2026-07-15 11:25:36,385 P1439591 INFO BF16 mixed precision: True
+2026-07-15 11:25:36,385 P1439591 INFO Gradient checkpointing: False
+2026-07-15 11:25:36,386 P1439591 INFO Start training: 12038 local batches/epoch
+2026-07-15 11:25:36,386 P1439591 INFO DDP blocked training: True
+2026-07-15 11:25:36,386 P1439591 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
+2026-07-15 11:25:36,386 P1439591 INFO ************ Epoch=1 start ************
+2026-07-15 11:57:06,804 P1439591 INFO Train loss: 0.423843
+2026-07-15 11:57:06,806 P1439591 INFO Evaluation @epoch 1 - batch 12038:
+2026-07-15 11:58:51,910 P1439591 INFO [Task: click][Metrics] AUC: 0.922553 - logloss: 0.299647
+2026-07-15 11:59:17,088 P1439591 INFO [Task: follow][Metrics] AUC: 0.913032 - logloss: 0.007033
+2026-07-15 11:59:42,581 P1439591 INFO [Task: like][Metrics] AUC: 0.945566 - logloss: 0.047836
+2026-07-15 12:00:08,428 P1439591 INFO [Task: share][Metrics] AUC: 0.923071 - logloss: 0.007668
+2026-07-15 12:00:09,448 P1439591 INFO Save best model: monitor(max)=0.926055
+2026-07-15 12:00:10,608 P1439591 INFO ************ Epoch=1 end ************
+2026-07-15 12:00:10,610 P1439591 INFO Training finished.
+2026-07-15 12:00:10,610 P1439591 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/QK_Video_Action/LONGER_QK_Video_Action.model
+2026-07-15 12:00:12,347 P1439591 INFO ******** Test evaluation ********
+2026-07-15 12:00:12,347 P1439591 INFO Loading datasets...
+2026-07-15 12:00:12,387 P1439591 INFO Test samples: total/12136271, blocks/2
+2026-07-15 12:00:12,387 P1439591 INFO Loading test data done.
+2026-07-15 12:01:53,147 P1439591 INFO [Task: click][Metrics] logloss: 0.248643 - AUC: 0.935628
+2026-07-15 12:02:18,047 P1439591 INFO [Task: follow][Metrics] logloss: 0.005115 - AUC: 0.916579
+2026-07-15 12:02:43,027 P1439591 INFO [Task: like][Metrics] logloss: 0.036182 - AUC: 0.948901
+2026-07-15 12:03:07,820 P1439591 INFO [Task: share][Metrics] logloss: 0.005333 - AUC: 0.933001
+2026-07-15 12:03:09,565 P1439591 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/QK_Video_Action/LONGER_QK_Video_Action.model

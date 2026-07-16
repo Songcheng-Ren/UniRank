@@ -129,7 +129,7 @@ class MultiTaskModel(BaseModel):
             mean_val_logs = defaultdict(list)
             group_id = np.array(group_id) if len(group_id) > 0 else None
 
-            # ---- 分布式一致性检查：所有 rank 必须对"是否做分布式评估聚合"判断一致 ----
+            # ---- Distributed consistency check: All ranks must agree on "whether to perform distributed evaluation aggregation" ----
             _distributed_eval = False
             _is_sampler_distributed_eval = False
             _is_blocked_distributed_eval = False
@@ -156,14 +156,14 @@ class MultiTaskModel(BaseModel):
                 if len(set(flags)) != 1:
                     raise RuntimeError(
                         f"[Rank {self.rank}] Inconsistent distributed-eval flags across ranks: {flags}. "
-                        "这会导致 collective 死锁。请确保各 rank 的验证 DataLoader 配置一致。"
+                        "This can cause a collective deadlock. Please ensure that the validation DataLoader configuration of each rank is consistent."
                     )
 
                 _distributed_eval = bool(flags[0])
 
                 if self.force_distributed_eval and not _distributed_eval:
                     raise RuntimeError(
-                        "force_distributed_eval=True, 但当前评估 DataLoader 未启用分布式切分。"
+                        "force_distributed_eval=True, but the currently evaluated DataLoader does not have distributed sharding enabled."
                     )
 
                 if _distributed_eval:

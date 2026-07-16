@@ -1,6 +1,6 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,3 +18,4 @@ from .auto_split_tokenizer import *
 from .chunk_tokenizer import *
 from .field_wise_tokenizer import *
 from .random_split_tokenizer import *
+from .unified_tokenizer import *

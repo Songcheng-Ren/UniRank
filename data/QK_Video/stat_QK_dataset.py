@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""统计 QK-Video blocked 数据集信息。"""
+"""Statistics QK-Video blocked data set information."""
 
 import sys
 from pathlib import Path

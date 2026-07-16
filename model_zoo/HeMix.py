@@ -1,6 +1,6 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -58,7 +58,7 @@ class HeMix(MultiTaskModel):
         self.accumulation_steps = accumulation_steps
         self.real_seq_len = real_seq_len
 
-        # 统计 item 特征维度 / 非 item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.non_item_dim = 0
         for feat, spec in self.feature_map.features.items():
@@ -74,7 +74,7 @@ class HeMix(MultiTaskModel):
 
         self.embedding_layer = FeatureEmbedding(feature_map, embedding_dim)
 
-        # 论文中：先生成 NS tokens，再基于其与 fixed queries 对 sequence 做 mixed attention
+        # Build NS tokens, then mix dynamic and fixed queries over the sequence.
         tokenizer_input_dim = self.non_item_dim + self.item_info_dim
         self.unified_tokenizer_layer = HeMixTokenizer(
             input_dim=tokenizer_input_dim,
@@ -83,15 +83,15 @@ class HeMix(MultiTaskModel):
             num_real_token=num_real_token
         )
 
-        # 序列 item / target item 投影到统一 token_dim
+        # Project sequence and target items to token_dim
         if self.item_info_dim != token_dim:
             self.item_token_proj = nn.Linear(self.item_info_dim, token_dim)
         else:
             self.item_token_proj = nn.Identity()
 
-        # 总 token 数 = sequence tokens + NS tokens
-        # NS token 数 = num_glocal_token + num_real_token
-        # Seq token 数 = 2 * NS token 数（global / real 中都包含 dynamic + fixed queries）
+        # Total number of tokens = sequence tokens + NS tokens
+        # Number of NS tokens = num_glocal_token + num_real_token
+        # Number of Seq tokens = 2 * Number of NS tokens (dynamic + fixed queries are included in global / real)
         self.num_ns_token = num_glocal_token + num_real_token
         self.num_all_tokens = self.num_ns_token * 3
 
@@ -137,29 +137,29 @@ class HeMix(MultiTaskModel):
             batch_size = any_tensor.shape[0]
 
         # item_dict: [history_items..., target_item]
-        # flatten_emb=True 后 reshape 成 B x (T+1) x item_info_dim
+        # reshape flatten_emb=True into B x (T+1) x item_info_dim
         item_seq_emb = self.embedding_layer(item_dict, flatten_emb=True)
         item_seq_emb = item_seq_emb.view(batch_size, -1, self.item_info_dim)
 
         target_emb = item_seq_emb[:, -1, :]      # B x item_info_dim
         sequence_emb = item_seq_emb[:, :-1, :]   # B x S x item_info_dim
 
-        # real-time sequence: 最近 real_seq_len 个行为
-        # global sequence: 更早历史行为
+        # real-time sequence: recent real_seq_len behaviors
+        # global sequence: earlier historical behavior
         real_sequence_emb = sequence_emb[:, -self.real_seq_len:, :]
         glocal_sequence_emb = sequence_emb[:, :-self.real_seq_len, :]
 
-        # 投影到 token_dim，供 mixed hetero attention 使用
+        # Projected to token_dim for use by hetero mixed attention
         real_sequence_tokens = self.item_token_proj(real_sequence_emb)
         glocal_sequence_tokens = self.item_token_proj(glocal_sequence_emb)
 
-        real_mask, glocal_mask = None, None
         if mask is not None:
-            seq_mask = mask[:, :-1].bool()  # 去掉 target item 对应位置
-            real_mask = seq_mask[:, -self.real_seq_len:]
-            glocal_mask = seq_mask[:, :-self.real_seq_len]
+            real_mask = mask[:, -self.real_seq_len:]
+            glocal_mask = mask[:, :-self.real_seq_len]
+            real_sequence_tokens = real_sequence_tokens * real_mask.unsqueeze(-1).float()
+            glocal_sequence_tokens = glocal_sequence_tokens * glocal_mask.unsqueeze(-1).float()
 
-        # 非序列特征 + target item -> NS tokens
+        # Non-sequential features + target item -> NS tokens
         user_context_emb = self.embedding_layer(batch_dict, flatten_emb=True)  # B x non_item_dim
         feature_embeddings = torch.cat([user_context_emb, target_emb], dim=-1)
 
@@ -167,9 +167,7 @@ class HeMix(MultiTaskModel):
         unified_tokens = self.unified_tokenizer_layer(
             feature_embeddings,
             real_sequence_tokens,
-            glocal_sequence_tokens,
-            real_mask=real_mask,
-            glocal_mask=glocal_mask
+            glocal_sequence_tokens
         )
 
         # HeteroMixer interaction
@@ -215,8 +213,7 @@ class HeMixTokenizer(nn.Module):
         nn.init.xavier_uniform_(self.cls_tokens_glocal)
         nn.init.xavier_uniform_(self.cls_tokens_real)
 
-    def forward(self, feature_embeddings, real_sequence_emb, glocal_sequence_emb,
-                real_mask=None, glocal_mask=None):
+    def forward(self, feature_embeddings, real_sequence_emb, glocal_sequence_emb):
         if feature_embeddings.dim() > 2:
             feature_embeddings = torch.flatten(feature_embeddings, start_dim=1)
         B = feature_embeddings.size(0)
@@ -231,13 +228,11 @@ class HeMixTokenizer(nn.Module):
 
         tokens_real = self.mha_real(
             s_tokens=real_sequence_emb,
-            ns_tokens=real_queries,
-            mask=real_mask,
+            ns_tokens=real_queries
         )
         tokens_glocal = self.mha_glocal(
             s_tokens=glocal_sequence_emb,
-            ns_tokens=glocal_queries,
-            mask=glocal_mask,
+            ns_tokens=glocal_queries
         )
         seq_tokens = torch.cat([tokens_real, tokens_glocal], dim=1)
         return torch.cat([seq_tokens, ns_tokens], dim=1)
@@ -261,7 +256,7 @@ class MixedHeteroAttention(nn.Module):
         nn.init.xavier_uniform_(self.W_v_s.weight)
         nn.init.xavier_uniform_(self.W_o.weight)
 
-    def forward(self, s_tokens, ns_tokens, mask=None):
+    def forward(self, s_tokens, ns_tokens):
         B, Ls, D = s_tokens.shape
         _, Lns, _ = ns_tokens.shape
         if Ls == 0:
@@ -281,7 +276,7 @@ class MixedHeteroAttention(nn.Module):
 
 class HeteroMixer(nn.Module):
     """
-    对应论文 3.4:
+    Implements Section 3.4:
     [HeteroMixing + AddNorm] -> [HeteroFFN + AddNorm]
     """
     def __init__(self,
@@ -308,7 +303,7 @@ class HeteroMixer(nn.Module):
             for _ in range(num_layers)
         ])
 
-        # 沿用原有 PerTokenFeedForward，最小侵入式实现 HeteroFFN
+        # Reuse PerTokenFeedForward for HeteroFFN.
         self.pffn_layers = nn.ModuleList([
             PerTokenFeedForward(
                 input_dim=input_dim,
@@ -328,7 +323,7 @@ class HeteroMixer(nn.Module):
 
 class MultiHeadTokenMixing(nn.Module):
     """
-    对应论文 3.4.1 的 HeteroMixing:
+    Implements HeteroMixing from Section 3.4.1:
     1) Multi-head Token Fusion
     2) Head-wise low-rank interaction
     3) Reconstruction
@@ -346,7 +341,7 @@ class MultiHeadTokenMixing(nn.Module):
         if low_rank_dim is None:
             low_rank_dim = max(16, self.mix_dim // 8)
         self.low_rank_dim = low_rank_dim
-        # 每个 head 一个低秩 MLP: W_l / W_r
+        # One low-rank MLP per head: W_l / W_r
         self.W_l = nn.Parameter(torch.empty(num_heads, self.mix_dim, low_rank_dim))
         self.b_l = nn.Parameter(torch.zeros(num_heads, low_rank_dim))
         self.W_r = nn.Parameter(torch.empty(num_heads, low_rank_dim, self.mix_dim))

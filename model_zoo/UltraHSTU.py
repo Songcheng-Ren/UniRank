@@ -59,7 +59,7 @@ class UltraHSTU(MultiTaskModel):
         assert len(k1) == len(k2) and truncation_start_layer <= len(k1)
         num_layers = len(k1)
 
-        # 统计非 item 特征维度、item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.user_info_dim = 0
         for feat, spec in self.feature_map.features.items():
@@ -73,7 +73,7 @@ class UltraHSTU(MultiTaskModel):
             elif spec.get("source") not in ["item", "action"]:
                 self.user_info_dim += emb_dim
 
-        # action 单独 embedding，其余 feature 走常规 embedding
+        # The action is embedding alone, and the other features are embedding conventionally.
         self.action_embedding_layer = FeatureEmbedding(
             feature_map, self.item_info_dim, required_feature_columns=['action']
         )
@@ -130,7 +130,7 @@ class UltraHSTU(MultiTaskModel):
 
         sequence_emb = sequence_emb.view(batch_size, -1, self.item_info_dim)   # B x (T+1) x item_info_dim
 
-        # 用户上下文
+        # user context
         user_context_emb = self.feature_embedding_layer(batch_dict, flatten_emb=True) # B x user_info_dim
 
         # [user_token][sequence_tokens|candidate]
@@ -205,9 +205,9 @@ class UnifiedInteractionBlocks(nn.Module):
 
     def _expand_valid_mask(self, x, valid_mask):
         """
-        输入 valid_mask 只覆盖历史 T。
-        sequence_emb 实际长度是 T+1（最后一个是 candidate）。
-        unified token 还需要额外补 1 个 user token。
+        The input valid_mask only overwrites the history T.
+        The actual length of sequence_emb is T+1 (the last one is the candidate).
+        Unified token requires an additional user token.
         """
         if valid_mask is None:
             return None
@@ -224,9 +224,9 @@ class UnifiedInteractionBlocks(nn.Module):
 
     def truncate_tail(self, x, valid_mask):
         """
-        保留:
-        - 1 个 user token
-        - 最近 truncation_ratio 比例的 sequence tokens
+        reserve:
+        - 1 user token
+        - recent truncation_ratio ratio of sequence tokens
         """
         if self.truncation_ratio is None:
             return x, valid_mask

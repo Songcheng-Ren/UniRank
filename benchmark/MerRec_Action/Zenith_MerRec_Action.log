@@ -1,5 +1,4 @@
-2026-07-12 22:00:30,576 P3774774 INFO UniRank version: 2.3.7
-2026-07-12 22:00:30,576 P3774774 INFO Params: {
+2026-07-15 22:38:45,288 P1992026 INFO Params: {
     "accumulation_steps": "1",
     "attention_dropout": "0",
     "batch_size": "8192",
@@ -16,6 +15,7 @@
     "early_stop_patience": "2",
     "embedding_dim": "16",
     "enable_bf16": "True",
+    "enable_torch_compile": "True",
     "epochs": "1",
     "eval_steps": "None",
     "expansion_factor": "2",
@@ -23,7 +23,8 @@
     "feature_config": "None",
     "feature_specs": "None",
     "gpu": "0",
-    "group_id": "user_index",
+    "gradient_checkpointing": "False",
+    "group_id": "user_id",
     "id_dim": "48",
     "label_col": "[{'name': 'Like', 'dtype': 'float'}, {'name': 'Cart', 'dtype': 'float'}, {'name': 'Offer', 'dtype': 'float'}, {'name': 'Checkout', 'dtype': 'float'}, {'name': 'Purchase', 'dtype': 'float'}]",
     "local_rank": "0",
@@ -38,7 +39,7 @@
     "net_dropout": "0",
     "num_layers": "3",
     "num_tasks": "5",
-    "num_token": "4",
+    "num_token": "2",
     "num_workers": "4",
     "pickle_feature_encoder": "True",
     "rank": "0",
@@ -65,36 +66,36 @@
     "verbose": "1",
     "world_size": "4"
 }
-2026-07-12 22:00:30,578 P3774774 INFO Set up feature processor...
-2026-07-12 22:00:30,578 P3774774 INFO Fit feature processor...
-2026-07-12 22:00:30,578 P3774774 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-12 22:00:30,579 P3774774 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-12 22:00:30,579 P3774774 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-12 22:00:30,579 P3774774 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1697916}
-2026-07-12 22:00:30,921 P3774774 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 43817684, 'source': 'item'}
-2026-07-12 22:00:39,177 P3774774 INFO Processing column: {'name': 'product_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 893620, 'source': 'item'}
-2026-07-12 22:00:39,339 P3774774 INFO Processing column: {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10, 'source': 'item'}
-2026-07-12 22:00:39,339 P3774774 INFO Processing column: {'name': 'c0_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18, 'source': 'item'}
-2026-07-12 22:00:39,340 P3774774 INFO Processing column: {'name': 'c1_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 310, 'source': 'item'}
-2026-07-12 22:00:39,340 P3774774 INFO Processing column: {'name': 'c2_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3042, 'source': 'item'}
-2026-07-12 22:00:39,341 P3774774 INFO Processing column: {'name': 'brand_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 19783, 'source': 'item'}
-2026-07-12 22:00:39,344 P3774774 INFO Processing column: {'name': 'item_condition_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}
-2026-07-12 22:00:39,344 P3774774 INFO Processing column: {'name': 'size_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 356, 'source': 'item'}
-2026-07-12 22:00:39,344 P3774774 INFO Processing column: {'name': 'shipper_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3, 'source': 'item'}
-2026-07-12 22:00:39,344 P3774774 INFO Processing column: {'name': 'color', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7311, 'source': 'item'}
-2026-07-12 22:00:39,345 P3774774 INFO Processing column: {'name': 'session_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3701837}
-2026-07-12 22:00:40,061 P3774774 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
-2026-07-12 22:00:40,062 P3774774 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
-2026-07-12 22:00:40,062 P3774774 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
-2026-07-12 22:00:40,062 P3774774 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 33, 'source': 'action'}
-2026-07-12 22:00:40,063 P3774774 INFO Set column index...
-2026-07-12 22:00:40,063 P3774774 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
-2026-07-12 22:00:40,069 P3774774 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_processor.pkl
-2026-07-12 22:00:41,614 P3774774 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_vocab.json
-2026-07-12 22:01:24,779 P3774774 INFO Set feature processor done.
-2026-07-12 22:01:24,798 P3774774 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
-2026-07-12 22:01:24,801 P3774774 INFO Set column index...
-2026-07-12 22:01:24,801 P3774774 INFO Feature specs: {
+2026-07-15 22:38:45,290 P1992026 INFO Set up feature processor...
+2026-07-15 22:38:45,290 P1992026 INFO Fit feature processor...
+2026-07-15 22:38:45,290 P1992026 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 22:38:45,291 P1992026 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 22:38:45,291 P1992026 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 22:38:45,291 P1992026 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1697916}
+2026-07-15 22:38:45,632 P1992026 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 43817684, 'source': 'item'}
+2026-07-15 22:38:53,631 P1992026 INFO Processing column: {'name': 'product_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 893620, 'source': 'item'}
+2026-07-15 22:38:53,795 P1992026 INFO Processing column: {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10, 'source': 'item'}
+2026-07-15 22:38:53,796 P1992026 INFO Processing column: {'name': 'c0_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18, 'source': 'item'}
+2026-07-15 22:38:53,796 P1992026 INFO Processing column: {'name': 'c1_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 310, 'source': 'item'}
+2026-07-15 22:38:53,796 P1992026 INFO Processing column: {'name': 'c2_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3042, 'source': 'item'}
+2026-07-15 22:38:53,797 P1992026 INFO Processing column: {'name': 'brand_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 19783, 'source': 'item'}
+2026-07-15 22:38:53,800 P1992026 INFO Processing column: {'name': 'item_condition_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}
+2026-07-15 22:38:53,800 P1992026 INFO Processing column: {'name': 'size_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 356, 'source': 'item'}
+2026-07-15 22:38:53,800 P1992026 INFO Processing column: {'name': 'shipper_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3, 'source': 'item'}
+2026-07-15 22:38:53,800 P1992026 INFO Processing column: {'name': 'color', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7311, 'source': 'item'}
+2026-07-15 22:38:53,801 P1992026 INFO Processing column: {'name': 'session_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3701837}
+2026-07-15 22:38:54,505 P1992026 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
+2026-07-15 22:38:54,506 P1992026 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-15 22:38:54,506 P1992026 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
+2026-07-15 22:38:54,506 P1992026 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 33, 'source': 'action'}
+2026-07-15 22:38:54,507 P1992026 INFO Set column index...
+2026-07-15 22:38:54,507 P1992026 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
+2026-07-15 22:38:54,582 P1992026 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_processor.pkl
+2026-07-15 22:38:56,161 P1992026 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_vocab.json
+2026-07-15 22:39:40,538 P1992026 INFO Set feature processor done.
+2026-07-15 22:39:40,552 P1992026 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
+2026-07-15 22:39:40,555 P1992026 INFO Set column index...
+2026-07-15 22:39:40,555 P1992026 INFO Feature specs: {
     "action": "{'source': 'action', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 33}",
     "brand_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 19783}",
     "c0_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 18}",
@@ -116,46 +117,47 @@
     "user_id": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 1697916}",
     "user_index": "{'type': 'meta'}"
 }
-2026-07-12 22:01:45,082 P3774774 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=18523909), sparse=Adagrad(lr=0.05, params=2258770656)
-2026-07-12 22:01:45,083 P3774774 INFO ************ compile start ************
-2026-07-12 22:01:47,136 P3774774 INFO Compiled dense module: unified_tokenizer_layer
-2026-07-12 22:01:47,137 P3774774 INFO Compiled dense module: attention_layers
-2026-07-12 22:01:47,138 P3774774 INFO Compiled dense module: unified_interaction_layers
-2026-07-12 22:01:47,139 P3774774 INFO Compiled dense module: tower.0
-2026-07-12 22:01:47,140 P3774774 INFO Compiled dense module: tower.1
-2026-07-12 22:01:47,141 P3774774 INFO Compiled dense module: tower.2
-2026-07-12 22:01:47,142 P3774774 INFO Compiled dense module: tower.3
-2026-07-12 22:01:47,143 P3774774 INFO Compiled dense module: tower.4
-2026-07-12 22:01:58,090 P3774774 INFO Total number of parameters: 2277294565.
-2026-07-12 22:01:58,093 P3774774 INFO Number of embedding parameters: 2258770656.
-2026-07-12 22:01:58,096 P3774774 INFO Number of dense parameters: 18523909.
-2026-07-12 22:01:58,098 P3774774 INFO Loading datasets...
-2026-07-12 22:01:58,133 P3774774 INFO Train samples: total/36090865, blocks/2
-2026-07-12 22:01:58,161 P3774774 INFO Validation samples: total/4124870, blocks/2
-2026-07-12 22:01:58,161 P3774774 INFO Loading train and validation data done.
-2026-07-12 22:01:58,162 P3774774 INFO BF16 mixed precision: True
-2026-07-12 22:01:58,162 P3774774 INFO Start training: 4405 local batches/epoch
-2026-07-12 22:01:58,162 P3774774 INFO DDP blocked training: True
-2026-07-12 22:01:58,162 P3774774 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
-2026-07-12 22:01:58,162 P3774774 INFO ************ Epoch=1 start ************
-2026-07-12 22:18:47,508 P3774774 INFO Train loss: 0.419418
-2026-07-12 22:18:47,535 P3774774 INFO Evaluation @epoch 1 - batch 4405: 
-2026-07-12 22:19:34,718 P3774774 INFO [Task: Like][Metrics] AUC: 0.740600 - logloss: 0.335752
-2026-07-12 22:19:45,465 P3774774 INFO [Task: Cart][Metrics] AUC: 0.795426 - logloss: 0.057551
-2026-07-12 22:19:55,314 P3774774 INFO [Task: Offer][Metrics] AUC: 0.772879 - logloss: 0.025853
-2026-07-12 22:20:04,361 P3774774 INFO [Task: Checkout][Metrics] AUC: 0.845995 - logloss: 0.013095
-2026-07-12 22:20:13,161 P3774774 INFO [Task: Purchase][Metrics] AUC: 0.847844 - logloss: 0.008310
-2026-07-12 22:20:13,554 P3774774 INFO Save best model: monitor(max)=1.532774
-2026-07-12 22:20:24,272 P3774774 INFO ************ Epoch=1 end ************
-2026-07-12 22:20:24,272 P3774774 INFO Training finished.
-2026-07-12 22:20:24,272 P3774774 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/Zenith_MerRec_Action.model
-2026-07-12 22:20:30,643 P3774774 INFO ******** Test evaluation ********
-2026-07-12 22:20:30,644 P3774774 INFO Loading datasets...
-2026-07-12 22:20:30,680 P3774774 INFO Test samples: total/2919932, blocks/2
-2026-07-12 22:20:30,680 P3774774 INFO Loading test data done.
-2026-07-12 22:21:00,951 P3774774 INFO [Task: Like][Metrics] logloss: 0.334370 - AUC: 0.735846
-2026-07-12 22:21:09,251 P3774774 INFO [Task: Cart][Metrics] logloss: 0.054791 - AUC: 0.794930
-2026-07-12 22:21:16,624 P3774774 INFO [Task: Offer][Metrics] logloss: 0.023320 - AUC: 0.765872
-2026-07-12 22:21:23,063 P3774774 INFO [Task: Checkout][Metrics] logloss: 0.012188 - AUC: 0.843877
-2026-07-12 22:21:29,700 P3774774 INFO [Task: Purchase][Metrics] logloss: 0.007686 - AUC: 0.844321
-2026-07-12 22:21:31,710 P3774774 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/Zenith_MerRec_Action.model
+2026-07-15 22:40:00,841 P1992026 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=11430661), sparse=Adagrad(lr=0.05, params=2258770656)
+2026-07-15 22:40:00,842 P1992026 INFO ************ compile start ************
+2026-07-15 22:40:02,875 P1992026 INFO Compiled dense module: unified_tokenizer_layer
+2026-07-15 22:40:02,876 P1992026 INFO Compiled dense module: attention_layers
+2026-07-15 22:40:02,878 P1992026 INFO Compiled dense module: unified_interaction_layers
+2026-07-15 22:40:02,879 P1992026 INFO Compiled dense module: tower.0
+2026-07-15 22:40:02,880 P1992026 INFO Compiled dense module: tower.1
+2026-07-15 22:40:02,881 P1992026 INFO Compiled dense module: tower.2
+2026-07-15 22:40:02,882 P1992026 INFO Compiled dense module: tower.3
+2026-07-15 22:40:02,883 P1992026 INFO Compiled dense module: tower.4
+2026-07-15 22:40:14,049 P1992026 INFO Total number of parameters: 2270201317.
+2026-07-15 22:40:14,053 P1992026 INFO Number of embedding parameters: 2258770656.
+2026-07-15 22:40:14,056 P1992026 INFO Number of dense parameters: 11430661.
+2026-07-15 22:40:14,057 P1992026 INFO Loading datasets...
+2026-07-15 22:40:14,095 P1992026 INFO Train samples: total/36090865, blocks/2
+2026-07-15 22:40:14,124 P1992026 INFO Validation samples: total/4124870, blocks/2
+2026-07-15 22:40:14,124 P1992026 INFO Loading train and validation data done.
+2026-07-15 22:40:14,330 P1992026 INFO BF16 mixed precision: True
+2026-07-15 22:40:14,330 P1992026 INFO Gradient checkpointing: False
+2026-07-15 22:40:14,331 P1992026 INFO Start training: 4405 local batches/epoch
+2026-07-15 22:40:14,331 P1992026 INFO DDP blocked training: True
+2026-07-15 22:40:14,331 P1992026 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
+2026-07-15 22:40:14,331 P1992026 INFO ************ Epoch=1 start ************
+2026-07-15 23:02:21,302 P1992026 INFO Train loss: 0.416282
+2026-07-15 23:02:21,339 P1992026 INFO Evaluation @epoch 1 - batch 4405:
+2026-07-15 23:03:05,716 P1992026 INFO [Task: Like][Metrics] AUC: 0.744022 - logloss: 0.333593
+2026-07-15 23:03:13,464 P1992026 INFO [Task: Cart][Metrics] AUC: 0.800508 - logloss: 0.057715
+2026-07-15 23:03:20,968 P1992026 INFO [Task: Offer][Metrics] AUC: 0.774532 - logloss: 0.024898
+2026-07-15 23:03:28,314 P1992026 INFO [Task: Checkout][Metrics] AUC: 0.853361 - logloss: 0.014039
+2026-07-15 23:03:35,993 P1992026 INFO [Task: Purchase][Metrics] AUC: 0.856127 - logloss: 0.009188
+2026-07-15 23:03:36,414 P1992026 INFO Save best model: monitor(max)=0.805710
+2026-07-15 23:03:47,376 P1992026 INFO ************ Epoch=1 end ************
+2026-07-15 23:03:47,378 P1992026 INFO Training finished.
+2026-07-15 23:03:47,378 P1992026 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/Zenith_MerRec_Action.model
+2026-07-15 23:03:53,396 P1992026 INFO ******** Test evaluation ********
+2026-07-15 23:03:53,396 P1992026 INFO Loading datasets...
+2026-07-15 23:03:53,434 P1992026 INFO Test samples: total/2919932, blocks/2
+2026-07-15 23:03:53,434 P1992026 INFO Loading test data done.
+2026-07-15 23:04:21,601 P1992026 INFO [Task: Like][Metrics] logloss: 0.330564 - AUC: 0.743024
+2026-07-15 23:04:26,961 P1992026 INFO [Task: Cart][Metrics] logloss: 0.054583 - AUC: 0.801864
+2026-07-15 23:04:32,269 P1992026 INFO [Task: Offer][Metrics] logloss: 0.022123 - AUC: 0.771231
+2026-07-15 23:04:37,599 P1992026 INFO [Task: Checkout][Metrics] logloss: 0.012676 - AUC: 0.850260
+2026-07-15 23:04:43,069 P1992026 INFO [Task: Purchase][Metrics] logloss: 0.008583 - AUC: 0.849491
+2026-07-15 23:04:44,493 P1992026 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/Zenith_MerRec_Action.model

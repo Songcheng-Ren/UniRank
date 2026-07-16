@@ -56,7 +56,7 @@ class Zenith(MultiTaskModel):
         self.accumulation_steps = accumulation_steps
         self.id_dim = id_dim
 
-        # 统计非 item 特征维度、item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.non_item_dim = 0
         for feat, spec in self.feature_map.features.items():
@@ -99,7 +99,7 @@ class Zenith(MultiTaskModel):
             dropout_rate=attention_dropout
         )
 
-        # 最终 token 数 = user_id(1) + item_id(1) + user_context_tokens(num_ns) + item_attribute_tokens(num_ns)
+        # Final number of tokens = user_id(1) + item_id(1) + user_context_tokens(num_ns) + item_attribute_tokens(num_ns)
         self.num_prime_tokens = 2 + 2 * num_token
 
         self.unified_interaction_layers = ZenithBlock(input_dim=token_dim,
@@ -130,8 +130,8 @@ class Zenith(MultiTaskModel):
     def forward(self, inputs):
         batch_dict, item_dict, mask = self.get_inputs(inputs)
         batch_size = mask.shape[0]
-        # item_dict 中假设包含 [history_items..., target_item]
-        # flatten_emb=True 后再 reshape 成: B x (T+1) x item_info_dim
+        # item_dict contains [history_items..., target_item]
+        # Reshape flattened embeddings to B x (T+1) x item_info_dim
         item_attri_emb = self.feature_embedding_layer(item_dict, flatten_emb=True)
         item_attri_emb = item_attri_emb.view(batch_size, -1, self.item_info_dim - self.id_dim)
         item_id_emb = self.item_id_embedding_layer(item_dict, flatten_emb=True)
@@ -141,7 +141,7 @@ class Zenith(MultiTaskModel):
         target_emb = item_seq_emb[:, -1, :]      # B x item_info_dim
         sequence_emb = item_seq_emb[:, 0:-1, :]  # B x T x item_info_dim
 
-        # 其它非序列特征 -> NS tokens
+        # Other non-sequential features -> NS tokens
         user_context_emb = self.feature_embedding_layer(batch_dict, flatten_emb=True)
         user_id_emb = self.user_id_embedding_layer(batch_dict, flatten_emb=True)
         item_attribute = self.attention_layers(target_emb, sequence_emb, mask)

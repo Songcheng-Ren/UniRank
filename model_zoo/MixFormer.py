@@ -52,7 +52,7 @@ class MixFormer(MultiTaskModel):
         self.num_ns_token = num_ns_token
         self.accumulation_steps = accumulation_steps
 
-        # 统计非 item 特征维度、item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.non_item_dim = 0
         for feat, spec in self.feature_map.features.items():
@@ -67,14 +67,14 @@ class MixFormer(MultiTaskModel):
                 self.non_item_dim += emb_dim
 
         self.embedding_layer = FeatureEmbedding(feature_map, embedding_dim)
-        # 非序列特征 tokenizer: 产生 num_ns_token 个 NS tokens，因为target item 也被视为一个NS token，所以加入了self.item_info_dim
+        # Non-sequential feature tokenizer: generates num_ns_token NS tokens, because the target item is also regarded as an NS token, so self.item_info_dim is added
         self.unified_tokenizer_layer = ChunkTokenizer(
             input_dim=self.non_item_dim + self.item_info_dim,
             token_dim=token_dim,
             num_tokens=num_ns_token
         )
 
-        # item sequence / target item 投影到统一 token_dim
+        # Project sequence and target items to token_dim
         if self.item_info_dim != token_dim:
             self.item_token_proj = nn.Linear(self.item_info_dim, token_dim)
         else:
@@ -108,8 +108,8 @@ class MixFormer(MultiTaskModel):
     def forward(self, inputs):
         batch_dict, item_dict, mask = self.get_inputs(inputs)
         batch_size = mask.shape[0]
-        # item_dict 中假设包含 [history_items..., target_item]
-        # flatten_emb=True 后再 reshape 成: B x (T+1) x item_info_dim
+        # item_dict contains [history_items..., target_item]
+        # Reshape flattened embeddings to B x (T+1) x item_info_dim
         item_seq_emb = self.embedding_layer(item_dict, flatten_emb=True)
         item_seq_emb = item_seq_emb.view(batch_size, -1, self.item_info_dim)
 
@@ -119,8 +119,8 @@ class MixFormer(MultiTaskModel):
         # S-tokens
         s_tokens = self.item_token_proj(sequence_emb)  # B x T x token_dim
 
-        # target item 作为一个 NS token
-        # 其它非序列特征 -> NS tokens
+        # target item as an NS token
+        # Other non-sequential features -> NS tokens
         user_context_emb = self.embedding_layer(batch_dict, flatten_emb=True)  # B x non_item_dim
         feature_embeddings = torch.cat([user_context_emb, target_emb], dim=-1)
         unified_tokens = self.unified_tokenizer_layer(feature_embeddings)  # B x num_ns_token x token_dim
@@ -144,7 +144,7 @@ class MixFormer(MultiTaskModel):
 
 class MixFormerBlocks(nn.Module):
     """
-    每一层依次执行：
+    Each layer applies:
     1) Query Mixer
     2) Cross Attention
     3) Output Fusion
@@ -199,7 +199,7 @@ class MixFormerBlocks(nn.Module):
 
 class QueryMixer(nn.Module):
     """
-    对应论文中的 Query Mixer:
+    Implements the paper's Query Mixer:
     P = HeadMixing(Norm(X)) + X
     q_i = PerHeadFFN(Norm(p_i)) + p_i
     """
@@ -220,11 +220,10 @@ class QueryMixer(nn.Module):
 
 class CrossAttention(nn.Module):
     """
-    对应论文中的 Cross Attention:
-    - 先对序列做 per-layer FFN refinement
-    - 再由每个 NS head 对序列做 cross attention
-    - trade-off：没有直接在scaled_dot_product_attention引入自定义mask，用少量的注意力权重稀释换取FlashAttention的计算加速，
-      如果在scaled_dot_product_attention直接引入自定义mask，反而效果降低
+    Implements the paper's Cross Attention:
+    - First do per-layer FFN refinement on the sequence
+    - Then each NS head performs cross attention on the sequence
+    - Keep SDPA mask-free to preserve FlashAttention eligibility, accepting minor attention leakage.
     """
     def __init__(self, input_dim, num_ns_token, expand=4, net_dropout=0.0):
         super(CrossAttention, self).__init__()
@@ -239,7 +238,7 @@ class CrossAttention(nn.Module):
             net_dropout=net_dropout
         )
 
-        # 每个 query head 一组 K/V 投影
+        # A set of K/V projections for each query head
         self.k_proj = nn.Linear(input_dim, input_dim * num_ns_token)
         self.v_proj = nn.Linear(input_dim, input_dim * num_ns_token)
 
@@ -247,7 +246,7 @@ class CrossAttention(nn.Module):
         """
         s_tokens: B x T x D
         ns_tokens: B x N x D
-        mask:     B x T (1/True 表示有效位置)
+        mask: B x T (1/True indicates valid position)
         """
         # per-layer sequence refinement
         s_tokens = self.seq_ffn(self.seq_norm(s_tokens)) + s_tokens  # B x T x D
@@ -267,7 +266,7 @@ class CrossAttention(nn.Module):
 
 class OutputFusion(nn.Module):
     """
-    对应论文中的 Output Fusion:
+    Implements the paper's Output Fusion:
     o_i = PerHeadFFN(Norm(z_i)) + z_i
     """
     def __init__(self, input_dim, num_ns_token, expand=4, net_dropout=0.0):

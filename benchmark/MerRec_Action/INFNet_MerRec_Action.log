@@ -1,5 +1,4 @@
-2026-07-12 20:50:25,880 P3693958 INFO UniRank version: 2.3.7
-2026-07-12 20:50:25,880 P3693958 INFO Params: {
+2026-07-15 22:09:40,870 P1952848 INFO Params: {
     "accumulation_steps": "1",
     "batch_size": "8192",
     "block_cache_size": "2",
@@ -15,13 +14,15 @@
     "early_stop_patience": "2",
     "embedding_dim": "16",
     "enable_bf16": "True",
+    "enable_torch_compile": "True",
     "epochs": "1",
     "eval_steps": "None",
     "feature_cols": "[{'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1697916}, {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 43817684, 'source': 'item'}, {'name': 'product_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 893620, 'source': 'item'}, {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10, 'source': 'item'}, {'name': 'c0_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18, 'source': 'item'}, {'name': 'c1_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 310, 'source': 'item'}, {'name': 'c2_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3042, 'source': 'item'}, {'name': 'brand_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 19783, 'source': 'item'}, {'name': 'item_condition_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}, {'name': 'size_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 356, 'source': 'item'}, {'name': 'shipper_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3, 'source': 'item'}, {'name': 'color', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7311, 'source': 'item'}, {'name': 'session_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3701837}, {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}, {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}, {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}, {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 33, 'source': 'action'}]",
     "feature_config": "None",
     "feature_specs": "None",
     "gpu": "0",
-    "group_id": "user_index",
+    "gradient_checkpointing": "False",
+    "group_id": "user_id",
     "label_col": "[{'name': 'Like', 'dtype': 'float'}, {'name': 'Cart', 'dtype': 'float'}, {'name': 'Offer', 'dtype': 'float'}, {'name': 'Checkout', 'dtype': 'float'}, {'name': 'Purchase', 'dtype': 'float'}]",
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
@@ -33,7 +34,7 @@
     "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
-    "num_c_hub_token": "8",
+    "num_c_hub_token": "4",
     "num_layers": "3",
     "num_t_hub_token": "2",
     "num_tasks": "5",
@@ -63,36 +64,36 @@
     "verbose": "1",
     "world_size": "4"
 }
-2026-07-12 20:50:25,881 P3693958 INFO Set up feature processor...
-2026-07-12 20:50:25,882 P3693958 INFO Fit feature processor...
-2026-07-12 20:50:25,882 P3693958 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-12 20:50:25,882 P3693958 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-12 20:50:25,882 P3693958 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-12 20:50:25,882 P3693958 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1697916}
-2026-07-12 20:50:26,215 P3693958 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 43817684, 'source': 'item'}
-2026-07-12 20:50:34,556 P3693958 INFO Processing column: {'name': 'product_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 893620, 'source': 'item'}
-2026-07-12 20:50:34,719 P3693958 INFO Processing column: {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10, 'source': 'item'}
-2026-07-12 20:50:34,722 P3693958 INFO Processing column: {'name': 'c0_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18, 'source': 'item'}
-2026-07-12 20:50:34,722 P3693958 INFO Processing column: {'name': 'c1_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 310, 'source': 'item'}
-2026-07-12 20:50:34,725 P3693958 INFO Processing column: {'name': 'c2_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3042, 'source': 'item'}
-2026-07-12 20:50:34,727 P3693958 INFO Processing column: {'name': 'brand_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 19783, 'source': 'item'}
-2026-07-12 20:50:34,731 P3693958 INFO Processing column: {'name': 'item_condition_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}
-2026-07-12 20:50:34,731 P3693958 INFO Processing column: {'name': 'size_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 356, 'source': 'item'}
-2026-07-12 20:50:34,731 P3693958 INFO Processing column: {'name': 'shipper_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3, 'source': 'item'}
-2026-07-12 20:50:34,731 P3693958 INFO Processing column: {'name': 'color', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7311, 'source': 'item'}
-2026-07-12 20:50:34,733 P3693958 INFO Processing column: {'name': 'session_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3701837}
-2026-07-12 20:50:35,431 P3693958 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
-2026-07-12 20:50:35,431 P3693958 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
-2026-07-12 20:50:35,431 P3693958 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
-2026-07-12 20:50:35,432 P3693958 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 33, 'source': 'action'}
-2026-07-12 20:50:35,432 P3693958 INFO Set column index...
-2026-07-12 20:50:35,432 P3693958 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
-2026-07-12 20:50:35,439 P3693958 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_processor.pkl
-2026-07-12 20:50:36,963 P3693958 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_vocab.json
-2026-07-12 20:51:21,564 P3693958 INFO Set feature processor done.
-2026-07-12 20:51:21,581 P3693958 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
-2026-07-12 20:51:21,585 P3693958 INFO Set column index...
-2026-07-12 20:51:21,585 P3693958 INFO Feature specs: {
+2026-07-15 22:09:40,872 P1952848 INFO Set up feature processor...
+2026-07-15 22:09:40,872 P1952848 INFO Fit feature processor...
+2026-07-15 22:09:40,872 P1952848 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 22:09:40,872 P1952848 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 22:09:40,872 P1952848 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-15 22:09:40,872 P1952848 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1697916}
+2026-07-15 22:09:41,210 P1952848 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 43817684, 'source': 'item'}
+2026-07-15 22:09:49,241 P1952848 INFO Processing column: {'name': 'product_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 893620, 'source': 'item'}
+2026-07-15 22:09:49,404 P1952848 INFO Processing column: {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10, 'source': 'item'}
+2026-07-15 22:09:49,404 P1952848 INFO Processing column: {'name': 'c0_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18, 'source': 'item'}
+2026-07-15 22:09:49,405 P1952848 INFO Processing column: {'name': 'c1_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 310, 'source': 'item'}
+2026-07-15 22:09:49,405 P1952848 INFO Processing column: {'name': 'c2_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3042, 'source': 'item'}
+2026-07-15 22:09:49,405 P1952848 INFO Processing column: {'name': 'brand_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 19783, 'source': 'item'}
+2026-07-15 22:09:49,409 P1952848 INFO Processing column: {'name': 'item_condition_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}
+2026-07-15 22:09:49,409 P1952848 INFO Processing column: {'name': 'size_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 356, 'source': 'item'}
+2026-07-15 22:09:49,409 P1952848 INFO Processing column: {'name': 'shipper_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3, 'source': 'item'}
+2026-07-15 22:09:49,409 P1952848 INFO Processing column: {'name': 'color', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7311, 'source': 'item'}
+2026-07-15 22:09:49,410 P1952848 INFO Processing column: {'name': 'session_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3701837}
+2026-07-15 22:09:50,114 P1952848 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
+2026-07-15 22:09:50,114 P1952848 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-15 22:09:50,114 P1952848 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
+2026-07-15 22:09:50,115 P1952848 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 33, 'source': 'action'}
+2026-07-15 22:09:50,115 P1952848 INFO Set column index...
+2026-07-15 22:09:50,115 P1952848 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
+2026-07-15 22:09:50,185 P1952848 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_processor.pkl
+2026-07-15 22:09:51,701 P1952848 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_vocab.json
+2026-07-15 22:10:35,012 P1952848 INFO Set feature processor done.
+2026-07-15 22:10:35,026 P1952848 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
+2026-07-15 22:10:35,029 P1952848 INFO Set column index...
+2026-07-15 22:10:35,029 P1952848 INFO Feature specs: {
     "action": "{'source': 'action', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 33}",
     "brand_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 19783}",
     "c0_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 18}",
@@ -114,51 +115,52 @@
     "user_id": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 1697916}",
     "user_index": "{'type': 'meta'}"
 }
-2026-07-12 20:51:28,788 P3693958 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=25168645), sparse=Adagrad(lr=0.05, params=802271456)
-2026-07-12 20:51:28,789 P3693958 INFO ************ compile start ************
-2026-07-12 20:51:30,260 P3693958 INFO Compiled dense module: unified_tokenizer_layer
-2026-07-12 20:51:30,261 P3693958 INFO Compiled dense module: seq_org_proj
-2026-07-12 20:51:30,263 P3693958 INFO Compiled dense module: unified_interaction_layers
-2026-07-12 20:51:30,264 P3693958 INFO Compiled dense module: seq_hub_projs.0
-2026-07-12 20:51:30,264 P3693958 INFO Compiled dense module: seq_hub_projs.1
-2026-07-12 20:51:30,265 P3693958 INFO Compiled dense module: seq_hub_projs.2
-2026-07-12 20:51:30,266 P3693958 INFO Compiled dense module: seq_hub_projs.3
-2026-07-12 20:51:30,267 P3693958 INFO Compiled dense module: seq_hub_projs.4
-2026-07-12 20:51:30,268 P3693958 INFO Compiled dense module: tower.0
-2026-07-12 20:51:30,269 P3693958 INFO Compiled dense module: tower.1
-2026-07-12 20:51:30,270 P3693958 INFO Compiled dense module: tower.2
-2026-07-12 20:51:30,271 P3693958 INFO Compiled dense module: tower.3
-2026-07-12 20:51:30,272 P3693958 INFO Compiled dense module: tower.4
-2026-07-12 20:51:34,430 P3693958 INFO Total number of parameters: 827440101.
-2026-07-12 20:51:34,431 P3693958 INFO Number of embedding parameters: 802271456.
-2026-07-12 20:51:34,431 P3693958 INFO Number of dense parameters: 25168645.
-2026-07-12 20:51:34,431 P3693958 INFO Loading datasets...
-2026-07-12 20:51:34,641 P3693958 INFO Train samples: total/36090865, blocks/2
-2026-07-12 20:51:34,668 P3693958 INFO Validation samples: total/4124870, blocks/2
-2026-07-12 20:51:34,668 P3693958 INFO Loading train and validation data done.
-2026-07-12 20:51:34,668 P3693958 INFO BF16 mixed precision: True
-2026-07-12 20:51:34,668 P3693958 INFO Start training: 4405 local batches/epoch
-2026-07-12 20:51:34,669 P3693958 INFO DDP blocked training: True
-2026-07-12 20:51:34,669 P3693958 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
-2026-07-12 20:51:34,669 P3693958 INFO ************ Epoch=1 start ************
-2026-07-12 21:11:18,587 P3693958 INFO Train loss: 0.351024
-2026-07-12 21:11:18,600 P3693958 INFO Evaluation @epoch 1 - batch 4405: 
-2026-07-12 21:12:23,817 P3693958 INFO [Task: Like][Metrics] AUC: 0.725973 - logloss: 0.342872
-2026-07-12 21:12:34,863 P3693958 INFO [Task: Cart][Metrics] AUC: 0.788974 - logloss: 0.058427
-2026-07-12 21:12:45,069 P3693958 INFO [Task: Offer][Metrics] AUC: 0.730424 - logloss: 0.026597
-2026-07-12 21:12:54,189 P3693958 INFO [Task: Checkout][Metrics] AUC: 0.841172 - logloss: 0.009659
-2026-07-12 21:13:03,335 P3693958 INFO [Task: Purchase][Metrics] AUC: 0.840232 - logloss: 0.005896
-2026-07-12 21:13:03,760 P3693958 INFO Save best model: monitor(max)=1.481754
-2026-07-12 21:13:08,094 P3693958 INFO ************ Epoch=1 end ************
-2026-07-12 21:13:08,094 P3693958 INFO Training finished.
-2026-07-12 21:13:08,094 P3693958 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/INFNet_MerRec_Action.model
-2026-07-12 21:13:11,457 P3693958 INFO ******** Test evaluation ********
-2026-07-12 21:13:11,457 P3693958 INFO Loading datasets...
-2026-07-12 21:13:11,496 P3693958 INFO Test samples: total/2919932, blocks/2
-2026-07-12 21:13:11,496 P3693958 INFO Loading test data done.
-2026-07-12 21:13:53,578 P3693958 INFO [Task: Like][Metrics] logloss: 0.338608 - AUC: 0.726597
-2026-07-12 21:14:01,361 P3693958 INFO [Task: Cart][Metrics] logloss: 0.055065 - AUC: 0.794984
-2026-07-12 21:14:08,661 P3693958 INFO [Task: Offer][Metrics] logloss: 0.023368 - AUC: 0.729854
-2026-07-12 21:14:15,125 P3693958 INFO [Task: Checkout][Metrics] logloss: 0.008632 - AUC: 0.846101
-2026-07-12 21:14:21,576 P3693958 INFO [Task: Purchase][Metrics] logloss: 0.005147 - AUC: 0.843118
-2026-07-12 21:14:22,964 P3693958 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/INFNet_MerRec_Action.model
+2026-07-15 22:10:42,288 P1952848 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=21741317), sparse=Adagrad(lr=0.05, params=802271456)
+2026-07-15 22:10:42,293 P1952848 INFO ************ compile start ************
+2026-07-15 22:10:43,785 P1952848 INFO Compiled dense module: unified_tokenizer_layer
+2026-07-15 22:10:43,786 P1952848 INFO Compiled dense module: seq_org_proj
+2026-07-15 22:10:43,787 P1952848 INFO Compiled dense module: unified_interaction_layers
+2026-07-15 22:10:43,788 P1952848 INFO Compiled dense module: seq_hub_projs.0
+2026-07-15 22:10:43,789 P1952848 INFO Compiled dense module: seq_hub_projs.1
+2026-07-15 22:10:43,790 P1952848 INFO Compiled dense module: seq_hub_projs.2
+2026-07-15 22:10:43,791 P1952848 INFO Compiled dense module: seq_hub_projs.3
+2026-07-15 22:10:43,792 P1952848 INFO Compiled dense module: seq_hub_projs.4
+2026-07-15 22:10:43,793 P1952848 INFO Compiled dense module: tower.0
+2026-07-15 22:10:43,794 P1952848 INFO Compiled dense module: tower.1
+2026-07-15 22:10:43,796 P1952848 INFO Compiled dense module: tower.2
+2026-07-15 22:10:43,797 P1952848 INFO Compiled dense module: tower.3
+2026-07-15 22:10:43,798 P1952848 INFO Compiled dense module: tower.4
+2026-07-15 22:10:48,127 P1952848 INFO Total number of parameters: 824012773.
+2026-07-15 22:10:48,127 P1952848 INFO Number of embedding parameters: 802271456.
+2026-07-15 22:10:48,127 P1952848 INFO Number of dense parameters: 21741317.
+2026-07-15 22:10:48,127 P1952848 INFO Loading datasets...
+2026-07-15 22:10:48,164 P1952848 INFO Train samples: total/36090865, blocks/2
+2026-07-15 22:10:48,191 P1952848 INFO Validation samples: total/4124870, blocks/2
+2026-07-15 22:10:48,191 P1952848 INFO Loading train and validation data done.
+2026-07-15 22:10:48,191 P1952848 INFO BF16 mixed precision: True
+2026-07-15 22:10:48,191 P1952848 INFO Gradient checkpointing: False
+2026-07-15 22:10:48,192 P1952848 INFO Start training: 4405 local batches/epoch
+2026-07-15 22:10:48,192 P1952848 INFO DDP blocked training: True
+2026-07-15 22:10:48,192 P1952848 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
+2026-07-15 22:10:48,192 P1952848 INFO ************ Epoch=1 start ************
+2026-07-15 22:35:19,251 P1952848 INFO Train loss: 0.351470
+2026-07-15 22:35:19,272 P1952848 INFO Evaluation @epoch 1 - batch 4405:
+2026-07-15 22:36:29,876 P1952848 INFO [Task: Like][Metrics] AUC: 0.728316 - logloss: 0.342029
+2026-07-15 22:36:37,279 P1952848 INFO [Task: Cart][Metrics] AUC: 0.787558 - logloss: 0.057772
+2026-07-15 22:36:44,776 P1952848 INFO [Task: Offer][Metrics] AUC: 0.737172 - logloss: 0.025873
+2026-07-15 22:36:52,221 P1952848 INFO [Task: Checkout][Metrics] AUC: 0.836770 - logloss: 0.009873
+2026-07-15 22:36:59,932 P1952848 INFO [Task: Purchase][Metrics] AUC: 0.841806 - logloss: 0.006358
+2026-07-15 22:37:00,358 P1952848 INFO Save best model: monitor(max)=0.786325
+2026-07-15 22:37:04,987 P1952848 INFO ************ Epoch=1 end ************
+2026-07-15 22:37:04,989 P1952848 INFO Training finished.
+2026-07-15 22:37:04,989 P1952848 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/INFNet_MerRec_Action.model
+2026-07-15 22:37:08,151 P1952848 INFO ******** Test evaluation ********
+2026-07-15 22:37:08,151 P1952848 INFO Loading datasets...
+2026-07-15 22:37:08,188 P1952848 INFO Test samples: total/2919932, blocks/2
+2026-07-15 22:37:08,188 P1952848 INFO Loading test data done.
+2026-07-15 22:37:50,491 P1952848 INFO [Task: Like][Metrics] logloss: 0.337457 - AUC: 0.729605
+2026-07-15 22:37:55,997 P1952848 INFO [Task: Cart][Metrics] logloss: 0.054236 - AUC: 0.794680
+2026-07-15 22:38:01,454 P1952848 INFO [Task: Offer][Metrics] logloss: 0.022966 - AUC: 0.737824
+2026-07-15 22:38:06,948 P1952848 INFO [Task: Checkout][Metrics] logloss: 0.008954 - AUC: 0.844654
+2026-07-15 22:38:12,450 P1952848 INFO [Task: Purchase][Metrics] logloss: 0.005621 - AUC: 0.846481
+2026-07-15 22:38:13,753 P1952848 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/INFNet_MerRec_Action.model

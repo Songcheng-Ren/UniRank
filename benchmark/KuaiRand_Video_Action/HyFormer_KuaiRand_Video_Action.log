@@ -1,5 +1,4 @@
-2026-07-10 12:02:29,000 P1912957 INFO UniRank version: 2.3.7
-2026-07-10 12:02:29,000 P1912957 INFO Params: {
+2026-07-16 04:38:15,493 P2236878 INFO Params: {
     "accumulation_steps": "1",
     "batch_size": "8192",
     "block_cache_size": "2",
@@ -16,13 +15,15 @@
     "early_stop_patience": "2",
     "embedding_dim": "16",
     "enable_bf16": "True",
+    "enable_torch_compile": "True",
     "epochs": "1",
     "eval_steps": "None",
     "feature_cols": "[{'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}, {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 27286}, {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 32038726, 'source': 'item'}, {'name': 'video_type', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4, 'source': 'item'}, {'name': 'primary_tag', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 60, 'source': 'item'}, {'name': 'music_type', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8, 'source': 'item'}, {'name': 'duration_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8, 'source': 'item'}, {'name': 'user_active_degree', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11}, {'name': 'is_lowactive_period', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}, {'name': 'is_live_streamer', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'is_video_author', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'follow_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}, {'name': 'fans_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11}, {'name': 'friend_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}, {'name': 'register_days_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}, {'name': 'onehot_feat0', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}, {'name': 'onehot_feat1', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}, {'name': 'onehot_feat2', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 52}, {'name': 'onehot_feat3', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1473}, {'name': 'onehot_feat4', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18}, {'name': 'onehot_feat5', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 36}, {'name': 'onehot_feat6', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'onehot_feat7', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 120}, {'name': 'onehot_feat8', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 456}, {'name': 'onehot_feat9', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}, {'name': 'onehot_feat10', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7}, {'name': 'onehot_feat11', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7}, {'name': 'onehot_feat12', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'onehot_feat13', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'onehot_feat14', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'onehot_feat15', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'onehot_feat16', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'onehot_feat17', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}, {'name': 'tab', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 16}, {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}, {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}, {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}, {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 65, 'source': 'action'}]",
     "feature_config": "None",
     "feature_specs": "None",
     "gpu": "0",
-    "group_id": "user_index",
+    "gradient_checkpointing": "False",
+    "group_id": "user_id",
     "label_col": "[{'name': 'is_click', 'dtype': 'float'}, {'name': 'is_follow', 'dtype': 'float'}, {'name': 'is_like', 'dtype': 'float'}, {'name': 'is_comment', 'dtype': 'float'}, {'name': 'is_forward', 'dtype': 'float'}, {'name': 'long_view', 'dtype': 'float'}]",
     "local_rank": "0",
     "loss": "['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']",
@@ -34,7 +35,7 @@
     "monitor": "{'AUC': 1, 'logloss': 0}",
     "monitor_mode": "max",
     "net_dropout": "0",
-    "num_global_token": "4",
+    "num_global_token": "2",
     "num_heads": "2",
     "num_layers": "3",
     "num_ns_token": "4",
@@ -65,56 +66,56 @@
     "verbose": "1",
     "world_size": "4"
 }
-2026-07-10 12:02:29,001 P1912957 INFO Set up feature processor...
-2026-07-10 12:02:29,002 P1912957 INFO Fit feature processor...
-2026-07-10 12:02:29,002 P1912957 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-10 12:02:29,002 P1912957 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-10 12:02:29,002 P1912957 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-10 12:02:29,002 P1912957 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 27286}
-2026-07-10 12:02:29,007 P1912957 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 32038726, 'source': 'item'}
-2026-07-10 12:02:35,250 P1912957 INFO Processing column: {'name': 'video_type', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4, 'source': 'item'}
-2026-07-10 12:02:35,250 P1912957 INFO Processing column: {'name': 'primary_tag', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 60, 'source': 'item'}
-2026-07-10 12:02:35,250 P1912957 INFO Processing column: {'name': 'music_type', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8, 'source': 'item'}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'duration_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8, 'source': 'item'}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'user_active_degree', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'is_lowactive_period', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'is_live_streamer', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'is_video_author', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'follow_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'fans_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'friend_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'register_days_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'onehot_feat0', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'onehot_feat1', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
-2026-07-10 12:02:35,251 P1912957 INFO Processing column: {'name': 'onehot_feat2', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 52}
-2026-07-10 12:02:35,252 P1912957 INFO Processing column: {'name': 'onehot_feat3', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1473}
-2026-07-10 12:02:35,252 P1912957 INFO Processing column: {'name': 'onehot_feat4', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18}
-2026-07-10 12:02:35,252 P1912957 INFO Processing column: {'name': 'onehot_feat5', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 36}
-2026-07-10 12:02:35,252 P1912957 INFO Processing column: {'name': 'onehot_feat6', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-10 12:02:35,252 P1912957 INFO Processing column: {'name': 'onehot_feat7', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 120}
-2026-07-10 12:02:35,252 P1912957 INFO Processing column: {'name': 'onehot_feat8', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 456}
-2026-07-10 12:02:35,252 P1912957 INFO Processing column: {'name': 'onehot_feat9', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
-2026-07-10 12:02:35,252 P1912957 INFO Processing column: {'name': 'onehot_feat10', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7}
-2026-07-10 12:02:35,252 P1912957 INFO Processing column: {'name': 'onehot_feat11', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'onehot_feat12', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'onehot_feat13', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'onehot_feat14', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'onehot_feat15', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'onehot_feat16', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'onehot_feat17', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'tab', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 16}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
-2026-07-10 12:02:35,253 P1912957 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 65, 'source': 'action'}
-2026-07-10 12:02:35,254 P1912957 INFO Set column index...
-2026-07-10 12:02:35,254 P1912957 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_map.json
-2026-07-10 12:02:35,261 P1912957 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_processor.pkl
-2026-07-10 12:02:36,221 P1912957 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_vocab.json
-2026-07-10 12:03:04,160 P1912957 INFO Set feature processor done.
-2026-07-10 12:03:04,173 P1912957 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_map.json
-2026-07-10 12:03:04,176 P1912957 INFO Set column index...
-2026-07-10 12:03:04,176 P1912957 INFO Feature specs: {
+2026-07-16 04:38:15,495 P2236878 INFO Set up feature processor...
+2026-07-16 04:38:15,495 P2236878 INFO Fit feature processor...
+2026-07-16 04:38:15,495 P2236878 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-16 04:38:15,495 P2236878 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-16 04:38:15,496 P2236878 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-16 04:38:15,496 P2236878 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 27286}
+2026-07-16 04:38:15,501 P2236878 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 32038726, 'source': 'item'}
+2026-07-16 04:38:21,745 P2236878 INFO Processing column: {'name': 'video_type', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4, 'source': 'item'}
+2026-07-16 04:38:21,745 P2236878 INFO Processing column: {'name': 'primary_tag', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 60, 'source': 'item'}
+2026-07-16 04:38:21,745 P2236878 INFO Processing column: {'name': 'music_type', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8, 'source': 'item'}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'duration_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8, 'source': 'item'}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'user_active_degree', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'is_lowactive_period', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'is_live_streamer', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'is_video_author', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'follow_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'fans_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'friend_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'register_days_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'onehot_feat0', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-16 04:38:21,746 P2236878 INFO Processing column: {'name': 'onehot_feat1', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
+2026-07-16 04:38:21,747 P2236878 INFO Processing column: {'name': 'onehot_feat2', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 52}
+2026-07-16 04:38:21,747 P2236878 INFO Processing column: {'name': 'onehot_feat3', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1473}
+2026-07-16 04:38:21,747 P2236878 INFO Processing column: {'name': 'onehot_feat4', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18}
+2026-07-16 04:38:21,747 P2236878 INFO Processing column: {'name': 'onehot_feat5', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 36}
+2026-07-16 04:38:21,747 P2236878 INFO Processing column: {'name': 'onehot_feat6', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-16 04:38:21,747 P2236878 INFO Processing column: {'name': 'onehot_feat7', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 120}
+2026-07-16 04:38:21,747 P2236878 INFO Processing column: {'name': 'onehot_feat8', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 456}
+2026-07-16 04:38:21,747 P2236878 INFO Processing column: {'name': 'onehot_feat9', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'onehot_feat10', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'onehot_feat11', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'onehot_feat12', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'onehot_feat13', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'onehot_feat14', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'onehot_feat15', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'onehot_feat16', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'onehot_feat17', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'tab', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 16}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
+2026-07-16 04:38:21,748 P2236878 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 65, 'source': 'action'}
+2026-07-16 04:38:21,749 P2236878 INFO Set column index...
+2026-07-16 04:38:21,749 P2236878 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_map.json
+2026-07-16 04:38:21,810 P2236878 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_processor.pkl
+2026-07-16 04:38:22,793 P2236878 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_vocab.json
+2026-07-16 04:38:49,695 P2236878 INFO Set feature processor done.
+2026-07-16 04:38:49,709 P2236878 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_map.json
+2026-07-16 04:38:49,712 P2236878 INFO Set column index...
+2026-07-16 04:38:49,712 P2236878 INFO Feature specs: {
     "action": "{'source': 'action', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 65}",
     "day_of_week": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 8}",
     "duration_bucket": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 8}",
@@ -156,50 +157,51 @@
     "user_index": "{'type': 'meta'}",
     "video_type": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 4}"
 }
-2026-07-10 12:03:09,747 P1912957 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=10436614), sparse=Adagrad(lr=0.05, params=513095952)
-2026-07-10 12:03:09,748 P1912957 INFO ************ compile start ************
-2026-07-10 12:03:11,278 P1912957 INFO Compiled dense module: ns_tokenizer
-2026-07-10 12:03:11,279 P1912957 INFO Compiled dense module: query_generator
-2026-07-10 12:03:11,280 P1912957 INFO Compiled dense module: item_token_proj
-2026-07-10 12:03:11,281 P1912957 INFO Compiled dense module: unified_layers
-2026-07-10 12:03:11,282 P1912957 INFO Compiled dense module: tower.0
-2026-07-10 12:03:11,283 P1912957 INFO Compiled dense module: tower.1
-2026-07-10 12:03:11,284 P1912957 INFO Compiled dense module: tower.2
-2026-07-10 12:03:11,285 P1912957 INFO Compiled dense module: tower.3
-2026-07-10 12:03:11,286 P1912957 INFO Compiled dense module: tower.4
-2026-07-10 12:03:11,287 P1912957 INFO Compiled dense module: tower.5
-2026-07-10 12:03:14,018 P1912957 INFO Total number of parameters: 523532566.
-2026-07-10 12:03:14,019 P1912957 INFO Number of embedding parameters: 513095952.
-2026-07-10 12:03:14,019 P1912957 INFO Number of dense parameters: 10436614.
-2026-07-10 12:03:14,019 P1912957 INFO Loading datasets...
-2026-07-10 12:03:14,068 P1912957 INFO Train samples: total/64537594, blocks/2
-2026-07-10 12:03:14,101 P1912957 INFO Validation samples: total/8583717, blocks/2
-2026-07-10 12:03:14,101 P1912957 INFO Loading train and validation data done.
-2026-07-10 12:03:14,102 P1912957 INFO BF16 mixed precision: True
-2026-07-10 12:03:14,102 P1912957 INFO Start training: 7877 local batches/epoch
-2026-07-10 12:03:14,102 P1912957 INFO DDP blocked training: True
-2026-07-10 12:03:14,102 P1912957 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
-2026-07-10 12:03:14,102 P1912957 INFO ************ Epoch=1 start ************
-2026-07-10 12:34:23,320 P1912957 INFO Train loss: 1.031093
-2026-07-10 12:34:23,331 P1912957 INFO Evaluation @epoch 1 - batch 7877: 
-2026-07-10 12:36:02,502 P1912957 INFO [Task: is_click][Metrics] AUC: 0.711681 - logloss: 0.600744
-2026-07-10 12:36:22,119 P1912957 INFO [Task: is_follow][Metrics] AUC: 0.815965 - logloss: 0.008041
-2026-07-10 12:36:41,320 P1912957 INFO [Task: is_like][Metrics] AUC: 0.875562 - logloss: 0.066760
-2026-07-10 12:37:00,380 P1912957 INFO [Task: is_comment][Metrics] AUC: 0.823308 - logloss: 0.017282
-2026-07-10 12:37:19,388 P1912957 INFO [Task: is_forward][Metrics] AUC: 0.809145 - logloss: 0.006561
-2026-07-10 12:37:40,723 P1912957 INFO [Task: long_view][Metrics] AUC: 0.707028 - logloss: 0.528183
-2026-07-10 12:37:41,766 P1912957 INFO Save best model: monitor(max)=1.508102
-2026-07-10 12:37:44,603 P1912957 INFO ************ Epoch=1 end ************
-2026-07-10 12:37:44,603 P1912957 INFO Training finished.
-2026-07-10 12:37:44,603 P1912957 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/KuaiRand_Video_Action/HyFormer_KuaiRand_Video_Action.model
-2026-07-10 12:37:48,022 P1912957 INFO ******** Test evaluation ********
-2026-07-10 12:37:48,022 P1912957 INFO Loading datasets...
-2026-07-10 12:37:48,060 P1912957 INFO Test samples: total/4127418, blocks/1
-2026-07-10 12:37:48,060 P1912957 INFO Loading test data done.
-2026-07-10 12:39:45,662 P1912957 INFO [Task: is_click][Metrics] logloss: 0.602080 - AUC: 0.711232
-2026-07-10 12:40:03,512 P1912957 INFO [Task: is_follow][Metrics] logloss: 0.007894 - AUC: 0.807376
-2026-07-10 12:40:22,005 P1912957 INFO [Task: is_like][Metrics] logloss: 0.067216 - AUC: 0.873639
-2026-07-10 12:40:39,861 P1912957 INFO [Task: is_comment][Metrics] logloss: 0.017220 - AUC: 0.820073
-2026-07-10 12:40:57,547 P1912957 INFO [Task: is_forward][Metrics] logloss: 0.006675 - AUC: 0.807321
-2026-07-10 12:41:17,945 P1912957 INFO [Task: long_view][Metrics] logloss: 0.531123 - AUC: 0.705987
-2026-07-10 12:41:19,285 P1912957 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/KuaiRand_Video_Action/HyFormer_KuaiRand_Video_Action.model
+2026-07-16 04:38:54,368 P2236878 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=7968774), sparse=Adagrad(lr=0.05, params=513095952)
+2026-07-16 04:38:54,369 P2236878 INFO ************ compile start ************
+2026-07-16 04:38:55,871 P2236878 INFO Compiled dense module: ns_tokenizer
+2026-07-16 04:38:55,872 P2236878 INFO Compiled dense module: query_generator
+2026-07-16 04:38:55,873 P2236878 INFO Compiled dense module: item_token_proj
+2026-07-16 04:38:55,874 P2236878 INFO Compiled dense module: unified_interaction_layers
+2026-07-16 04:38:55,875 P2236878 INFO Compiled dense module: tower.0
+2026-07-16 04:38:55,876 P2236878 INFO Compiled dense module: tower.1
+2026-07-16 04:38:55,877 P2236878 INFO Compiled dense module: tower.2
+2026-07-16 04:38:55,878 P2236878 INFO Compiled dense module: tower.3
+2026-07-16 04:38:55,879 P2236878 INFO Compiled dense module: tower.4
+2026-07-16 04:38:55,880 P2236878 INFO Compiled dense module: tower.5
+2026-07-16 04:38:58,417 P2236878 INFO Total number of parameters: 521064726.
+2026-07-16 04:38:58,417 P2236878 INFO Number of embedding parameters: 513095952.
+2026-07-16 04:38:58,417 P2236878 INFO Number of dense parameters: 7968774.
+2026-07-16 04:38:58,418 P2236878 INFO Loading datasets...
+2026-07-16 04:38:58,505 P2236878 INFO Train samples: total/64044603, blocks/8
+2026-07-16 04:38:58,533 P2236878 INFO Validation samples: total/8526433, blocks/2
+2026-07-16 04:38:58,533 P2236878 INFO Loading train and validation data done.
+2026-07-16 04:38:58,539 P2236878 INFO BF16 mixed precision: True
+2026-07-16 04:38:58,539 P2236878 INFO Gradient checkpointing: False
+2026-07-16 04:38:58,539 P2236878 INFO Start training: 7814 local batches/epoch
+2026-07-16 04:38:58,539 P2236878 INFO DDP blocked training: True
+2026-07-16 04:38:58,539 P2236878 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
+2026-07-16 04:38:58,540 P2236878 INFO ************ Epoch=1 start ************
+2026-07-16 05:20:17,906 P2236878 INFO Train loss: 1.034813
+2026-07-16 05:20:17,916 P2236878 INFO Evaluation @epoch 1 - batch 7814:
+2026-07-16 05:22:37,241 P2236878 INFO [Task: is_click][Metrics] AUC: 0.780995 - logloss: 0.537799
+2026-07-16 05:22:52,542 P2236878 INFO [Task: is_follow][Metrics] AUC: 0.880842 - logloss: 0.006645
+2026-07-16 05:23:08,084 P2236878 INFO [Task: is_like][Metrics] AUC: 0.921560 - logloss: 0.055862
+2026-07-16 05:23:23,409 P2236878 INFO [Task: is_comment][Metrics] AUC: 0.886470 - logloss: 0.015207
+2026-07-16 05:23:38,828 P2236878 INFO [Task: is_forward][Metrics] AUC: 0.867294 - logloss: 0.005644
+2026-07-16 05:23:56,715 P2236878 INFO [Task: long_view][Metrics] AUC: 0.798517 - logloss: 0.451967
+2026-07-16 05:23:57,685 P2236878 INFO Save best model: monitor(max)=0.855946
+2026-07-16 05:24:00,435 P2236878 INFO ************ Epoch=1 end ************
+2026-07-16 05:24:00,437 P2236878 INFO Training finished.
+2026-07-16 05:24:00,437 P2236878 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/KuaiRand_Video_Action/HyFormer_KuaiRand_Video_Action.model
+2026-07-16 05:24:03,402 P2236878 INFO ******** Test evaluation ********
+2026-07-16 05:24:03,410 P2236878 INFO Loading datasets...
+2026-07-16 05:24:03,462 P2236878 INFO Test samples: total/8235836, blocks/2
+2026-07-16 05:24:03,462 P2236878 INFO Loading test data done.
+2026-07-16 05:26:09,089 P2236878 INFO [Task: is_click][Metrics] logloss: 0.541232 - AUC: 0.781654
+2026-07-16 05:26:24,155 P2236878 INFO [Task: is_follow][Metrics] logloss: 0.006560 - AUC: 0.879996
+2026-07-16 05:26:39,297 P2236878 INFO [Task: is_like][Metrics] logloss: 0.055876 - AUC: 0.921538
+2026-07-16 05:26:54,466 P2236878 INFO [Task: is_comment][Metrics] logloss: 0.015125 - AUC: 0.885349
+2026-07-16 05:27:09,610 P2236878 INFO [Task: is_forward][Metrics] logloss: 0.005811 - AUC: 0.869058
+2026-07-16 05:27:26,409 P2236878 INFO [Task: long_view][Metrics] logloss: 0.455243 - AUC: 0.798435
+2026-07-16 05:27:28,152 P2236878 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/KuaiRand_Video_Action/HyFormer_KuaiRand_Video_Action.model

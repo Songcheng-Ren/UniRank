@@ -138,7 +138,7 @@
 2026-07-12 18:31:18,241 P3538116 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
 2026-07-12 18:31:18,241 P3538116 INFO ************ Epoch=1 start ************
 2026-07-12 18:41:08,474 P3538116 INFO Train loss: 0.433327
-2026-07-12 18:41:08,487 P3538116 INFO Evaluation @epoch 1 - batch 4405: 
+2026-07-12 18:41:08,487 P3538116 INFO Evaluation @epoch 1 - batch 4405:
 2026-07-12 18:41:53,529 P3538116 INFO [Task: Like][Metrics] AUC: 0.745671 - logloss: 0.334885
 2026-07-12 18:42:04,201 P3538116 INFO [Task: Cart][Metrics] AUC: 0.792618 - logloss: 0.057063
 2026-07-12 18:42:14,336 P3538116 INFO [Task: Offer][Metrics] AUC: 0.737846 - logloss: 0.024232

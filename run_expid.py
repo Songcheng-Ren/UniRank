@@ -55,10 +55,10 @@ def distributed_barrier(local_rank):
 
 if __name__ == '__main__':
     """
-    单卡:
+    Single card:
       python run_expid.py
 
-    DDP 多卡(单机):
+    DDP multi-card (single machine):
       torchrun --standalone --nproc_per_node=4 run_expid.py
     """
     parser = argparse.ArgumentParser()
@@ -74,27 +74,27 @@ if __name__ == '__main__':
 
         distributed, rank, local_rank, world_size, local_world_size = init_distributed_env()
 
-        # 基本合法性检查 + 分布式初始化
+        # Basic legality check + distributed initialization
         if distributed:
             if len(gpu_ids) == 0:
-                raise ValueError("DDP 模式下不能使用 CPU（--gpu -1）")
+                raise ValueError("CPU cannot be used in DDP mode (--gpu -1)")
             if local_world_size != len(gpu_ids):
                 raise ValueError(
-                    f"LOCAL_WORLD_SIZE({local_world_size}) 与 --gpu 数量({len(gpu_ids)}) 不一致。"
-                    f"请保证 torchrun --nproc_per_node 与 --gpu 个数一致。"
+                    f"LOCAL_WORLD_SIZE({local_world_size}) is inconsistent with --gpu number({len(gpu_ids)})."
+                    f"Please ensure that the number of torchrun --nproc_per_node and --gpu are consistent."
                 )
             if not torch.cuda.is_available():
-                raise RuntimeError("CUDA 不可用，无法使用 DDP+NCCL。")
+                raise RuntimeError("CUDA is not available and DDP+NCCL cannot be used.")
 
             torch.cuda.set_device(local_rank)
 
-            # 仅在未初始化时初始化，避免重复初始化报错
+            # Only initialize when not initialized to avoid repeated initialization errors.
             if not dist.is_available():
-                raise RuntimeError("torch.distributed 不可用。")
+                raise RuntimeError("torch.distributed is not available.")
             if not dist.is_initialized():
                 dist.init_process_group(backend="nccl", init_method="env://", timeout=timedelta(minutes=60))
-            # NCCL 负责训练张量通信；大型验证结果对象通过 CPU/Gloo 汇总，
-            # 避免 gather_object 在 GPU 上产生很大的序列化 byte tensor。
+            # NCCL is responsible for training tensor communication; large verification result objects are aggregated through CPU/Gloo,
+            # Avoid gather_object producing large serialized byte tensor on GPU.
             eval_process_group = dist.new_group(
                 backend="gloo",
                 timeout=timedelta(minutes=60)
@@ -102,21 +102,21 @@ if __name__ == '__main__':
             distributed_barrier(local_rank)
         else:
             eval_process_group = None
-            # 非 torchrun 模式下，不允许给多个 GPU（避免误以为自动 DDP）
+            # In non-torchrun mode, multiple GPUs are not allowed (to avoid being mistaken for automatic DDP)
             if len(gpu_ids) > 1:
                 raise ValueError(
-                    "检测到多个 GPU，但当前不是 torchrun 模式。\n"
-                    "请使用: torchrun --standalone --nproc_per_node=<GPU数量> run_expid.py ... --gpu 0,1,..."
+                    "Multiple GPUs detected, but currently not in torchrun mode. \n"
+                    "Please use: torchrun --standalone --nproc_per_node=<Number of GPUs> run_expid.py ... --gpu 0,1,..."
                 )
             if len(gpu_ids) == 1 and not torch.cuda.is_available():
-                raise RuntimeError("指定了 GPU 但 CUDA 不可用。")
+                raise RuntimeError("GPU specified but CUDA is not available.")
 
         experiment_id = args['expid']
         params = load_config(args['config'], experiment_id)
 
-        # 设备参数：
-        # - DDP: local_rank 映射到 CUDA_VISIBLE_DEVICES 内部序号
-        # - 单卡GPU: 固定使用可见设备 0
+        # Equipment parameters:
+        # - DDP: local_rank maps to CUDA_VISIBLE_DEVICES internal sequence number
+        # - Single card GPU: Fixed use of visible devices 0
         if len(gpu_ids) == 0:
             params['gpu'] = -1
         else:
@@ -127,7 +127,7 @@ if __name__ == '__main__':
         params['local_rank'] = local_rank
         params['world_size'] = world_size
 
-        # bf16 开关：命令行参数覆盖 config 中的同名字段（若存在）
+        # bf16 switch: command line parameters override fields of the same name in config (if present)
         params['enable_bf16'] = args['enable_bf16']
 
         if is_main_process(rank):
@@ -137,7 +137,7 @@ if __name__ == '__main__':
             logging.getLogger().handlers = []
             logging.basicConfig(level=logging.ERROR)
 
-        # 每个 rank 使用不同 seed 偏移
+        # Each rank uses a different seed offset
         seed_everything(seed=params['seed'] + rank)
 
         data_dir = os.path.join(params['data_root'], params['dataset_id'])
@@ -181,7 +181,7 @@ if __name__ == '__main__':
                 output_device=local_rank,
                 find_unused_parameters=params.get("find_unused_parameters", True)
             )
-            # 依赖你前面改过的 rank_model.py
+            # Rely on the rank_model.py you modified earlier
             model.set_ddp_model(ddp_model)
 
         if is_main_process(rank):
@@ -200,7 +200,7 @@ if __name__ == '__main__':
                 "local_rank": local_rank,
                 "world_size": world_size
             })
-            # 所有 rank 都构建 train 和 valid，验证时各 rank 并行推理后 all_gather 汇聚
+            # All ranks build train and valid. During verification, each rank performs parallel inference and then all_gather converges.
             train_gen, valid_gen = RankDataLoader(feature_map, stage='train', **train_params).make_iterator()
         else:
             train_gen, valid_gen = RankDataLoader(feature_map, stage='train', **params).make_iterator()

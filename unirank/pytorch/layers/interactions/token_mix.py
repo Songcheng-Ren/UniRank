@@ -1,6 +1,6 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,17 +16,32 @@
 
 import torch
 from torch import nn
+import torch.nn.functional as F
 
 class MultiHeadTokenMixing(nn.Module):
     def __init__(self, input_dim, num_token):
         super(MultiHeadTokenMixing, self).__init__()
         self.num_token = num_token # = num_heads
         self.input_dim = input_dim
-        assert input_dim % num_token == 0, "input_dim must be divisible by num_tokens"
-        self.head_dim = self.input_dim // self.num_token
+        self.pad_dim = (-input_dim) % num_token
+        self.padded_input_dim = input_dim + self.pad_dim
+        self.head_dim = self.padded_input_dim // num_token
+
+        valid_mask = torch.arange(self.padded_input_dim) < input_dim
+        valid_mask = valid_mask.expand(num_token, -1)
+        valid_mask = valid_mask.reshape(
+            num_token, num_token, self.head_dim
+        ).transpose(0, 1).reshape(-1)
+        self.register_buffer(
+            "valid_index",
+            valid_mask.nonzero(as_tuple=False).flatten(),
+            persistent=False,
+        )
 
     def forward(self, x):  # x: [B, T, D]
-        heads = torch.tensor_split(x, self.num_token, dim=-1)  # list(H) of [B, T, Dh]
-        mixed = torch.stack(heads, dim=1)                      # [B, H, T, Dh]
-        out = mixed.flatten(start_dim=2)                     # [B, H, T*Dh]，当 H=T, T*Dh=D -> [B,T,D]
-        return out
+        if self.pad_dim:
+            x = F.pad(x, (0, self.pad_dim))
+        heads = torch.tensor_split(x, self.num_token, dim=-1)
+        mixed = torch.stack(heads, dim=1).flatten(start_dim=2)
+        mixed = mixed.flatten(start_dim=1).index_select(1, self.valid_index)
+        return mixed.reshape(x.size(0), self.num_token, self.input_dim)

@@ -17,33 +17,33 @@
 
 set -euo pipefail
 
-# 进入脚本所在目录，避免从别处启动时相对路径混乱
+# Enter the directory where the script is located to avoid relative path confusion when starting from elsewhere.
 cd "$(dirname "$0")"
 
-# 使用 4 张 GPU
+# Use 4 GPUs
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 CONFIG_DIR="./config"
 NPROC=4
 
-# 为每次 torchrun 分配不同端口，避免端口残留冲突
+# Allocate different ports for each torchrun to avoid residual port conflicts
 BASE_PORT=29500
 RUN_IDX=0
 
-# 重试配置
-# MAX_RETRIES=-1 表示无限重试；=3 表示最多重试 3 次（总共最多执行 4 次：1次初始 + 3次重试）
+# Retry configuration
+# MAX_RETRIES=-1 means unlimited retries; =3 means retries up to 3 times (maximum 4 times in total: 1 initial + 3 retries)
 MAX_RETRIES=1
 RETRY_WAIT_SECONDS=10
 
-# 日志目录
+# Log directory
 LOG_DIR="./logs"
 mkdir -p "${LOG_DIR}"
 
-# 临时目录根路径：必须尽量短。Python multiprocessing 会在 TMPDIR 下创建
-# AF_UNIX socket，路径过长会触发 "OSError: AF_UNIX path too long"。
+# Temporary directory root path: must be as short as possible. Python multiprocessing will be created under TMPDIR
+# AF_UNIX socket, if the path is too long, "OSError: AF_UNIX path too long" will be triggered.
 TEMP_ROOT="$(mktemp -d /tmp/ur.XXXXXX)"
 
-# 总日志文件
+# total log file
 TIMESTAMP=$(date '+%F_%H-%M-%S')
 MASTER_LOG="${LOG_DIR}/run_all_${TIMESTAMP}.log"
 
@@ -89,13 +89,13 @@ run_exp() {
         echo "[$(date '+%F %T')] Starting experiment: ${expid} | attempt=${attempt} | master_port=${port}"
         echo "=================================================="
 
-        # 每次实验前清理一次旧的 torch/torchelastic 临时目录
+        # Clean the old torch/torchelastic temporary directory before each experiment
         cleanup_temp_dirs
         local run_temp_dir
         run_temp_dir="$(prepare_run_temp_dir "${expid}" "${attempt}")"
         echo "[$(date '+%F %T')] Temporary dir: ${run_temp_dir}"
 
-        # 注意：用 if 包裹失败命令，可以避免 set -e 直接退出脚本
+        # Note: Wrap the failed command with if to avoid set -e to exit the script directly.
         local rc=0
         if TMPDIR="${run_temp_dir}" \
             TMP="${run_temp_dir}" \
@@ -116,7 +116,7 @@ run_exp() {
             rc=$?
         fi
 
-        # 一个任务尝试运行结束后，立即清理本次任务的临时目录；不要等 run_all.sh 结束
+        # After a task attempts to run, clean up the temporary directory of this task immediately; do not wait for run_all.sh to finish
         cleanup_temp_path "${run_temp_dir}"
         cleanup_temp_dirs
 
@@ -127,7 +127,7 @@ run_exp() {
         else
             echo "[$(date '+%F %T')] ERROR: experiment ${expid} failed (attempt=${attempt}, exit_code=${rc})"
 
-            # 达到最大重试次数则退出整个脚本
+            # Exit the entire script when the maximum number of retries is reached.
             if [[ "${MAX_RETRIES}" -ge 0 && "${attempt}" -gt "${MAX_RETRIES}" ]]; then
                 echo "[$(date '+%F %T')] ERROR: experiment ${expid} exceeded max retries (${MAX_RETRIES}). Abort."
                 exit "${rc}"
@@ -139,16 +139,16 @@ run_exp() {
     done
 }
 
-# 整个脚本输出也写入总日志
+# The entire script output is also written to the total log
 exec > >(tee -a "${MASTER_LOG}") 2>&1
 
-# 依次运行：按数据集分组；取消注释即可运行对应实验
+# Run in sequence: group by data set; uncomment to run the corresponding experiment
 
 # ==================================================
 # Taobao_Action experiments
 # ==================================================
 # run_exp "RankMixer_Taobao_Action"
- run_exp "UniMixer_Taobao_Action"
+# run_exp "UniMixer_Taobao_Action"
 # run_exp "OneTrans_Taobao_Action"
 # run_exp "HyFormer_Taobao_Action"
 # run_exp "MixFormer_Taobao_Action"
@@ -166,11 +166,8 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # ==================================================
 # MerRec_Action experiments
 # ==================================================
-# run_exp "RankMixer_MerRec_Action_Small"
-# run_exp "RankMixer_MerRec_Action_Mid"
-# run_exp "RankMixer_MerRec_Action_Large"
-# run_exp "RankMixer_MerRec_Action_Ultra"
- run_exp "UniMixer_MerRec_Action"
+# run_exp "RankMixer_MerRec_Action"
+# run_exp "UniMixer_MerRec_Action"
 # run_exp "OneTrans_MerRec_Action"
 # run_exp "HyFormer_MerRec_Action"
 # run_exp "MixFormer_MerRec_Action"
@@ -190,7 +187,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # ==================================================
 # run_exp "RankMixer_QK_Video_Action"
 # run_exp "TokenFormer_QK_Video_Action"
- run_exp "UniMixer_QK_Video_Action"
+# run_exp "UniMixer_QK_Video_Action"
 # run_exp "UltraHSTU_QK_Video_Action"
 # run_exp "OneTrans_QK_Video_Action"
 # run_exp "HyFormer_QK_Video_Action"
@@ -208,10 +205,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # KuaiRand_Video_Action experiments
 # ==================================================
 # run_exp "RankMixer_KuaiRand_Video_Action_Small"
-# run_exp "RankMixer_KuaiRand_Video_Action_Mid"
-# run_exp "RankMixer_KuaiRand_Video_Action_Large"
-# run_exp "RankMixer_KuaiRand_Video_Action_Ultra"
- run_exp "UniMixer_KuaiRand_Video_Action"
+# run_exp "UniMixer_KuaiRand_Video_Action"
 # run_exp "OneTrans_KuaiRand_Video_Action"
 # run_exp "HyFormer_KuaiRand_Video_Action"
 # run_exp "MixFormer_KuaiRand_Video_Action"
@@ -241,8 +235,31 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "LONGER_TencentGR_10M_Action"
 # run_exp "Zenith_TencentGR_10M_Action"
 # run_exp "HeMix_TencentGR_10M_Action"
-# run_exp "TokenFormer_TencentGR_10M_Action"
+# run_exp "TokenFormer_TencentGR_10M_ Action"
 # run_exp "UltraHSTU_TencentGR_10M_Action"
-# run_exp "SSR_TencentGR_10M_Action"
+ run_exp "SSR_TencentGR_10M_Action"
+
+# ==================================================
+# Tokenizer ablations for KuaiRand and MerRec
+# RankMixer already uses Chunk and OneTrans already uses Auto, so those
+# baseline runs are intentionally omitted.
+# ==================================================
+#run_exp "RankMixer_KuaiRand_Video_Action_Tokenizer_Auto"
+#run_exp "RankMixer_KuaiRand_Video_Action_Tokenizer_Field"
+#run_exp "RankMixer_KuaiRand_Video_Action_Tokenizer_Random"
+#run_exp "OneTrans_KuaiRand_Video_Action_Tokenizer_Chunk"
+#run_exp "OneTrans_KuaiRand_Video_Action_Tokenizer_Field"
+#run_exp "OneTrans_KuaiRand_Video_Action_Tokenizer_Random"
+
+#run_exp "RankMixer_MerRec_Action_Tokenizer_Auto"
+run_exp "RankMixer_MerRec_Action_Tokenizer_Field"
+#run_exp "RankMixer_MerRec_Action_Tokenizer_Random"
+#run_exp "OneTrans_MerRec_Action_Tokenizer_Chunk"
+run_exp "OneTrans_MerRec_Action_Tokenizer_Field"
+#run_exp "OneTrans_MerRec_Action_Tokenizer_Random"
+
+run_exp "RankMixer_KuaiRand_Video_Action_Mid"
+run_exp "RankMixer_KuaiRand_Video_Action_Large"
+run_exp "RankMixer_KuaiRand_Video_Action_Ultra"
 
 echo "All experiments completed successfully."

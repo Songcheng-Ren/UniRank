@@ -30,16 +30,16 @@ from torch.utils.data import DataLoader, IterableDataset, get_worker_info
 
 
 # ================================================================
-# 通用工具函数
+# General utility functions
 # ================================================================
 
 def _resolve_parquet_files(data_path):
     """
-    支持以下形式:
-      - 单文件: xxx.parquet
-      - 不带后缀: xxx
-      - 通配符: xxx/*.parquet
-      - 文件夹: xxx/
+    The following forms are supported:
+      - Single file: xxx.parquet
+      - Without suffix: xxx
+      - Wildcard: xxx/*.parquet
+      - Folder: xxx/
       - list/tuple
     """
     if isinstance(data_path, (list, tuple)):
@@ -80,8 +80,8 @@ def _resolve_parquet_files(data_path):
 
 def _get_parquet_schema_names(files):
     """
-    从第一个 parquet 文件推断 schema 列名。
-    默认各分片 schema 一致。
+    Infer schema column names from the first parquet file.
+    By default, the schema of each shard is consistent.
     """
     if isinstance(files, str):
         files = _resolve_parquet_files(files)
@@ -96,7 +96,7 @@ def _is_sequence_like(x):
 
 def _is_sequence_column(series):
     """
-    判断一列是否为 sequence 列。
+    Determine whether a column is a sequence column.
     """
     if len(series) == 0:
         return False
@@ -109,10 +109,10 @@ def _is_sequence_column(series):
 
 def _dataframe_to_darray(df):
     """
-    把 DataFrame 转成与原实现兼容的 2D numpy array，
-    并返回 column_index:
-      - 标量列 -> int
-      - sequence列 -> [int, int, ...]
+    Convert the DataFrame into a 2D numpy array compatible with the original implementation,
+    and returns column_index:
+      - scalar column -> int
+      - sequence column -> [int, int, ...]
     """
     column_index = {}
     data_arrays = []
@@ -147,7 +147,7 @@ def _dataframe_to_darray(df):
 
 def _extract_part_id(fp):
     """
-    从 part-00012.parquet 提取 12
+    Extract 12 from part-00012.parquet
     """
     name = Path(fp).name
     m = re.match(r"part-(\d+)\.parquet$", name)
@@ -158,7 +158,7 @@ def _extract_part_id(fp):
 
 def _build_part_file_map(path_like):
     """
-    把一个目录 / glob / 单文件 解析成:
+    Parse a directory / glob / single file into:
         {part_id: filepath}
     """
     files = _resolve_parquet_files(path_like)
@@ -173,9 +173,9 @@ def _build_part_file_map(path_like):
 
 def _find_meta_data_json(path_like):
     """
-    兼容以下情况:
-      - blocked: split/user_info/ 目录，meta_data.json 在 dataset root 或更上层
-      - 更深层目录时，向上逐级搜索
+    Compatible with the following situations:
+      - blocked: split/user_info/ directory, meta_data.json is in dataset root or above
+      - When searching in deeper directories, search upwards level by level.
     """
     p = Path(str(path_like)).resolve()
 
@@ -209,10 +209,10 @@ def _build_batch_dict_from_tensor(batch_tensor, batch_cols):
 
 def _resolve_side_info_path(split, key, explicit_path=None, kwargs=None):
     """
-    解析 side-info 路径。
-    优先级:
-      1) 显式传入 explicit_path
-      2) split_key, 例如 train_user_info / valid_item_info / test_user_info
+    Resolve side-info paths.
+    Priority:
+      1) Explicitly pass in explicit_path
+      2) split_key, such as train_user_info / valid_item_info / test_user_info
     """
     if explicit_path is not None:
         return explicit_path
@@ -229,18 +229,18 @@ def _resolve_side_info_path(split, key, explicit_path=None, kwargs=None):
 
 def _estimate_block_cost(data_file, seq_len_col="seq_len", sample_rows=4096):
     """
-    估计一个 blocked parquet 的训练负载。
-    当前 blocked collator 会把每个 batch pad 到固定 max_len，因此 GPU 侧的
-    主计算量由样本数（等价于固定 batch_size 下的 batch 数）决定，而不是原始
-    seq_len。按未截断 seq_len 加权会把“原始历史更长、但实际张量长度相同”的
-    block 错误视为更重，造成 DDP rank 的 batch 数严重不均衡。
+    Estimate the training load of a blocked parquet.
+    The blocked collator pads every batch to max_len, so GPU work depends on
+    sample count rather than the original sequence length. Weighting blocks by
+    untruncated seq_len can therefore produce an imbalanced number of batches
+    across DDP ranks.
 
-    使用:
+    use:
         cost = num_rows
 
-    说明:
-    - avg_seq_len 仅作为诊断统计保留，不参与 rank 分配。
-    - 若不存在 seq_len 列，同样按 num_rows 分配。
+    Notes:
+    - avg_seq_len is reserved only as a diagnostic statistic and does not participate in rank allocation.
+    - If the seq_len column does not exist, it will also be allocated according to num_rows.
     """
     pf = pq.ParquetFile(data_file)
     num_rows = int(pf.metadata.num_rows)
@@ -286,20 +286,20 @@ def _estimate_block_cost(data_file, seq_len_col="seq_len", sample_rows=4096):
 
 class BlockedParquetBatchDataset(IterableDataset):
     """
-    blocked 模式下的 IterableDataset。
+    IterableDataset in blocked mode.
 
-    特点：
-    - 一个 block 对应一组:
+    Features:
+    - One block corresponds to a group:
         data/part-xxxxx.parquet
         user_info/part-xxxxx.parquet
         item_info/part-xxxxx.parquet
-    - dataset 按 block 读取 data 文件
-    - 每次 yield 一个“已经成批”的 payload，避免 batch 内混入不同 block
-    - collator 再根据 payload 中的 user/item side-info 文件处理
+    - dataset reads data files in blocks
+    - Yield an "already batched" payload each time to avoid mixing different blocks into the batch
+    - The collator processes it based on the user/item side-info file in the payload.
 
-    DDP 改进：
-    - 不再使用简单的 rank::world_size 轮转分配
-    - 改为按 block 估计负载(cost)做贪心均衡分配，减少 rank 间严重失衡
+    DDP improvements:
+    - Simple rank::world_size round-robin allocation is no longer used
+    - Change to greedy balanced distribution based on block estimated load (cost) to reduce serious imbalances between ranks
     """
     def __init__(self,
                  data_path,
@@ -377,13 +377,13 @@ class BlockedParquetBatchDataset(IterableDataset):
         self.num_samples = int(sum(self.block_row_counts.values()))
         self.num_batches = self._count_batches()
 
-        # 额外统计，便于你打印检查是否均衡
+        # Expose per-rank statistics for balance diagnostics.
         self.rank_num_rows = int(sum(int(blk["num_rows"]) for blk in self.rank_blocks))
         self.rank_num_cost = float(sum(float(blk["cost"]) for blk in self.rank_blocks))
 
     def _assign_blocks_greedily(self, blocks, world_size):
         """
-        按 block cost 从大到小排序，然后贪心分配给当前总负载最小的 rank。
+        Sort by block cost from large to small, and then greedily assign it to the rank with the smallest current total load.
         """
         sorted_blocks = sorted(blocks, key=lambda x: (x["cost"], x["num_rows"]), reverse=True)
 
@@ -395,7 +395,7 @@ class BlockedParquetBatchDataset(IterableDataset):
             rank_buckets[target_rank].append(blk)
             rank_loads[target_rank] += float(blk["cost"])
 
-        # 每个 rank 内部按 part_id 排序，保证稳定性
+        # Each rank is internally sorted by part_id to ensure stability.
         for r in range(world_size):
             rank_buckets[r] = sorted(rank_buckets[r], key=lambda x: x["part_id"])
 
@@ -483,14 +483,14 @@ class BlockedParquetBatchDataset(IterableDataset):
 
 class UniRankDataloader(DataLoader):
     """
-    分块 (blocked) 模式的 DataLoader。
+    DataLoader in blocked mode.
 
-    特点:
-    - 适用于所有数据集 (TAAC2025 / KuaiRand / QK_Video)
-    - 自动按 part-xxxxx.parquet 分块读取
-    - 每个 block 对应一组 data / user_info / item_info
+    Features:
+    - Applicable to all datasets (TAAC2025 / KuaiRand / QK_Video)
+    - Automatically read in blocks according to part-xxxxx.parquet
+    - Each block corresponds to a set of data / user_info / item_info
 
-    side-info 路径写法:
+    side-info path writing:
         train_user_info / train_item_info
         valid_user_info / valid_item_info
         test_user_info  / test_item_info
@@ -548,7 +548,7 @@ class UniRankDataloader(DataLoader):
             cache_size=self.block_cache_size
         )
 
-        # blocked 模式下 dataset 已经按 rank 切分, 不使用 sampler
+        # In blocked mode, the dataset has been split according to rank, and sampler is not used.
         self.sampler_ref = None
 
         super().__init__(
@@ -567,14 +567,14 @@ class UniRankDataloader(DataLoader):
         self._configured_batch_size = int(batch_size)
         self.num_blocks = getattr(self.dataset, "num_blocks", 1)
 
-        # 全局样本数，可用于展示
+        # Global sample number, available for display
         self.global_num_samples = getattr(self.dataset, "num_samples", len(self.dataset))
 
-        # 当前 rank 实际样本数 / batch 数
+        # Actual number of samples in current rank/number of batches
         self.num_samples = getattr(self.dataset, "num_samples", len(self.dataset))
         self.num_batches = len(self.dataset)
 
-        # 标记为 blocked 模式, 用于 rank_model.py 中的 DDP + blocked 训练逻辑
+        # Marked as blocked mode, used for DDP + blocked training logic in rank_model.py
         self.blocked = True
 
     def __len__(self):
@@ -591,8 +591,8 @@ class UniRankDataloader(DataLoader):
 
 class BlockedBatchCollator(object):
     """
-    blocked 版本：
-    每次只缓存当前 block 的 user_info / item_info，避免一次性读全量 side-info。
+    blocked version:
+    Only the user_info/item_info of the current block is cached each time to avoid reading the entire side-info at once.
     """
     def __init__(self, feature_map, max_len, column_index, user_info, item_info,
                  padding="pre", cache_size=2):
@@ -610,13 +610,13 @@ class BlockedBatchCollator(object):
             with open(meta_fp, "r", encoding="utf-8") as f:
                 meta_data = json.load(f)
         except Exception as e:
-            raise ValueError(f"读取 meta_data.json 失败: {meta_fp}, error={e}")
+            raise ValueError(f"Failed to read meta_data.json: {meta_fp}, error={e}")
 
         action_vocab = meta_data.get("action_vocab", None)
         if not action_vocab:
             raise ValueError(
-                "meta_data.json 中缺少 action_vocab，"
-                "无法构造基于 token 的 task-specific multi_masks。"
+                "action_vocab is missing in meta_data.json,"
+                "Unable to construct token-based task-specific multi_masks."
             )
 
         self.action_task_table = self._build_action_task_table(action_vocab)
@@ -684,7 +684,7 @@ class BlockedBatchCollator(object):
         item_cols = [c for c in item_cols if c in item_schema]
 
         if "item_index" not in item_cols:
-            raise ValueError(f"blocked item_info 中缺少 item_index 列: {item_info_file}")
+            raise ValueError(f"item_index column missing in blocked item_info: {item_info_file}")
 
         item_df = pd.read_parquet(item_info_file, columns=item_cols).set_index("item_index").sort_index()
 
@@ -753,7 +753,7 @@ class BlockedBatchCollator(object):
 
         if lookup_pos.min().item() < 0 or lookup_pos.max().item() >= len(side["user_row_lookup"]):
             raise IndexError(
-                f"user_index 超出 blocked user_info 范围: "
+                f"user_index exceeds blocked user_info range:"
                 f"min={user_index_tensor.min().item()}, max={user_index_tensor.max().item()}, "
                 f"allowed=[{side['user_index_min']}, {side['user_index_max']}] | file={user_info_file}"
             )
@@ -761,7 +761,7 @@ class BlockedBatchCollator(object):
         user_row_ids = side["user_row_lookup"][lookup_pos]
         if (user_row_ids < 0).any():
             bad_uid = user_index_tensor[user_row_ids < 0][0].item()
-            raise IndexError(f"user_index={bad_uid} 在 blocked user_info 中不存在。file={user_info_file}")
+            raise IndexError(f"user_index={bad_uid} does not exist in blocked user_info. file={user_info_file}")
 
         user_row_ids = user_row_ids.numpy().astype(np.int64, copy=False)
         seq_lens = batch_dict["seq_len"].int().cpu().numpy()
@@ -797,7 +797,7 @@ class BlockedBatchCollator(object):
 
         if lookup_pos.min() < 0 or lookup_pos.max() >= len(side["item_row_lookup"]):
             raise IndexError(
-                f"item_index 超出 blocked item_info 范围: "
+                f"item_index exceeds blocked item_info range:"
                 f"min={flat_items.min()}, max={flat_items.max()}, "
                 f"allowed=[{side['item_index_min']}, {side['item_index_max']}] | file={item_info_file}"
             )
@@ -807,7 +807,7 @@ class BlockedBatchCollator(object):
 
         if (row_ids < 0).any():
             bad_item = flat_items[(row_ids < 0).numpy()][0]
-            raise IndexError(f"item_index={bad_item} 在 blocked item_info 中不存在。file={item_info_file}")
+            raise IndexError(f"item_index={bad_item} does not exist in blocked item_info. file={item_info_file}")
 
         item_dict = {}
         for col, tensor_data in side["item_tensors"].items():

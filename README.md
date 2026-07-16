@@ -1,10 +1,10 @@
-# UniRank <sub>v0.1.0, work in progress</sub>
+# UniRank <sub>[v0.3.0](https://github.com/salmon1802/UniRank/tree/v0.3.0)</sub>
 
 **A Ranking Model Benchmark for Unified Sequential Modeling and Feature Interaction**
 
-UniRank is an open PyTorch benchmark for studying large-scale recommendation ranking models under one reproducible pipeline. It focuses on a practical industrial setting in which a ranker must jointly use user profiles, item attributes, context fields, long behavior histories, and multiple feedback labels such as click, follow, like, cart, long-view, and conversion.
+UniRank is an open PyTorch benchmark for unified sequential modeling and feature interaction in large-scale recommendation ranking. It standardizes chronological point-wise autoregressive supervision, multi-feedback evaluation, model implementations, data processing, and distributed training in one reproducible pipeline.
 
-Instead of treating data preparation, sequential modeling, feature interaction, and distributed training as unrelated components, UniRank standardizes them as one end-to-end framework. The repository currently provides five dataset configurations, fifteen unified ranking model implementations, action-aware sequence construction, blocked Parquet loading, multi-task evaluation, DDP training, mixed precision, and activation checkpointing.
+The benchmark contains fifteen unified ranking architectures and five industrial datasets from short-video, advertising, and e-commerce scenarios. Their sequence lengths span roughly `10^2` to `10^5`. The toolkit supports blocked Parquet loading, DDP, operator compilation, mixed precision, optimized attention, and activation checkpointing so that accuracy and efficiency can be compared under the same protocol.
 
 ## At a Glance
 
@@ -15,7 +15,8 @@ Instead of treating data preparation, sequential modeling, feature interaction, 
 | Learning objectives | Multiple binary feedback tasks with independent task heads and losses |
 | Metrics | Logloss and AUC for every task |
 | Sequence representation | Chronological item, action, and timestamp histories with target-aware truncation |
-| Data scale | Blocked Parquet datasets with block-local side information and per-rank load balancing |
+| Data scale | 23.6M--757.2M instances; maximum histories from 100 to 228,030 events |
+| Main benchmark setting | `max_len=100`, batch size 8192, embedding dim 16, three interaction layers, token dim 256, one epoch |
 | Training | Single GPU or `torchrun` DDP, `torch.compile`, dense/sparse optimizers, bf16, gradient accumulation |
 | Memory optimization | Optional non-reentrant activation checkpointing; enabled by default only for Ultra configs |
 
@@ -33,9 +34,15 @@ UniRank is designed to make the following questions measurable under a common pr
 
 The goal is not to hide dataset-specific semantics. UniRank makes those choices explicit in preprocessing scripts and YAML configurations so that a result can be traced from raw events to labels, history tokens, model inputs, and final metrics.
 
+The project makes three main contributions:
+
+- **An open unified-ranking benchmark:** fifteen recent architectures are evaluated on five large industrial datasets under a common chronological, multi-feedback protocol.
+- **A practical large-scale toolkit:** DDP, compilation, mixed precision, optimized attention, activation checkpointing, and blocked loading reduce the systems barrier to reproducing large ranking models.
+- **A reproducible empirical study:** the repository releases preprocessing code, configurations, model implementations, evaluation code, and benchmark results for analyzing model--data and model--task affinity.
+
 ## Training Paradigm
 
-UniRank replaces the commonly used **newest-impression supervision** paradigm with **point-wise autoregressive supervision**. The difference is not the prediction loss itself—both can use point-wise binary objectives—but how a user sequence is converted into supervised targets.
+UniRank replaces the commonly used **newest-impression supervision** paradigm with **chronological point-wise autoregressive supervision**. The difference is not the prediction loss itself—both can use point-wise binary objectives—but how a user sequence is converted into supervised targets.
 
 <p align="center">
   <img width="1000" alt="Traditional newest-impression supervision and UniRank point-wise autoregressive supervision" src="./assets/figures/training_pipeline.png">
@@ -91,7 +98,7 @@ The sample organization must be paired with an evaluation protocol that preserve
 
 | Aspect | User-disjoint protocol | UniRank chronological protocol |
 |:--|:--|:--|
-| Split unit | Users are assigned exclusively to train, validation, or test. | Samples are assigned by chronological/date boundaries. |
+| Split unit | Users are assigned exclusively to train, validation, or test. | Each user's ordered targets are split into the earliest 80% for training, the next 10% for validation, and the latest 10% for testing. |
 | User overlap | Validation and test users are unseen during training. | A recurring user may appear in multiple splits, but test targets occur after training targets. |
 | Primary question | Can the model generalize to entirely unseen users? | Can the model rank future interactions for users under a later data distribution? |
 | Historical information | Test users have no training-period model history unless a separate cold-start history policy is defined. | Previously observed interactions can form causal context for later targets according to the preprocessing rules. |
@@ -107,7 +114,20 @@ The sample organization must be paired with an evaluation protocol that preserve
 
 Chronological evaluation is not universally superior to a user-disjoint protocol. It measures warm-start future ranking, whereas user-disjoint evaluation measures cold-start generalization; UniRank's reported results should be interpreted according to the former objective.
 
-During DDP validation and testing, every rank performs inference on its assigned blocks. Predictions and labels are gathered across ranks before metrics are computed, so the reported logloss and AUC cover the evaluated split. Grouped metrics remain implemented for optional experiments but are not enabled in the default model configurations. Validation selects the monitored checkpoint; testing runs after training with the best checkpoint.
+For a task with no positive sample in a candidate validation or test interval, preprocessing moves the boundary to the nearest valid split position without reversing chronological order. When public timestamps are unavailable, as in QK-Video, the released event order is preserved as the chronological fallback.
+
+During DDP validation and testing, every rank performs inference on its assigned blocks. Predictions and labels are gathered across ranks before metrics are computed, so the reported **binary Logloss** (lower is better) and **global AUC** (higher is better) cover the complete evaluated split. Validation selects the monitored checkpoint; testing runs after training with the best checkpoint.
+
+## Reproducibility Requirements
+
+UniRank treats the following components as part of a reproducible result, rather than implementation details:
+
+1. **Unified data pipeline:** use the released chronological preprocessing, feature definitions, action construction, split policy, and generated metadata.
+2. **Tasks and metrics:** retain the dataset-specific binary feedback tasks and report Logloss and global AUC for each task.
+3. **Source code:** identify the exact model, preprocessing, loading, and evaluation implementation used by the run.
+4. **Model hyperparameters:** record embedding size, token dimension, layer depth, sequence length, and architecture-specific settings.
+5. **Training pipeline:** record batch size, epochs, optimizer settings, precision, gradient accumulation, GPU type, and GPU count.
+6. **Efficiency optimization:** disclose compilation, attention backend, activation checkpointing, and other memory or throughput optimizations.
 
 ## Framework Workflow
 
@@ -150,7 +170,7 @@ UniRank includes engineering support for model memory, computation, distributed 
 - **`torch.compile` acceleration** uses the Inductor backend to compile trainable dense child modules while leaving sparse embedding modules outside the compiled region. This keeps the embedding path compatible with sparse optimization and lets supported interaction blocks benefit from graph and kernel optimization. It is controlled by `enable_torch_compile` and is enabled by default in the current framework.
 - **Flash Attention through SDPA** is available to models implemented with `torch.nn.functional.scaled_dot_product_attention`. When tensor dtype, shape, mask, and GPU capability satisfy PyTorch's backend constraints, SDPA can dispatch to a fused Flash Attention kernel instead of materializing the full attention matrix. OneTrans, HiFormer, LONGER, Zenith, MixFormer, HeMix, INFNet, EST, and HyFormer contain SDPA-based attention paths.
 - **Flex Attention** is used by TokenFormer and UltraHSTU for structured attention patterns that require model-specific masking. `create_block_mask` constructs the block mask and `flex_attention` applies it without replacing the model's masking semantics with a dense generic attention path.
-- **Separate dense and sparse optimization** applies AdamW to dense network parameters and Adagrad to embedding parameters with independent learning rates, avoiding a one-size-fits-all optimizer setup for embedding-heavy rankers.
+- **Separate dense and sparse optimization** applies AdamW at `1e-4` to dense network parameters and Adagrad at `0.05` to sparse embedding parameters.
 - **Pinned-memory loading** and batched Parquet iteration overlap host-to-device transfer with model execution and avoid materializing the full training split in memory.
 - **Distributed data parallelism** uses one CUDA process per GPU and NCCL gradient synchronization. Validation and testing are also partitioned across ranks rather than being repeated entirely on rank 0.
 
@@ -174,6 +194,8 @@ The loader pairs blocks by part ID, streams Parquet batches, keeps a bounded sid
 The current runner enables bf16 by default and also exposes it as a command-line parameter for compatible GPUs/models. Gradient accumulation is configured per experiment, while `gradient_checkpointing` recomputes the main interaction block during backward to reduce activation memory. Checkpointing is off in the base configuration and enabled for the largest Ultra variants.
 
 ### Engineering benchmark protocol
+
+The paper's main accuracy benchmark uses a maximum sequence length of 100, batch size 8192, embedding dimension 16, three interaction layers, token dimension 256, and one training epoch on NVIDIA H20 GPUs. All models use pre-normalization; architecture-specific hyperparameters are selected by grid search. If a configuration exceeds memory, reduce the per-step batch size and increase gradient accumulation proportionally to preserve the effective batch size.
 
 Memory-saving and training-time claims should be measured under a controlled configuration rather than inferred from tensor dtypes or theoretical operator complexity. For an engineering benchmark, keep the model, dataset blocks, `batch_size`, `max_len`, optimizer, GPU type, GPU count, and number of epochs fixed. Compare one optimization at a time against the same FP32/non-checkpointed/non-compiled baseline.
 
@@ -232,13 +254,27 @@ UniRank/
 
 ## Datasets
 
-| Dataset ID | Feedback tasks | Raw/source data | Preprocessing script |
-|:--|:--|:--|:--|
-| `QK_Video_Action` | click, follow, like, share | [QK-Video](https://static.qblv.qq.com/qblv/h5/algo-frontend/tenrec_dataset.html) | `data/QK_Video/preprocess_QK_seq_action.py` |
-| `KuaiRand_Video_Action` | click, follow, like, comment, forward, long-view | [KuaiRand](https://kuairand.com/) | `data/KuaiRand/preprocess_Kuairand_seq_action.py` |
-| `TencentGR_10M_Action` | click, conversion | [TAAC2025/TencentGR-10M](https://huggingface.co/datasets/TAAC2025/TencentGR-10M) | `data/TAAC2025/preprocess_TAAC2025_seq_action.py` |
-| `Taobao_Action` | click, cart, favorite, buy | [Taobao Ad Display/Click Data](https://tianchi.aliyun.com/dataset/56) | `data/Taobao/preprocess_Taobao_seq_action.py` |
-| `MerRec_Action` | like, cart, offer, checkout, purchase | [Mercari MerRec](https://huggingface.co/datasets/mercari-us/merrec) | `data/MerRec/preprocess_MerRec_seq_action.py` |
+The paper reports the following statistics after preprocessing:
+
+| Dataset | Instances | Users | Items | Fields | Tasks | Avg. length | Max. length |
+|:--|--:|--:|--:|--:|--:|--:|--:|
+| QK-Video | 493,306,303 | 4,996,176 | 3,752,235 | 10 | 4 | 99 | 6,013 |
+| KuaiRand | 323,464,444 | 27,285 | 32,038,725 | 40 | 6 | 11,855 | 228,030 |
+| TAAC-25 | 757,207,146 | 7,706,778 | 15,707,425 | 30 | 2 | 98 | 100 |
+| Taobao | 23,601,301 | 470,570 | 831,643 | 23 | 4 | 50 | 3,756 |
+| MerRec | 172,304,959 | 1,697,072 | 42,577,610 | 20 | 5 | 102 | 26,576 |
+
+Dataset semantics and repository entry points are aligned as follows:
+
+| Dataset ID | Feedback tasks | Time range and construction | Raw/source data | Preprocessing script |
+|:--|:--|:--|:--|:--|
+| `QK_Video_Action` | click, follow, like, share | September 17--December 7, 2021; public timestamps are removed, so released order is preserved. | [QK-Video](https://static.qblv.qq.com/qblv/h5/algo-frontend/tenrec_dataset.html) | `data/QK_Video/preprocess_QK_seq_action.py` |
+| `KuaiRand_Video_Action` | click, follow, like, comment, forward, long-view | April 8--May 8, 2022; events are ordered chronologically. | [KuaiRand](https://kuairand.com/) | `data/KuaiRand/preprocess_Kuairand_seq_action.py` |
+| `TencentGR_10M_Action` | click, conversion | De-identified TAAC 2025 data; dates are undisclosed, users without positive feedback are removed, and conversion implies click. The paper names the processed benchmark TAAC-25. | [TAAC2025/TencentGR-10M](https://huggingface.co/datasets/TAAC2025/TencentGR-10M) | `data/TAAC2025/preprocess_TAAC2025_seq_action.py` |
+| `Taobao_Action` | click, cart, favorite, buy | Ad impressions from May 6--13, 2017 are joined with behaviors from April 22--May 13 using the preceding 24-hour window. | [Taobao Ad Display/Click Data](https://tianchi.aliyun.com/dataset/56) | `data/Taobao/preprocess_Taobao_seq_action.py` |
+| `MerRec_Action` | like, cart, offer, checkout, purchase | May--October 2023; the current benchmark preprocessing uses the October partition. | [Mercari MerRec](https://huggingface.co/datasets/mercari-us/merrec) | `data/MerRec/preprocess_MerRec_seq_action.py` |
+
+Features are organized into user, context, sequence, and action groups. Low-frequency categorical values map to a shared OOV ID, multi-value categorical fields use masked average pooling, and dense numeric fields are bucketized as categorical inputs.
 
 Available preprocessed dataset repositories:
 
@@ -280,15 +316,35 @@ The following implementations are exported by `model_zoo/__init__.py`:
 | 14 | [UltraHSTU](./model_zoo/UltraHSTU.py) | [Bending the Scaling Law Curve in Large-Scale Recommendation Systems](https://arxiv.org/pdf/2602.16986) |
 | 15 | [SSR](./model_zoo/SSR.py) | [Beyond Dense Connectivity: Explicit Sparsity for Scalable Recommendation](https://arxiv.org/pdf/2604.08011) |
 
-## Preliminary Benchmark
+## Benchmark Results
 
-The following snapshot reports preliminary results with sequence length 100 and three interaction layers. The token dimension is 256 for all datasets. It is retained as an early comparison snapshot; the current registry and YAML configurations continue to evolve.
+The following snapshot corresponds to the paper's main comparison: maximum sequence length 100, batch size 8192, embedding dimension 16, three interaction layers, token dimension 256, and one training epoch. It reports task-level global AUC and Logloss; it does not report gAUC or UAUC.
 
 <p align="center">
-  <img width="1215" alt="Preliminary UniRank benchmark results" src="./assets/figures/preliminary_benchmark_results.png">
+  <img width="1215" alt="UniRank benchmark results across fifteen models and five datasets" src="./assets/figures/preliminary_benchmark_results.png">
 </p>
 
-**Figure 3. Preliminary benchmark results.** The embedded snapshot reports impression-weighted gAUC but does not contain UAUC. Current experiments additionally compute UAUC by averaging the AUC of every user containing both positive and negative samples with equal user weight. Regenerate the table before adding UAUC comparisons, while keeping preprocessing, grouping IDs, split boundaries, sequence length, features, model size, and random seeds fixed.
+**Figure 3. Main benchmark results.** AUC is higher-is-better and Logloss is lower-is-better. Compare architectures only when preprocessing, task definitions, sequence length, features, model size, and training settings are held fixed.
+
+The paper highlights four findings:
+
+- **Neither interaction paradigm dominates:** both stacked and layer-wise unified architectures are competitive across datasets.
+- **There is no universally best model:** rankings change substantially across data domains and feedback tasks.
+- **Model--data affinity is pronounced:** EST and HeMix are strong on Taobao and MerRec, TokenFormer is strong on TAAC-25, while UltraHSTU, UniMixer, and LONGER are competitive on QK-Video and KuaiRand.
+- **Task preference matters within one dataset:** on MerRec, UniMixer performs strongly on like, EST on cart, TokenMixer on offer, and HeMix on checkout and purchase AUC.
+
+## Practical Handbook
+
+In addition to the main comparison, the paper begins a practical handbook of controlled ablations. The current populated study compares tokenizer configurations for RankMixer and OneTrans on KuaiRand and MerRec. The paper also defines tables for activation functions, training tricks, and optimizers; those entries are intentionally left open until matched experiments are available and should not be filled with estimates.
+
+## Discussion and Roadmap
+
+The current benchmark focuses on reproducible model comparison rather than declaring one universal architecture. Planned extensions from the paper include:
+
+- studying ranking-model scaling laws under unified data and training controls;
+- adding multimodal models and datasets such as TaoBao-MM and MicroLens;
+- expanding to larger public corpora such as MerRec-1B, RecFlow1B, and VK-LSVD40B;
+- completing controlled handbook studies for activations, optimization strategies, and systems techniques.
 
 ## Installation
 
@@ -412,8 +468,8 @@ All current models expose their main interaction block through the shared activa
 
 - Compare models on identical generated dataset files, not only identical raw sources.
 - Keep label construction windows and action-token rules fixed across experiments.
-- Report logloss and global AUC under the default protocol; enable grouped metrics only when required by a separate comparison protocol.
-- Preserve chronological split boundaries when evaluating warm-start future ranking.
+- Report binary Logloss and global AUC for every configured task under the default protocol.
+- Preserve the per-user chronological 80%/10%/10% split and any positive-aware boundary adjustments when evaluating warm-start future ranking.
 - Use several seeds for small reported gains, especially when model differences are below normal run-to-run variation.
 - Record model size, sequence length, token dimension, batch size, precision, and GPU count together with accuracy metrics.
 
