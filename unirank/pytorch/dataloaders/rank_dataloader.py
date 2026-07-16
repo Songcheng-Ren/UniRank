@@ -16,38 +16,30 @@
 # =========================================================================
 
 
-from .npz_block_dataloader import NpzBlockDataLoader
-from .npz_dataloader import NpzDataLoader
-from .parquet_block_dataloader import ParquetBlockDataLoader
-from .parquet_dataloader import ParquetDataLoader
 import logging
+
+from .unirank_dataloader import UniRankDataloader
 
 
 class RankDataLoader(object):
     def __init__(self, feature_map, stage="both", train_data=None, valid_data=None, test_data=None,
-                 batch_size=32, shuffle=True, streaming=False, data_format="npz", **kwargs):
+                 batch_size=32, shuffle=True, **kwargs):
         logging.info("Loading datasets...")
         train_gen = None
         valid_gen = None
         test_gen = None
-        if kwargs.get("data_loader"):
-            DataLoader = kwargs["data_loader"]
-        else:
-            if data_format == "npz":
-                DataLoader = NpzBlockDataLoader if streaming else NpzDataLoader
-            else: # ["parquet", "csv"]
-                DataLoader = ParquetBlockDataLoader if streaming else ParquetDataLoader
+        data_loader = kwargs.pop("data_loader", UniRankDataloader)
         self.stage = stage
         if stage in ["both", "train"]:
-            train_gen = DataLoader(feature_map, train_data, split="train", batch_size=batch_size,
-                                   shuffle=shuffle, **kwargs)
+            train_gen = data_loader(feature_map, train_data, split="train", batch_size=batch_size,
+                                    shuffle=shuffle, **kwargs)
             logging.info(
                 "Train samples: total/{:d}, blocks/{:d}"
                 .format(train_gen.num_samples, train_gen.num_blocks)
             )     
             if valid_data:
-                valid_gen = DataLoader(feature_map, valid_data, split="valid",
-                                       batch_size=batch_size, shuffle=False, **kwargs)
+                valid_gen = data_loader(feature_map, valid_data, split="valid",
+                                        batch_size=batch_size, shuffle=False, **kwargs)
                 logging.info(
                     "Validation samples: total/{:d}, blocks/{:d}"
                     .format(valid_gen.num_samples, valid_gen.num_blocks)
@@ -55,8 +47,8 @@ class RankDataLoader(object):
 
         if stage in ["both", "test"]:
             if test_data:
-                test_gen = DataLoader(feature_map, test_data, split="test", batch_size=batch_size,
-                                      shuffle=False, **kwargs)
+                test_gen = data_loader(feature_map, test_data, split="test", batch_size=batch_size,
+                                       shuffle=False, **kwargs)
                 logging.info(
                     "Test samples: total/{:d}, blocks/{:d}"
                     .format(test_gen.num_samples, test_gen.num_blocks)

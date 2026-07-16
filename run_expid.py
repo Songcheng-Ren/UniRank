@@ -17,12 +17,10 @@
 
 import os
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
-import sys
 import gc
 import logging
 import argparse
-from datetime import datetime, timedelta
-from pathlib import Path
+from datetime import timedelta
 
 import torch
 import torch.distributed as dist
@@ -32,25 +30,20 @@ if torch.cuda.is_available():
     torch.set_float32_matmul_precision("high")
 
 from unirank.utils import (
-    load_config, set_logger, print_to_json, print_to_list,
-    parse_gpu_ids, setup_visible_devices, init_distributed_env, is_main_process
+    load_config, set_logger, print_to_json, print_to_list
 )
 from unirank.features import FeatureMap
 from unirank.pytorch.dataloaders import RankDataLoader
-from UniRank_Dataloader import UniRankDataloader
-from unirank.pytorch.torch_utils import seed_everything
+from unirank.pytorch.torch_utils import (
+    distributed_barrier,
+    init_distributed_env,
+    is_main_process,
+    parse_gpu_ids,
+    seed_everything,
+    setup_visible_devices,
+)
 from unirank.preprocess import FeatureProcessor, build_dataset
 import model_zoo
-
-
-def distributed_barrier(local_rank):
-    """Barrier with an explicit CUDA device for NCCL process groups."""
-    if not (dist.is_available() and dist.is_initialized()):
-        return
-    if dist.get_backend() == "nccl":
-        dist.barrier(device_ids=[local_rank])
-    else:
-        dist.barrier()
 
 
 if __name__ == '__main__':
@@ -190,8 +183,6 @@ if __name__ == '__main__':
         # --------------------
         # Build data iterators
         # --------------------
-        params["data_loader"] = UniRankDataloader
-
         if distributed:
             train_params = dict(params)
             train_params.update({

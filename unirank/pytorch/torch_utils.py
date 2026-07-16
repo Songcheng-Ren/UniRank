@@ -17,14 +17,12 @@
 # =========================================================================
 
 
-import sys
 import os
 import numpy as np
 import torch
+import torch.distributed as dist
 from torch import nn
 import random
-from functools import partial
-import re
 import inspect
 
 
@@ -45,6 +43,55 @@ def seed_everything(seed=1029):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
+
+
+def build_batch_dict_from_tensor(batch_tensor, batch_columns):
+    """Slice a batch tensor into a feature dictionary."""
+    return {column: batch_tensor[:, index] for column, index in batch_columns}
+
+
+def parse_gpu_ids(gpu_arg):
+    """Parse a comma-separated GPU list; -1 selects CPU."""
+    value = str(gpu_arg).strip()
+    if value == "-1":
+        return []
+    parts = [part.strip() for part in value.split(",") if part.strip()]
+    if not parts:
+        raise ValueError("--gpu cannot be empty; use --gpu -1 for CPU")
+    if any(not part.isdigit() for part in parts):
+        raise ValueError(f"Invalid --gpu value: {gpu_arg}; expected values such as 0,1,2,3")
+    gpu_ids = [int(part) for part in parts]
+    if len(gpu_ids) != len(set(gpu_ids)):
+        raise ValueError(f"Duplicate GPU IDs in --gpu: {gpu_arg}")
+    return gpu_ids
+
+
+def setup_visible_devices(gpu_ids):
+    """Set CUDA_VISIBLE_DEVICES from physical GPU IDs."""
+    os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, gpu_ids))
+
+
+def init_distributed_env():
+    """Read the distributed process coordinates injected by torchrun."""
+    world_size = int(os.environ.get("WORLD_SIZE", "1"))
+    rank = int(os.environ.get("RANK", "0"))
+    local_rank = int(os.environ.get("LOCAL_RANK", "0"))
+    local_world_size = int(os.environ.get("LOCAL_WORLD_SIZE", "1"))
+    return world_size > 1, rank, local_rank, world_size, local_world_size
+
+
+def is_main_process(rank):
+    return rank == 0
+
+
+def distributed_barrier(local_rank=None):
+    """Synchronize the active process group, using the NCCL device when required."""
+    if not (dist.is_available() and dist.is_initialized()):
+        return
+    if dist.get_backend() == "nccl" and local_rank is not None:
+        dist.barrier(device_ids=[local_rank])
+    else:
+        dist.barrier()
 
 def get_device(gpu=-1):
     if gpu >= 0 and torch.cuda.is_available():
