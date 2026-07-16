@@ -15,12 +15,9 @@
 # limitations under the License.
 # =========================================================================
 
-import glob
 import json
 import random
-import re
 from collections import OrderedDict
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -28,256 +25,15 @@ import pyarrow.parquet as pq
 import torch
 from torch.utils.data import DataLoader, IterableDataset, get_worker_info
 
-
-# ================================================================
-# General utility functions
-# ================================================================
-
-def _resolve_parquet_files(data_path):
-    """
-    The following forms are supported:
-      - Single file: xxx.parquet
-      - Without suffix: xxx
-      - Wildcard: xxx/*.parquet
-      - Folder: xxx/
-      - list/tuple
-    """
-    if isinstance(data_path, (list, tuple)):
-        files = []
-        for p in data_path:
-            files.extend(_resolve_parquet_files(p))
-        files = sorted(files)
-        if len(files) == 0:
-            raise FileNotFoundError(f"No parquet files found in: {data_path}")
-        return files
-
-    data_path = str(data_path)
-
-    if any(ch in data_path for ch in ["*", "?", "["]):
-        files = sorted(glob.glob(data_path))
-        if len(files) == 0:
-            raise FileNotFoundError(f"No parquet files matched: {data_path}")
-        return files
-
-    path = Path(data_path)
-
-    if path.is_dir():
-        files = sorted(str(p) for p in path.glob("*.parquet"))
-        if len(files) == 0:
-            raise FileNotFoundError(f"No parquet files found in directory: {data_path}")
-        return files
-
-    if not data_path.endswith(".parquet"):
-        alt = data_path + ".parquet"
-        if Path(alt).exists():
-            data_path = alt
-
-    if not Path(data_path).exists():
-        raise FileNotFoundError(f"Parquet path not found: {data_path}")
-
-    return [data_path]
-
-
-def _get_parquet_schema_names(files):
-    """
-    Infer schema column names from the first parquet file.
-    By default, the schema of each shard is consistent.
-    """
-    if isinstance(files, str):
-        files = _resolve_parquet_files(files)
-    if len(files) == 0:
-        raise FileNotFoundError("No parquet files found for schema inference.")
-    return set(pq.ParquetFile(files[0]).schema.names)
-
-
-def _is_sequence_like(x):
-    return isinstance(x, (list, tuple, np.ndarray))
-
-
-def _is_sequence_column(series):
-    """
-    Determine whether a column is a sequence column.
-    """
-    if len(series) == 0:
-        return False
-    for x in series:
-        if x is None:
-            continue
-        return _is_sequence_like(x)
-    return False
-
-
-def _dataframe_to_darray(df):
-    """
-    Convert the DataFrame into a 2D numpy array compatible with the original implementation,
-    and returns column_index:
-      - scalar column -> int
-      - sequence column -> [int, int, ...]
-    """
-    column_index = {}
-    data_arrays = []
-    idx = 0
-
-    for col in df.columns:
-        series = df[col]
-
-        if _is_sequence_column(series):
-            array = np.array(series.to_list())
-            if array.ndim == 1:
-                array = series.to_numpy()
-                column_index[col] = idx
-                idx += 1
-            else:
-                seq_len = array.shape[1]
-                column_index[col] = [idx + i for i in range(seq_len)]
-                idx += seq_len
-            data_arrays.append(array)
-        else:
-            array = series.to_numpy()
-            column_index[col] = idx
-            idx += 1
-            data_arrays.append(array)
-
-    if len(data_arrays) == 0:
-        raise ValueError("No columns were loaded from parquet file.")
-
-    darray = np.column_stack(data_arrays)
-    return darray, column_index
-
-
-def _extract_part_id(fp):
-    """
-    Extract 12 from part-00012.parquet
-    """
-    name = Path(fp).name
-    m = re.match(r"part-(\d+)\.parquet$", name)
-    if m is None:
-        raise ValueError(f"Invalid blocked parquet filename: {fp}")
-    return int(m.group(1))
-
-
-def _build_part_file_map(path_like):
-    """
-    Parse a directory / glob / single file into:
-        {part_id: filepath}
-    """
-    files = _resolve_parquet_files(path_like)
-    mp = {}
-    for fp in files:
-        pid = _extract_part_id(fp)
-        if pid in mp:
-            raise ValueError(f"Duplicate part id found: part-{pid:05d}")
-        mp[pid] = fp
-    return mp
-
-
-def _find_meta_data_json(path_like):
-    """
-    Compatible with the following situations:
-      - blocked: split/user_info/ directory, meta_data.json is in dataset root or above
-      - When searching in deeper directories, search upwards level by level.
-    """
-    p = Path(str(path_like)).resolve()
-
-    candidates = []
-    cur = p if p.is_dir() else p.parent
-    for _ in range(8):
-        candidates.append(cur / "meta_data.json")
-        if cur.parent == cur:
-            break
-        cur = cur.parent
-
-    for fp in candidates:
-        if fp.exists() and fp.is_file():
-            return fp
-
-    raise FileNotFoundError(
-        f"meta_data.json not found from path: {path_like}\n"
-        f"Tried: {[str(x) for x in candidates]}"
-    )
-
-
-def _build_batch_dict_from_tensor(batch_tensor, batch_cols):
-    batch_dict = {}
-    for col, idx in batch_cols:
-        if isinstance(idx, list):
-            batch_dict[col] = batch_tensor[:, idx]
-        else:
-            batch_dict[col] = batch_tensor[:, idx]
-    return batch_dict
-
-
-def _resolve_side_info_path(split, key, explicit_path=None, kwargs=None):
-    """
-    Resolve side-info paths.
-    Priority:
-      1) Explicitly pass in explicit_path
-      2) split_key, such as train_user_info / valid_item_info / test_user_info
-    """
-    if explicit_path is not None:
-        return explicit_path
-    kwargs = kwargs or {}
-    if split is not None:
-        split_key = f"{split}_{key}"
-        if kwargs.get(split_key) is not None:
-            return kwargs[split_key]
-    raise ValueError(
-        f"Missing side-info path for key='{key}', split='{split}'. "
-        f"Expected either explicit `{key}` or `{split}_{key}` in kwargs."
-    )
-
-
-def _estimate_block_cost(data_file, seq_len_col="seq_len", sample_rows=4096):
-    """
-    Estimate the training load of a blocked parquet.
-    The blocked collator pads every batch to max_len, so GPU work depends on
-    sample count rather than the original sequence length. Weighting blocks by
-    untruncated seq_len can therefore produce an imbalanced number of batches
-    across DDP ranks.
-
-    use:
-        cost = num_rows
-
-    Notes:
-    - avg_seq_len is reserved only as a diagnostic statistic and does not participate in rank allocation.
-    - If the seq_len column does not exist, it will also be allocated according to num_rows.
-    """
-    pf = pq.ParquetFile(data_file)
-    num_rows = int(pf.metadata.num_rows)
-
-    schema_names = set(pf.schema.names)
-    if seq_len_col not in schema_names:
-        return {
-            "num_rows": num_rows,
-            "avg_seq_len": None,
-            "cost": float(num_rows),
-        }
-
-    sampled = 0
-    seq_sum = 0.0
-
-    for batch in pf.iter_batches(batch_size=min(sample_rows, 1024), columns=[seq_len_col]):
-        arr = batch.column(0).to_numpy(zero_copy_only=False)
-        if len(arr) == 0:
-            continue
-        arr = np.asarray(arr, dtype=np.float64)
-        seq_sum += float(arr.sum())
-        sampled += int(len(arr))
-        if sampled >= sample_rows:
-            break
-
-    if sampled == 0:
-        avg_seq_len = 0.0
-    else:
-        avg_seq_len = seq_sum / sampled
-
-    cost = float(num_rows)
-
-    return {
-        "num_rows": num_rows,
-        "avg_seq_len": float(avg_seq_len),
-        "cost": cost,
-    }
+from unirank.pytorch.torch_utils import build_batch_dict_from_tensor
+from unirank.utils import (
+    build_part_file_map,
+    dataframe_to_darray,
+    estimate_parquet_block_cost,
+    find_meta_data_json,
+    get_parquet_schema_names,
+    resolve_side_info_path,
+)
 
 
 # ================================================================
@@ -322,9 +78,9 @@ class BlockedParquetBatchDataset(IterableDataset):
         self.drop_last = drop_last
         self.epoch = 0
 
-        self.data_part_map = _build_part_file_map(data_path)
-        self.user_part_map = _build_part_file_map(user_info_path)
-        self.item_part_map = _build_part_file_map(item_info_path)
+        self.data_part_map = build_part_file_map(data_path)
+        self.user_part_map = build_part_file_map(user_info_path)
+        self.item_part_map = build_part_file_map(item_info_path)
 
         common_part_ids = sorted(
             set(self.data_part_map.keys())
@@ -342,7 +98,9 @@ class BlockedParquetBatchDataset(IterableDataset):
         self.blocks = []
         for pid in common_part_ids:
             data_file = self.data_part_map[pid]
-            load_stat = _estimate_block_cost(data_file, seq_len_col="seq_len", sample_rows=4096)
+            load_stat = estimate_parquet_block_cost(
+                data_file, seq_len_col="seq_len", sample_rows=4096
+            )
 
             self.blocks.append(
                 {
@@ -430,7 +188,7 @@ class BlockedParquetBatchDataset(IterableDataset):
                 df = record_batch.to_pandas()
                 if len(df) == 0:
                     continue
-                _, column_index = _dataframe_to_darray(df)
+                _, column_index = dataframe_to_darray(df)
                 return column_index
         raise ValueError("Failed to infer column_index from blocked parquet files.")
 
@@ -452,7 +210,7 @@ class BlockedParquetBatchDataset(IterableDataset):
             if len(df) == 0:
                 continue
 
-            file_array, _ = _dataframe_to_darray(df)
+            file_array, _ = dataframe_to_darray(df)
 
             if self.shuffle and len(file_array) > 1:
                 perm = np_rng.permutation(len(file_array))
@@ -504,17 +262,17 @@ class UniRankDataloader(DataLoader):
 
         self.block_cache_size = kwargs.pop("block_cache_size", 2)
 
-        user_info = _resolve_side_info_path(
+        user_info = resolve_side_info_path(
             split=self.split,
             key="user_info",
             explicit_path=user_info,
-            kwargs=kwargs
+            config=kwargs
         )
-        item_info = _resolve_side_info_path(
+        item_info = resolve_side_info_path(
             split=self.split,
             key="item_info",
             explicit_path=item_info,
-            kwargs=kwargs
+            config=kwargs
         )
 
         self.dataset = BlockedParquetBatchDataset(
@@ -605,7 +363,7 @@ class BlockedBatchCollator(object):
         self.batch_cols = [(col, idx) for col, idx in column_index.items() if col in self.all_cols]
         self.task_labels = list(feature_map.labels)
 
-        meta_fp = _find_meta_data_json(user_info)
+        meta_fp = find_meta_data_json(user_info)
         try:
             with open(meta_fp, "r", encoding="utf-8") as f:
                 meta_data = json.load(f)
@@ -679,7 +437,7 @@ class BlockedBatchCollator(object):
         user_item_seqs = user_df["full_item_seq"].to_numpy()
         user_action_seqs = user_df["full_action_seq"].to_numpy()
 
-        item_schema = _get_parquet_schema_names(item_info_file)
+        item_schema = get_parquet_schema_names(item_info_file)
         item_cols = ["item_index"] + [col for col in self.all_cols if col not in {"action", "item_index"}]
         item_cols = [c for c in item_cols if c in item_schema]
 
@@ -744,7 +502,7 @@ class BlockedBatchCollator(object):
             rows = np.asarray(rows)
 
         batch_tensor = torch.from_numpy(rows)
-        batch_dict = _build_batch_dict_from_tensor(batch_tensor, self.batch_cols)
+        batch_dict = build_batch_dict_from_tensor(batch_tensor, self.batch_cols)
 
         side = self._load_block_side_info(user_info_file, item_info_file)
 

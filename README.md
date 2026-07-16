@@ -1,4 +1,4 @@
-# UniRank <sub>[v0.3.0](https://github.com/salmon1802/UniRank/tree/v0.3.0)</sub>
+# UniRank <sub>[v0.3.1](https://github.com/salmon1802/UniRank/tree/v0.3.1)</sub>
 
 **A Ranking Model Benchmark for Unified Sequential Modeling and Feature Interaction**
 
@@ -239,11 +239,16 @@ UniRank/
 |   +-- MerRec/                   # MerRec download, preprocessing and statistics
 |   +-- dataset_stats_utils.py
 +-- model_zoo/                    # Fifteen registered ranking architectures
-+-- unirank/                      # Training, feature, metric and layer utilities
++-- unirank/                      # Training, feature, metric and shared utilities
+|   +-- utils.py                  # Configuration, Parquet and DataFrame utilities
+|   +-- pytorch/
+|       +-- torch_utils.py        # Device, distributed and tensor utilities
+|       +-- dataloaders/
+|           +-- unirank_dataloader.py  # Blocked action-aware sequence loader
+|           +-- rank_dataloader.py     # Train/validation/test iterator builder
 +-- assets/figures/               # README and benchmark figures
 +-- benchmark/                    # Accuracy logs and engineering benchmark utilities
 +-- checkpoints/                  # Saved model checkpoints
-+-- UniRank_Dataloader.py         # Blocked action-aware sequence dataloader
 +-- run_expid.py                  # Single-experiment entry point
 +-- run_all.sh                    # Batch experiment launcher
 +-- run_param_tuner.py            # Hyperparameter tuning entry point
@@ -450,7 +455,7 @@ The `Base` section provides shared defaults; each experiment overrides only the 
 1. Implement the model in `model_zoo/YourModel.py` using the shared feature map and multi-task interface.
 2. Export it from `model_zoo/__init__.py`.
 3. Add model/dataset experiments to `config/model_config.yaml`.
-4. Reuse `UniRank_Dataloader.py` unless the architecture requires a genuinely different input contract.
+4. Reuse `unirank/pytorch/dataloaders/unirank_dataloader.py` unless the architecture requires a genuinely different input contract.
 5. Add the experiment ID to `run_all.sh` and verify single-GPU and DDP execution.
 
 All current models expose their main interaction block through the shared activation-checkpoint helper, so new large models should do the same when practical.
