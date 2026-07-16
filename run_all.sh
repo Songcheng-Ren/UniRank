@@ -161,7 +161,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_Taobao_Action"
 # run_exp "TokenFormer_Taobao_Action"
 # run_exp "UltraHSTU_Taobao_Action"
-# run_exp "SSR_Taobao_Action"
+ run_exp "SSR_Taobao_Action"
 
 # ==================================================
 # MerRec_Action experiments
@@ -180,7 +180,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_MerRec_Action"
 # run_exp "TokenFormer_MerRec_Action"
 # run_exp "UltraHSTU_MerRec_Action"
-# run_exp "SSR_MerRec_Action"
+ run_exp "SSR_MerRec_Action"
 
 # ==================================================
 # QK_Video_Action experiments
@@ -199,7 +199,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "LONGER_QK_Video_Action"
 # run_exp "Zenith_QK_Video_Action"
 # run_exp "HeMix_QK_Video_Action"
-# run_exp "SSR_QK_Video_Action"
+ run_exp "SSR_QK_Video_Action"
 
 # ==================================================
 # KuaiRand_Video_Action experiments
@@ -218,7 +218,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_KuaiRand_Video_Action"
 # run_exp "TokenFormer_KuaiRand_Video_Action"
 # run_exp "UltraHSTU_KuaiRand_Video_Action"
-# run_exp "SSR_KuaiRand_Video_Action"
+ run_exp "SSR_KuaiRand_Video_Action"
 
 # ==================================================
 # TencentGR_10M_Action experiments
@@ -237,7 +237,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_TencentGR_10M_Action"
 # run_exp "TokenFormer_TencentGR_10M_ Action"
 # run_exp "UltraHSTU_TencentGR_10M_Action"
-# run_exp "SSR_TencentGR_10M_Action"
+ run_exp "SSR_TencentGR_10M_Action"
 
 # ==================================================
 # Tokenizer ablations for KuaiRand and MerRec
