@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""统计 KuaiRand-27K blocked 数据集信息。"""
+"""Statistics KuaiRand-27K blocked data set information."""
 
 import sys
 from pathlib import Path

@@ -55,7 +55,7 @@ class OneTrans(MultiTaskModel):
         self.token_dim = token_dim
         self.accumulation_steps = accumulation_steps
 
-        # 统计非 item 特征维度、item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.non_item_dim = 0
         self.num_item_fields = 0
@@ -75,7 +75,7 @@ class OneTrans(MultiTaskModel):
 
         self.embedding_layer = FeatureEmbedding(feature_map, embedding_dim)
 
-        # 非序列特征 tokenizer: 产生 num_ns_token 个 NS tokens，因为target item 也被视为一个NS token，所以加入了self.item_info_dim
+        # Non-sequential feature tokenizer: generates num_ns_token NS tokens, because the target item is also regarded as an NS token, so self.item_info_dim is added
         tokenizer_input_dim = self.non_item_dim + self.item_info_dim
         self.num_tokenizer_fields = self.num_non_item_fields + self.num_item_fields
         (self.unified_tokenizer_layer,
@@ -90,13 +90,13 @@ class OneTrans(MultiTaskModel):
         )
         self.tokenizer_type = str(tokenizer_type).strip().title()
 
-        # item sequence / target item 投影到统一 token_dim
+        # Project sequence and target items to token_dim
         if self.item_info_dim != token_dim:
             self.item_token_proj = nn.Linear(self.item_info_dim, token_dim)
         else:
             self.item_token_proj = nn.Identity()
 
-        # OneTrans 主体
+        # OneTrans backbone
         self.unified_interaction_layers = OneTransBlock(
             input_dim=token_dim,
             num_heads=num_heads,
@@ -106,7 +106,7 @@ class OneTrans(MultiTaskModel):
             expansion_factor=expansion_factor
         )
 
-        # 最终只用 NS tokens 做预测
+        # Finally, only NS tokens are used for prediction.
         self.tower = nn.ModuleList([MLP_Block(input_dim=token_dim * self.num_ns_token,
                                               output_dim=1,
                                               hidden_units=tower_hidden_units,
@@ -130,7 +130,7 @@ class OneTrans(MultiTaskModel):
         batch_dict, item_dict, mask = self.get_inputs(inputs)
         batch_size = mask.shape[0]
 
-        # flatten_emb=True 后再 reshape 成: B x (T+1) x item_info_dim
+        # Reshape flattened embeddings to B x (T+1) x item_info_dim
         item_seq_emb = self.embedding_layer(item_dict, flatten_emb=True)
         item_seq_emb = item_seq_emb.view(batch_size, -1, self.item_info_dim)
 
@@ -140,8 +140,8 @@ class OneTrans(MultiTaskModel):
         # S-tokens
         s_tokens = self.item_token_proj(sequence_emb)  # B x S x token_dim
 
-        # target item 作为一个 NS token
-        # 其它非序列特征 -> NS tokens
+        # target item as an NS token
+        # Other non-sequential features -> NS tokens
         user_context_emb = self.embedding_layer(batch_dict, flatten_emb=True)       # B x non_item_dim
         feature_embeddings = torch.cat([user_context_emb, target_emb], dim=-1)
         if self.tokenizer_uses_field_input:
@@ -158,7 +158,7 @@ class OneTrans(MultiTaskModel):
             mask
         )
 
-        # 最终使用 NS tokens 做预测
+        # Predict from the NS tokens
         bottom_output = unified_tokens.flatten(start_dim=1)
         tower_output = [self.tower[i](bottom_output) for i in range(self.num_tasks)]
         y_pred = [self.output_activation[i](tower_output[i]) for i in range(self.num_tasks)]
@@ -273,7 +273,7 @@ class MixedMHA(nn.Module):
         ns_tokens: B x Lns x D
         kv_mask:   B x Ls, valid mask for full S key/value
         q_mask:    B x qLs, valid mask for pruned S query
-        torch无法使用causal_lower_right mask，所以这里使用full attention模拟金字塔削减
+        Torch cannot use the causal_lower_right mask, so full attention is used here to simulate pyramid reduction.
         """
         B, Ls, D = s_tokens.shape
         _, qLs, _ = ps_tokens.shape

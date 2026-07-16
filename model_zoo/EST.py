@@ -52,7 +52,7 @@ class EST(MultiTaskModel):
         self.token_dim = token_dim
         self.accumulation_steps = accumulation_steps
         self.num_field = feature_map.get_num_fields()
-        # 统计非 item 特征维度、item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.non_item_dim = 0
         for feat, spec in self.feature_map.features.items():
@@ -74,7 +74,7 @@ class EST(MultiTaskModel):
             num_tokens=self.num_field
         )
 
-        # item sequence / target item 投影到统一 token_dim
+        # Project sequence and target items to token_dim
         if self.item_info_dim != token_dim:
             self.item_token_proj = nn.Linear(self.item_info_dim, token_dim)
         else:
@@ -111,8 +111,8 @@ class EST(MultiTaskModel):
     def forward(self, inputs):
         batch_dict, item_dict, mask = self.get_inputs(inputs)
         batch_size = mask.shape[0]
-        # item_dict 中假设包含 [history_items..., target_item]
-        # flatten_emb=True 后再 reshape 成: B x (T+1) x item_info_dim
+        # item_dict contains [history_items..., target_item]
+        # Reshape flattened embeddings to B x (T+1) x item_info_dim
         item_seq_emb = self.embedding_layer(item_dict, flatten_emb=True)
         item_seq_emb = item_seq_emb.view(batch_size, -1, self.item_info_dim)
 
@@ -122,7 +122,7 @@ class EST(MultiTaskModel):
         # S-tokens
         s_tokens = self.item_token_proj(sequence_emb)  # B x T x token_dim
 
-        # 其它非序列特征 -> NS tokens
+        # Other non-sequential features -> NS tokens
         user_context_emb = self.embedding_layer(batch_dict, flatten_emb=False)  # B x
         feature_embeddings = torch.cat([user_context_emb, target_emb], dim=1) # B x F x embeddding_dim
         unified_tokens = self.unified_tokenizer_layer(feature_embeddings)  # B x num_ns_token (F) x token_dim
@@ -146,8 +146,8 @@ class EST(MultiTaskModel):
 
 class ESTBlocks(nn.Module):
     """
-    每一层依次执行：
-    1) Lightweight Cross-Attention (由于没有多模态表征，去除Content Sparse Attention)
+    Each layer applies:
+    1) Lightweight Cross-Attention (remove Content Sparse Attention due to no multi-modal representation)
     2) PerToken FFN + Shared FFN
     """
     def __init__(self,

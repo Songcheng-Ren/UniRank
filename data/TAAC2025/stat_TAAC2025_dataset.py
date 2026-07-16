@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""统计 TAAC2025 / TencentGR blocked 数据集信息。"""
+"""Statistics TAAC2025 / TencentGR blocked data set information."""
 
 import sys
 from pathlib import Path

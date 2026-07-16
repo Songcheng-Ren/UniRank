@@ -54,7 +54,7 @@ class HiFormer(MultiTaskModel):
         self.token_dim = token_dim
         self.accumulation_steps = accumulation_steps
         self.num_field = feature_map.get_num_fields()
-        # 统计非 item 特征维度、item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.non_item_dim = 0
         for feat, spec in self.feature_map.features.items():
@@ -120,7 +120,7 @@ class HiFormer(MultiTaskModel):
 
         seq_pooling_emb = self.attention_layers(target_emb, sequence_emb, mask)
 
-        # 其它非序列特征 -> NS tokens
+        # Other non-sequential features -> NS tokens
         user_context_emb = self.embedding_layer(batch_dict, flatten_emb=False)
         feature_embeddings = torch.cat([user_context_emb,
                                         target_emb.view(batch_size, -1, self.embedding_dim),

@@ -76,7 +76,7 @@ class BaseModel(nn.Module):
         self._ddp_model = None
         self._eval_process_group = None
 
-        # bf16 混合精度开关
+        # bf16 mixed precision switch
         self.enable_bf16 = kwargs.get("enable_bf16", True)
         self.enable_torch_compile = kwargs.get("enable_torch_compile", True)
         self.gradient_checkpointing = bool(kwargs.get("gradient_checkpointing", False))
@@ -267,10 +267,10 @@ class BaseModel(nn.Module):
 
     def _get_amp_context(self):
         """
-        返回 bf16 autocast 上下文管理器。
-        - enable_bf16=True  且设备为 CUDA：使用 torch.autocast(cuda, bfloat16)
-        - enable_bf16=True  且设备为 CPU ：使用 torch.autocast(cpu,  bfloat16)
-        - enable_bf16=False：返回 nullcontext()，不做任何精度转换
+        Returns the bf16 autocast context manager.
+        - enable_bf16=True and device is CUDA: use torch.autocast(cuda, bfloat16)
+        - enable_bf16=True and the device is CPU: use torch.autocast(cpu, bfloat16)
+        - enable_bf16=False: returns nullcontext() without any precision conversion
         """
         if self.enable_bf16:
             return torch.autocast(device_type=self.device.type, dtype=torch.bfloat16)
@@ -325,11 +325,11 @@ class BaseModel(nn.Module):
     def get_inputs(self, inputs, feature_source=None, return_multi_masks=False):
         """
         Args:
-            inputs: (batch_dict, item_dict, mask) 或 (batch_dict, item_dict, mask, multi_masks)
-            feature_source: 可选特征来源过滤
-            return_multi_masks: bool, 默认 False
-                - False: 返回 (X_dict, item_dict, mask)
-                - True : 返回 (X_dict, item_dict, mask, multi_masks)
+            inputs: (batch_dict, item_dict, mask) or (batch_dict, item_dict, mask, multi_masks)
+            feature_source: optional feature source filtering
+            return_multi_masks: bool, default False
+                - False: Return (X_dict, item_dict, mask)
+                - True : Returns (X_dict, item_dict, mask, multi_masks)
         """
         if len(inputs) == 4:
             batch_dict, item_dict, mask, multi_masks = inputs
@@ -412,13 +412,13 @@ class BaseModel(nn.Module):
     def fit(self, data_generator, epochs=1, validation_data=None,
             max_gradient_norm=10., **kwargs):
         """
-        DDP + blocked dataloader 训练说明：
-        - blocked=True 时，不同 rank 的本地 batch 数可能不完全一致；
-        - DDP 训练阶段如果某些 rank 先进入 eval/barrier，而其他 rank 还在 backward allreduce，
-          会导致 NCCL collective 顺序不一致并最终 timeout；
-        - 因此在 DDP + blocked 模式下，强制禁止 step 内 eval，只在所有 rank 完成当前 epoch 后统一 eval；
-        - 同时用 torch.distributed.algorithms.join.Join 处理 uneven inputs，让先结束的 rank
-          shadow 后续 collective，避免最后几个训练 batch 卡死。
+        DDP + blocked dataloader training instructions:
+        - When blocked=True, the local batch numbers of different ranks may not be completely consistent;
+        - During the DDP training phase, if some ranks enter eval/barrier first, while other ranks are still in backward allreduce,
+          This will cause the NCCL collective order to be inconsistent and eventually timeout;
+        - Therefore, in DDP + blocked mode, eval within step is forcibly prohibited, and eval will only be unified after all ranks complete the current epoch;
+        - At the same time, use torch.distributed.algorithms.join.Join to process uneven inputs, so that the rank that ends first
+          Shadow subsequent collectives to prevent the last few training batches from getting stuck.
         """
         self.valid_gen = validation_data
         self._max_gradient_norm = max_gradient_norm
@@ -430,18 +430,18 @@ class BaseModel(nn.Module):
         self._batch_index = 0
         self._epoch_index = 0
 
-        # 当前 dataloader 是否是 blocked 模式。
-        # UniRankDataloader 在 __init__ 中会设置 self.blocked。
+        # Whether the current dataloader is in blocked mode.
+        # UniRankDataloader will set self.blocked in __init__.
         self._blocked_training = bool(getattr(data_generator, "blocked", False))
 
-        # DDP + blocked 下强制 epoch-end eval only，避免各 rank 因本地 len(data_generator)
-        # 不同而在不同 step 进入 eval，导致 collective 顺序错乱。
+        # DDP + blocked forces epoch-end eval only to avoid each rank due to local len(data_generator)
+        # Enter eval at different steps, causing the collective order to be disordered.
         self._epoch_end_eval_only = bool(self._is_distributed() and self._blocked_training)
 
         if self._eval_steps is None:
-            # 原始语义：None 表示每个 epoch 验证一次。
-            # 在非 blocked 场景下仍然保留 train_epoch 内部按 _steps_per_epoch 触发的逻辑；
-            # 在 DDP + blocked 场景下，train_epoch 内部会跳过 eval，fit() 在 epoch 末统一 eval。
+            # Original semantics: None means verify once every epoch.
+            # In non-blocked scenarios, the logic of train_epoch internal triggering by _steps_per_epoch is still retained;
+            # In the DDP + blocked scenario, eval will be skipped internally in train_epoch, and fit() will unify eval at the end of epoch.
             self._eval_steps = self._steps_per_epoch
 
         if self._is_main_process():
@@ -470,8 +470,8 @@ class BaseModel(nn.Module):
             )
 
             if use_ddp_join:
-                # uneven inputs 场景：某些 rank 先耗尽数据时，Join 会让它们继续 shadow
-                # 其他 rank 后续 backward 中的 collective，避免最后几个 allreduce 卡住。
+                # Uneven inputs scenario: When some ranks run out of data first, Join will let them continue to shadow
+                # Other ranks follow the collective in backward to avoid the last few allreduces getting stuck.
                 with Join([self._ddp_model], throw_on_early_termination=False):
                     epoch_loss, epoch_batches = self.train_epoch(data_generator)
             else:
@@ -482,7 +482,7 @@ class BaseModel(nn.Module):
                     )
                 epoch_loss, epoch_batches = self.train_epoch(data_generator)
 
-            # DDP + blocked: 只允许所有 rank 完成训练 epoch 后统一 eval。
+            # DDP + blocked: Only allow all ranks to unify eval after completing training epoch.
             if self._epoch_end_eval_only and (not self._stop_training):
                 if self._is_main_process():
                     denom = max(1, epoch_batches)
@@ -544,7 +544,7 @@ class BaseModel(nn.Module):
             self.save_weights(self.checkpoint)
 
     def eval_step(self):
-        # 所有 rank 都参与验证推理，通过 all_gather 汇聚后由 rank 0 计算指标
+        # All ranks participate in verification reasoning, and the index is calculated by rank 0 after aggregation through all_gather
         if self._is_main_process():
             logging.info('Evaluation @epoch {} - batch {}: '.format(
                 self._epoch_index + 1, self._batch_index + 1))
@@ -554,7 +554,7 @@ class BaseModel(nn.Module):
         if self._is_main_process():
             self.checkpoint_and_earlystop(val_logs)
 
-        self.train()  # 所有 rank 都需要恢复 train 模式
+        self.train()  # All ranks need to restore train mode
 
     def train_step(self, batch_data):
         is_update_step = ((self._batch_index + 1) % self.accumulation_steps == 0)
@@ -568,12 +568,12 @@ class BaseModel(nn.Module):
         amp_ctx = self._get_amp_context()
 
         with sync_ctx:
-            # 仅前向传播在 amp_ctx 内，享受 bf16 加速
+            # Forward propagation only within amp_ctx, enjoy bf16 acceleration
             with amp_ctx:
                 return_dict = self._train_forward_model()(batch_data)
 
-            # 退出 autocast 后，将所有浮点预测值转回 float32，
-            # 避免 BCELoss / binary_cross_entropy 在 bf16 下报错
+            # After exiting autocast, convert all floating point predictions back to float32,
+            # Avoid BCELoss / binary_cross_entropy reporting errors under bf16
             return_dict = {
                 k: v.float() if torch.is_tensor(v) and v.is_floating_point() else v
                 for k, v in return_dict.items()
@@ -597,7 +597,7 @@ class BaseModel(nn.Module):
         self.train()
         self._optimizer_zero_grad()
 
-        # 每个 rank 都可以显示 tqdm
+        # Each rank can display tqdm
         use_tqdm = (self._verbose > 0)
         if use_tqdm:
             batch_iterator = tqdm(
@@ -629,9 +629,9 @@ class BaseModel(nn.Module):
                     lr=self._format_learning_rates()
                 )
 
-            # DDP + blocked 场景下，禁止训练阶段 step 内 eval。
-            # 原因：blocked dataloader 各 rank 本地 batch 数可能不同，某个 rank 先进入 eval
-            # 而另一个 rank 还在 backward allreduce，会导致 NCCL collective 顺序不一致。
+            # In the DDP + blocked scenario, eval within the step of the training phase is prohibited.
+            # Reason: The local batch number of each rank of blocked dataloader may be different, and a certain rank enters eval first.
+            # And the other rank is still in backward allreduce, which will cause the NCCL collective order to be inconsistent.
             do_step_eval = (
                 (not getattr(self, "_epoch_end_eval_only", False))
                 and self._eval_steps is not None
@@ -654,11 +654,11 @@ class BaseModel(nn.Module):
             if self._stop_training:
                 break
 
-        # ---- flush 残留梯度 ----
-        # 注意：如果使用 no_sync 做梯度累积，最后不足 accumulation_steps 的残留梯度
-        # 在原始实现中会直接 optimizer.step()，这些梯度可能没有经历 DDP allreduce。
-        # 为了保持行为兼容，这里仍保留原逻辑；更严格的做法是让 dataloader/drop_last
-        # 或训练步数保证每次 update 都完整对齐。
+        # ---- flush residual gradient ----
+        # Note: If you use no_sync for gradient accumulation, the final residual gradient will be less than accumulation_steps
+        # In the original implementation optimizer.step() is used directly, and these gradients may not have gone through DDP allreduce.
+        # In order to maintain behavioral compatibility, the original logic is still retained here; a more strict approach is to let dataloader/drop_last
+        # Or the number of training steps ensures complete alignment for each update.
         if self.accumulation_steps > 1 and num_batches > 0 and ((self._batch_index + 1) % self.accumulation_steps != 0):
             self._clip_dense_gradients()
             self._optimizer_step()
@@ -674,7 +674,7 @@ class BaseModel(nn.Module):
             y_true = []
             group_id = []
 
-            # 改动：每个 rank 都显示自己的验证进度
+            # Change: Each rank displays its own verification progress
             if self._verbose > 0:
                 data_generator = tqdm(
                     data_generator,
@@ -699,7 +699,7 @@ class BaseModel(nn.Module):
             y_true = np.array(y_true, np.float64)
             group_id = np.array(group_id) if len(group_id) > 0 else None
 
-            # ---- 分布式一致性检查：所有 rank 必须对"是否做分布式评估聚合"判断一致 ----
+            # ---- Distributed consistency check: All ranks must agree on "whether to perform distributed evaluation aggregation" ----
             _distributed_eval = False
             _is_sampler_distributed_eval = False
             _is_blocked_distributed_eval = False
@@ -726,17 +726,17 @@ class BaseModel(nn.Module):
                 if len(set(flags)) != 1:
                     raise RuntimeError(
                         f"[Rank {self.rank}] Inconsistent distributed-eval flags across ranks: {flags}. "
-                        "这会导致 collective 死锁。请确保各 rank 的验证 DataLoader 配置一致。"
+                        "This can cause a collective deadlock. Please ensure that the validation DataLoader configuration of each rank is consistent."
                     )
 
                 _distributed_eval = bool(flags[0])
 
                 if self.force_distributed_eval and not _distributed_eval:
                     raise RuntimeError(
-                        "force_distributed_eval=True, 但当前评估 DataLoader 未启用分布式切分。"
+                        "force_distributed_eval=True, but the currently evaluated DataLoader does not have distributed sharding enabled."
                     )
 
-            # ---- 分布式评估聚合 ----
+            # ---- Distributed evaluation aggregation ----
             if _distributed_eval:
                 if _is_blocked_distributed_eval:
                     local_samples_t = torch.tensor([len(y_true)], dtype=torch.int64, device=self.device)
@@ -749,7 +749,7 @@ class BaseModel(nn.Module):
                     y_pred, y_true, group_id, total_samples
                 )
 
-                # 非主进程不算指标，直接返回空字典
+                # Non-main processes are not counted as indicators and an empty dictionary is returned directly.
                 if not self._is_main_process():
                     return OrderedDict()
 
@@ -766,11 +766,11 @@ class BaseModel(nn.Module):
 
     def _gather_eval_results(self, y_pred, y_true, group_id, total_samples):
         """
-        更稳健的分布式评估聚合：
-        - 使用独立的 Gloo 进程组在 CPU 上汇总对象，避免 NCCL 将大型 pickle
-          对象转换成 GPU byte tensor 后造成显存峰值或 NCCL unhandled CUDA error
-        - 仅汇总到 rank0，降低其他 rank 的内存压力
-        - rank0 拼接后裁剪到 total_samples（去除 DistributedSampler padding）
+        More robust distributed evaluation aggregation:
+        - Use a separate Gloo process group to aggregate objects on the CPU to avoid NCCL picking large
+          Converting objects to GPU byte tensor causes memory spikes or NCCL unhandled CUDA errors
+        - Only summarized to rank0, reducing the memory pressure of other ranks
+        - Rank0 is cropped to total_samples after splicing (removing DistributedSampler padding)
         """
         payload = {
             "y_pred": np.asarray(y_pred, dtype=np.float64),
@@ -787,7 +787,7 @@ class BaseModel(nn.Module):
 
         group_world_size = dist.get_world_size(group=process_group)
 
-        # 仅 rank0 收集，降低内存和通信压力。显式传入 Gloo group，确保对象不落到 GPU。
+        # Only rank0 collection reduces memory and communication pressure. Explicitly pass in the Gloo group to ensure objects don't fall to the GPU.
         if hasattr(dist, "gather_object"):
             if self._is_main_process():
                 gathered = [None for _ in range(group_world_size)]
@@ -796,7 +796,7 @@ class BaseModel(nn.Module):
                 dist.gather_object(payload, None, dst=0, group=process_group)
                 return None, None, None
         else:
-            # 兜底：所有 rank 都收（老版本 torch）
+            # Bottom line: All ranks are collected (old version of torch)
             gathered = [None for _ in range(group_world_size)]
             dist.all_gather_object(gathered, payload, group=process_group)
             if not self._is_main_process():
@@ -819,7 +819,7 @@ class BaseModel(nn.Module):
         self.eval()  # set to evaluation mode
         with torch.no_grad():
             y_pred = []
-            # 改动：每个 rank 都显示自己的预测进度
+            # Change: Each rank displays its own prediction progress
             if self._verbose > 0:
                 data_generator = tqdm(
                     data_generator,

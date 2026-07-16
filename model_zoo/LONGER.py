@@ -257,7 +257,7 @@ class InnerTrans(nn.Module):
 
         Lms = Ls // self.num_groups
 
-        # 相邻 num_groups 个 token 一组
+        # Group adjacent tokens in chunks of num_groups
         merge_s_tokens = s_tokens.reshape(B, Lms, self.num_groups, D)
 
         merge_s_tokens = merge_s_tokens.reshape(B * Lms, self.num_groups, D)

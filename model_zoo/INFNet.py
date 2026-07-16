@@ -51,11 +51,11 @@ class INFNet(MultiTaskModel):
         self.token_dim = token_dim
         self.num_c_hub_token = num_c_hub_token
         self.num_t_shared_hub = num_t_hub_token
-        self.num_s_hub_token = num_tasks  # 论文中每个 behavior type 一个 hub，这里以 task 划分 type
+        self.num_s_hub_token = num_tasks  # Each behavior type in the paper has a hub. Here, the types are divided by tasks.
         self.accumulation_steps = accumulation_steps
         self.num_field = feature_map.get_num_fields()
 
-        # 统计非 item 特征维度、item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.non_item_dim = 0
         for feat, spec in self.feature_map.features.items():
@@ -91,7 +91,7 @@ class INFNet(MultiTaskModel):
         ])
         self.masked_avg_pooling = MaskedAveragePooling()
 
-        # INFNet Stacked Blocks (传入 num_layers 进行逐层堆叠)
+        # INFNet Stacked Blocks (pass in num_layers to stack layer by layer)
         self.unified_interaction_layers = INFNetBlocks(
             num_layers=num_layers,
             token_dim=token_dim,
@@ -148,7 +148,7 @@ class INFNet(MultiTaskModel):
         t_orgs = self.task_orgs.expand(batch_size, -1, -1)
         t_shared = self.task_shared_hubs.expand(batch_size, -1, -1)
 
-        # 经过多层堆叠的 INFNetBlocks 更新 Tokens 和 Hubs
+        # Update Tokens and Hubs through multi-layer stacked INFNetBlocks
         t_orgs = self.activation_checkpoint(
             self.unified_interaction_layers,
             c_orgs,
@@ -187,13 +187,13 @@ class INFNetCategoricalTokenizer(nn.Module):
 
 
 class INFNetBlocks(nn.Module):
-    """管理多层堆叠的 INFNet 核心模块：包含 Phase 1 (Aggregation) 和 Phase 2 (Broadcast)"""
+    """INFNet core module that manages multi-layer stacking: including Phase 1 (Aggregation) and Phase 2 (Broadcast)"""
 
     def __init__(self, num_layers, token_dim, num_c_hubs, num_s_hubs, num_t_hubs, expansion_factor=4):
         super(INFNetBlocks, self).__init__()
         self.num_layers = num_layers
 
-        # 分别使用 nn.ModuleList 堆叠多层的 Aggregation 和 Broadcast
+        # Use nn.ModuleList to stack multiple layers of Aggregation and Broadcast respectively
         self.aggregation_layers = nn.ModuleList([
             Aggregation(token_dim) for _ in range(num_layers)
         ])
@@ -203,9 +203,9 @@ class INFNetBlocks(nn.Module):
         ])
 
     def forward(self, c_orgs, s_orgs, t_orgs, c_hubs, s_hubs, t_shared, s_mask=None):
-        # 论文公式 (4): Task Hubs 由 Specific 和 Shared 拼接而成
+        # Equation (4): Task Hubs are composed of Specific and Shared
         t_hubs = torch.cat([t_orgs, t_shared], dim=1)
-        # 逐层迭代更新
+        # Iterative update layer by layer
         for i in range(self.num_layers):
             # Phase 1: Multi-View Global Aggregation
             c_hubs, s_hubs, t_hubs = self.aggregation_layers[i](
@@ -222,11 +222,11 @@ class INFNetBlocks(nn.Module):
 
 class Aggregation(nn.Module):
     """ Multi-View Global Aggregation
-    trade - off：没有直接在scaled_dot_product_attention引入自定义mask，用少量的注意力权重稀释换取FlashAttention的计算加速
+    Keep SDPA mask-free to preserve FlashAttention eligibility, accepting minor attention leakage.
     """
     def __init__(self, token_dim):
         super(Aggregation, self).__init__()
-        # 共享的 Keys / Values 投影，减少计算量
+        # Shared Keys/Values projection to reduce calculations
         self.k_proj_c = nn.Linear(token_dim, token_dim)
         self.v_proj_c = nn.Linear(token_dim, token_dim)
         self.k_proj_s = nn.Linear(token_dim, token_dim)
@@ -234,7 +234,7 @@ class Aggregation(nn.Module):
         self.k_proj_t = nn.Linear(token_dim, token_dim)
         self.v_proj_t = nn.Linear(token_dim, token_dim)
 
-        # 各个组独立的 Hub 聚合器
+        # Independent Hub aggregator for each group
         self.c_agg = HubSpecificAggregator(token_dim)
         self.s_agg = HubSpecificAggregator(token_dim)
         self.t_agg = HubSpecificAggregator(token_dim)
@@ -244,7 +244,7 @@ class Aggregation(nn.Module):
         K_s, V_s = self.k_proj_s(s_orgs), self.v_proj_s(s_orgs)
         K_t, V_t = self.k_proj_t(t_orgs), self.v_proj_t(t_orgs)
 
-        # 处理序列 Mask 广播维度 (B, 1, T)
+        # Processing sequence Mask broadcast dimensions (B, 1, T)
         if s_mask is not None:
             K_s = K_s * s_mask.unsqueeze(-1).float()
             V_s = V_s * s_mask.unsqueeze(-1).float()
@@ -256,7 +256,7 @@ class Aggregation(nn.Module):
         return c_hubs_out, s_hubs_out, t_hubs_out
 
 class HubSpecificAggregator(nn.Module):
-    # trade - off：没有直接在scaled_dot_product_attention引入自定义mask，用少量的注意力权重稀释换取FlashAttention的计算加速
+    # Keep SDPA mask-free to preserve FlashAttention eligibility, accepting minor attention leakage.
     def __init__(self, token_dim):
         super(HubSpecificAggregator, self).__init__()
         self.q_proj = nn.Linear(token_dim, token_dim)
@@ -272,7 +272,7 @@ class HubSpecificAggregator(nn.Module):
         return self.norm(hubs + Z_fused)
 
 class Broadcast(nn.Module):
-    """对应论文 3.2.2: Global-to-Local Affine Broadcast"""
+    """Implements Section 3.2.2: Global-to-Local Affine Broadcast"""
 
     def __init__(self, token_dim, num_c_hubs, num_s_hubs, num_t_hubs, expansion_factor=4):
         super(Broadcast, self).__init__()
@@ -288,7 +288,7 @@ class Broadcast(nn.Module):
 
 
 class BroadcastGatedUnit(nn.Module):
-    """论文中的 BGU (Broadcast Gated Unit) 机制"""
+    """The BGU (Broadcast Gated Unit) mechanism in the paper"""
 
     def __init__(self, token_dim, num_hubs, expansion_factor=4):
         super(BroadcastGatedUnit, self).__init__()

@@ -382,7 +382,7 @@ class UniMixingLiteLayer(nn.Module):
         return mat
 
     def apply_sinkhorn_constraint(self, logits: torch.Tensor):
-        # Sinkhorn 的 exp / 归一化对低精度敏感，始终在 FP32 中计算。
+        # Sinkhorn's exp/normalization is sensitive to low precision and is always calculated in FP32.
         with torch.autocast(device_type=logits.device.type, enabled=False):
             logits = logits.float()
             tau = self.current_tau.to(device=logits.device, dtype=torch.float32).clamp_min(1e-6)

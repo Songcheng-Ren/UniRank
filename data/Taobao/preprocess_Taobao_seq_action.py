@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-preprocess_Taobao_seq_action.py — Ali_Display_Ad_Click / Taobao 展示广告点击数据集
+preprocess_Taobao_seq_action.py — Ali_Display_Ad_Click / Taobao preprocessing
 ====================================================================================
 
-输入文件（支持 .csv / .csv.gz / .csv.tar.gz）：
-  - raw_sample.csv[.tar.gz]      : 展示/点击样本骨架
-  - ad_feature.csv[.tar.gz]      : 广告静态特征
-  - user_profile.csv[.tar.gz]    : 用户静态特征
-  - behavior_log.csv[.tar.gz]    : 22 天购物行为日志（用于 cart/fav/buy 多任务标签）
+Input file (supports .csv / .csv.gz / .csv.tar.gz):
+  - raw_sample.csv[.tar.gz]: display/click sample skeleton
+  - ad_feature.csv[.tar.gz]: ad features
+  - user_profile.csv[.tar.gz]: user features
+  - behavior_log.csv[.tar.gz]: 22-day shopping log for cart/fav/buy labels
 
-切分策略（仿照 KuaiRand）：
-  - 按 raw_sample 的 time_stamp 转换出的日期排序
-  - 默认 8:1:1 按日期比例切分 train/valid/test
-  - 对官方 8 天样本，默认会得到：前 6 天 train，第 7 天 valid，第 8 天 test
+Split strategy:
+  - Convert raw_sample.time_stamp to dates and sort chronologically.
+  - Split dates into train/valid/test with the default 8:1:1 ratio.
+  - For the official eight-day sample, use days 1--6 for training, day 7 for validation, and day 8 for testing.
 
-输出目录结构（blocked）：
+Output directory structure (blocked):
   output_dir/
     train/{data,user_info,item_info}/part-xxxxx.parquet
     valid/{data,user_info,item_info}/part-xxxxx.parquet
@@ -23,14 +23,13 @@ preprocess_Taobao_seq_action.py — Ali_Display_Ad_Click / Taobao 展示广告�
     meta_data.json
     block_manifest.json
 
-说明：
-  - user_info.full_item_seq / full_action_seq / full_timestamp_seq 来自 raw_sample 中用户广告曝光序列。
-  - ad_feature 写入 item_info，user_profile 写入 data 中的用户侧特征。
-  - label 为多任务：is_click 来自 raw_sample.clk；cart/fav/buy 来自 behavior_log.btag。
-  - behavior_log 不含 adgroup_id，因此先将 raw_sample.adgroup_id 映射到 ad_feature.cate_id/brand，
-    再按 user_id + cate_id + brand 在曝光后的时间窗口内匹配 behavior_log 生成行为标签。
+Notes:
+  - Build full_item_seq, full_action_seq, and full_timestamp_seq from ad impressions in raw_sample.
+  - Write ad_feature to item_info and user_profile fields to each sample.
+  - Derive is_click from raw_sample.clk and cart/fav/buy from behavior_log.btag.
+  - Map adgroup_id to cate_id and brand, then match later behavior_log events by user_id, cate_id, and brand within the label window.
 
-依赖：
+Dependencies:
     pip install pandas numpy pyarrow
 """
 
@@ -50,7 +49,7 @@ import pyarrow.parquet as pq
 
 
 # ================================================================
-# 1. 常量 & 列定义
+# 1. Constants and column definitions
 # ================================================================
 
 BEIJING_TZ = "Asia/Shanghai"
@@ -63,7 +62,7 @@ BEHAVIOR_LOG_STEM = "behavior_log"
 
 RAW_CANONICAL_COLUMNS = ["user_id", "adgroup_id", "time_stamp", "pid", "noclk", "clk"]
 RAW_COLUMN_ALIASES = {
-    # 官方文档写 user_id / noclk，但实际 Ali_Display_Ad_Click 文件常见表头是 user / nonclk
+    # The official document says user_id / noclk, but the actual common header of the Ali_Display_Ad_Click file is user / nonclk
     "user_id": ["user_id", "user", "userid"],
     "adgroup_id": ["adgroup_id", "ad_group_id"],
     "time_stamp": ["time_stamp", "timestamp", "time"],
@@ -128,7 +127,7 @@ PRICE_LABELS = ["<=0", "0-10", "10-30", "30-50", "50-100", "100-200", "200-500",
 
 
 # ================================================================
-# 2. 通用工具
+# 2. General Tools
 # ================================================================
 
 def _sort_key(v):
@@ -146,7 +145,7 @@ def _is_tar_path(path: Path) -> bool:
 
 @contextmanager
 def open_csv_source(path: Path):
-    """打开普通 CSV 或单文件 tar/tar.gz 中的 CSV，供 pandas.read_csv 使用。"""
+    """Open a plain CSV or a CSV in a single file tar/tar.gz for use by pandas.read_csv."""
     if _is_tar_path(path):
         tf = tarfile.open(path, "r:*")
         extracted = None
@@ -154,10 +153,10 @@ def open_csv_source(path: Path):
             members = [m for m in tf.getmembers() if m.isfile()]
             csv_members = [m for m in members if m.name.lower().endswith(".csv")]
             if len(csv_members) == 0:
-                raise FileNotFoundError(f"tar 包中没有 CSV 文件: {path}")
+                raise FileNotFoundError(f"No CSV file in tarball: {path}")
             extracted = tf.extractfile(csv_members[0])
             if extracted is None:
-                raise FileNotFoundError(f"无法从 tar 包读取: {csv_members[0].name}")
+                raise FileNotFoundError(f"Unable to read from tarball: {csv_members[0].name}")
             yield extracted
         finally:
             if extracted is not None:
@@ -179,7 +178,7 @@ def find_csv_file(data_dir: Path, stem: str) -> Path:
         if fp.exists():
             return fp
     raise FileNotFoundError(
-        f"找不到 {stem} 对应文件，已尝试: " + ", ".join(str(x) for x in candidates)
+        f"The corresponding file for {stem} cannot be found. Tried:" + ", ".join(str(x) for x in candidates)
     )
 
 
@@ -196,7 +195,7 @@ def iter_csv_chunks(path: Path, **kwargs):
 
 
 def resolve_columns(fp: Path, aliases: dict, dtypes: dict, source_name: str, optional=None):
-    """将实际 CSV 表头映射到脚本内部 canonical 列名。"""
+    """Map actual CSV headers to script-internal canonical column names."""
     optional = set(optional or [])
     header = read_csv_file(fp, nrows=0)
     columns = [str(c).strip() for c in header.columns]
@@ -221,8 +220,8 @@ def resolve_columns(fp: Path, aliases: dict, dtypes: dict, source_name: str, opt
 
     if missing:
         raise ValueError(
-            f"{source_name} 中缺少必要列: {missing}; 实际表头为: {columns}; "
-            f"支持别名: {aliases}"
+            f"The necessary column is missing in {source_name}: {missing}; The actual header is: {columns};"
+            f"Supported alias: {aliases}"
         )
 
     dtype_map = {
@@ -230,7 +229,7 @@ def resolve_columns(fp: Path, aliases: dict, dtypes: dict, source_name: str, opt
         for actual, canonical in rename_map.items()
         if canonical in dtypes
     }
-    print(f"  {source_name} 列映射: {rename_map}")
+    print(f"  {source_name} column mapping: {rename_map}")
     return actual_cols, rename_map, dtype_map
 
 
@@ -256,7 +255,7 @@ def resolve_behavior_log_columns(behavior_fp: Path):
 def clean_categorical_series(s: pd.Series) -> pd.Series:
     original_na = s.isna()
     out = s.astype(str).str.strip()
-    # pandas 若把 ID 列读成 float，会产生 "123.0"，这里统一还原为 "123"
+    # If pandas reads the ID column as float, "123.0" will be generated, which is uniformly restored to "123" here.
     out = out.str.replace(r"^(-?\d+)\.0$", r"\1", regex=True)
     bad = original_na | (out == "") | (out.str.lower().isin(["nan", "none", "null", "<na>"]))
     return out.mask(bad, "__MISSING__")
@@ -283,7 +282,7 @@ def build_oov_vocab(values, counter: dict, min_feat_count: int) -> dict:
 
 
 def build_action_maps():
-    """枚举 click/cart/fav/buy 多标签组合 → action code。"""
+    """Enumerate click/cart/fav/buy multi-label combination → action code."""
     pat2name = {}
     for p in range(1 << len(LABEL_COLUMNS)):
         if p == 0:
@@ -315,7 +314,7 @@ def timestamp_to_datetime(s: pd.Series, unit: str) -> pd.Series:
 def build_date_split(sorted_dates, train_ratio, valid_ratio, test_ratio):
     n_days = len(sorted_dates)
     if n_days < 3:
-        raise ValueError(f"仅有 {n_days} 个不同日期，至少需要 3 天才能切分 train/valid/test。")
+        raise ValueError(f"There are only {n_days} different dates, it takes at least 3 days to split train/valid/test.")
 
     ratios = np.array([train_ratio, valid_ratio, test_ratio], dtype=np.float64)
     ratios = ratios / ratios.sum()
@@ -369,19 +368,19 @@ def prepare_output_dir(output_dir: Path, data_dir: Path, overwrite: bool):
     output_dir = output_dir.resolve()
     if data_dir == output_dir or data_dir.is_relative_to(output_dir):
         raise ValueError(
-            "output_dir 不能等于或包含 data_dir，否则 overwrite 会删除原始数据。\n"
+            "output_dir cannot be equal to or contain data_dir, otherwise overwrite will delete the original data. \n"
             f"  data_dir:   {data_dir}\n"
             f"  output_dir: {output_dir}"
         )
     if output_dir.exists():
         if not overwrite:
-            raise FileExistsError(f"Output directory already exists: {output_dir}. 请使用 --overwrite。")
+            raise FileExistsError(f"Output directory already exists: {output_dir}. Please use --overwrite.")
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
 
 # ================================================================
-# 3. 用户 / 广告特征加载与编码
+# 3. User/advertising feature loading and encoding
 # ================================================================
 
 def load_user_features(data_dir: Path) -> pd.DataFrame:
@@ -395,7 +394,7 @@ def load_user_features(data_dir: Path) -> pd.DataFrame:
     if "userid" in uf.columns and "user_id" not in uf.columns:
         uf.rename(columns={"userid": "user_id"}, inplace=True)
     if "user_id" not in uf.columns:
-        raise ValueError("user_profile 中缺少 userid/user_id 列")
+        raise ValueError("userid/user_id columns missing in user_profile")
 
     keep_cols = ["user_id"] + [c for c in USER_STATIC_FEATURES if c in uf.columns]
     uf = uf[keep_cols].copy()
@@ -421,9 +420,9 @@ def load_ad_features(data_dir: Path) -> pd.DataFrame:
     print(f"  [Load] {fp.name}")
     af = read_csv_file(fp)
     if "adgroup_id" not in af.columns:
-        raise ValueError("ad_feature 中缺少 adgroup_id 列")
+        raise ValueError("adgroup_id column missing in ad_feature")
 
-    # 官方 ad_feature 使用 customer，框架中统一命名为 customer_id。
+    # The official ad_feature uses customer, which is uniformly named customer_id in the framework.
     if "customer_id" not in af.columns and "customer" in af.columns:
         af.rename(columns={"customer": "customer_id"}, inplace=True)
 
@@ -491,7 +490,7 @@ def encode_ad_features(af: pd.DataFrame, item_idx_map: dict, vocabs: dict) -> pd
 
 
 # ================================================================
-# 4. Phase 1: raw_sample CSV → 用户哈希分区 Parquet
+# 4. Phase 1: raw_sample CSV → user hash partitioning Parquet
 # ================================================================
 
 def _preprocess_raw_chunk(
@@ -504,7 +503,7 @@ def _preprocess_raw_chunk(
     chunk = chunk.rename(columns=raw_rename_map)
     missing = [c for c in RAW_CANONICAL_COLUMNS if c not in chunk.columns and c != "noclk"]
     if missing:
-        raise ValueError(f"raw_sample 中缺少列: {missing}")
+        raise ValueError(f"Missing column in raw_sample: {missing}")
     if "noclk" not in chunk.columns:
         chunk["noclk"] = np.nan
 
@@ -550,7 +549,7 @@ def phase1_partition_to_parquet(
     chunk_size: int,
     buffer_flush_size: int,
 ):
-    print(f"\n[Step 1/9] Phase 1: raw_sample → 用户分区 Parquet")
+    print(f"\n[Step 1/9] Phase 1: raw_sample → user partition Parquet")
     tmp_dir.mkdir(parents=True, exist_ok=True)
     for p in range(n_parts):
         (tmp_dir / f"part_{p:03d}").mkdir(exist_ok=True)
@@ -624,7 +623,7 @@ def phase1_partition_to_parquet(
 
         total_rows += len(chunk)
         if (chunk_idx + 1) % 10 == 0:
-            print(f"  chunk {chunk_idx + 1}: 累计 {total_rows:,} 行")
+            print(f"  chunk {chunk_idx + 1}: accumulated {total_rows:,} rows")
         del chunk, part_arr
         gc.collect()
 
@@ -632,21 +631,21 @@ def phase1_partition_to_parquet(
         flush(pid)
 
     print(
-        f"  完成: {total_rows:,} 行, {len(user_counts):,} 用户, "
-        f"{len(item_counts):,} 广告, {len(all_dates)} 个日期"
+        f"  Done: {total_rows:,} row, {len(user_counts):,} user,"
+        f"{len(item_counts):,} ads, {len(all_dates)} dates"
     )
     return dict(user_counts), dict(item_counts), dict(pid_counter), all_dates, total_rows
 
 
 # ================================================================
-# 5. behavior_log → 用户哈希分区 Parquet（用于多任务标签）
+# 5. behavior_log → user hash partition Parquet (for multi-task labels)
 # ================================================================
 
 def _preprocess_behavior_chunk(chunk: pd.DataFrame, behavior_rename_map: dict):
     chunk = chunk.rename(columns=behavior_rename_map)
     missing = [c for c in BEHAVIOR_CANONICAL_COLUMNS if c not in chunk.columns]
     if missing:
-        raise ValueError(f"behavior_log 中缺少列: {missing}")
+        raise ValueError(f"Missing column in behavior_log: {missing}")
 
     chunk = chunk[BEHAVIOR_CANONICAL_COLUMNS].copy()
     chunk["user_id"] = clean_categorical_series(chunk["user_id"])
@@ -680,7 +679,7 @@ def phase_behavior_partition_to_parquet(
     chunk_size: int,
     buffer_flush_size: int,
 ):
-    print("\n[Step 2/9] behavior_log → 用户分区 Parquet（生成 cart/fav/buy 标签）")
+    print("\n[Step 2/9] behavior_log → User partition Parquet (generate cart/fav/buy tag)")
     tmp_behavior_dir.mkdir(parents=True, exist_ok=True)
     for p in range(n_parts):
         (tmp_behavior_dir / f"part_{p:03d}").mkdir(exist_ok=True)
@@ -744,7 +743,7 @@ def phase_behavior_partition_to_parquet(
     for pid in range(n_parts):
         flush(pid)
 
-    print(f"  behavior_log 完成: raw={total_rows:,}, kept={kept_rows:,}, labels={dict(label_counts)}")
+    print(f"  behavior_log completed: raw={total_rows:,}, kept={kept_rows:,}, labels={dict(label_counts)}")
     return {
         "raw_rows": int(total_rows),
         "kept_rows": int(kept_rows),
@@ -774,12 +773,12 @@ def attach_behavior_labels_by_forward_window(
     behavior: pd.DataFrame,
     behavior_label_window: int,
 ) -> pd.DataFrame:
-    """按 user/cate/brand + 未来时间窗口，把 behavior_log 行为转成曝光样本标签。
+    """Press user/cate/brand + future time window to convert behavior_log behavior into exposure sample label.
 
-    之前使用 user_id + time_stamp + cate_id + brand 精确匹配，这对广告曝光和
-    购物行为两个独立日志过于严格，实际几乎不会命中。这里改为：对每条曝光样本，
-    若同一用户在同一 cate/brand 下，于曝光时间之后 behavior_label_window 内发生
-    cart/fav/buy，则对应 label=1。
+    Previously, user_id + time_stamp + cate_id + brand was used for exact matching, which has a great impact on ad exposure and
+    Two independent logs of shopping behavior are too strict and will rarely hit the target in practice. Here it is changed to: for each exposure sample,
+    If the same user is under the same cate/brand, it will occur within behavior_label_window after the exposure time.
+    cart/fav/buy, corresponding to label=1.
     """
     for col in BEHAVIOR_LABEL_COLUMNS:
         df[col] = 0.0
@@ -829,7 +828,7 @@ def attach_behavior_labels_by_forward_window(
 
 
 # ================================================================
-# 6. Phase 2: 分区编码 + 按日期切分
+# 6. Phase 2: Partition encoding + segmentation by date
 # ================================================================
 
 def process_partition(
@@ -938,7 +937,7 @@ def process_partition(
 
 
 # ================================================================
-# 6. blocked 输出管理
+# 6. blocked output management
 # ================================================================
 
 class SplitBlockManager:
@@ -1001,7 +1000,7 @@ class SplitBlockManager:
         out_ui_rows = []
         for g_user in active_users:
             if g_user not in ui_lookup:
-                raise ValueError(f"[{self.split_name}] partition={pid} user_index={g_user} 缺少 user_info")
+                raise ValueError(f"[{self.split_name}] partition={pid} user_index={g_user} missing user_info")
             row = ui_lookup[g_user]
             l_user = self._get_or_add_user_local(bid, int(g_user))
 
@@ -1108,7 +1107,7 @@ class SplitBlockManager:
 
 
 # ================================================================
-# 7. 主流程
+# 7. Main process
 # ================================================================
 
 def preprocess_and_split(
@@ -1135,12 +1134,12 @@ def preprocess_and_split(
 
     block_counts = (int(train_blocks), int(valid_blocks), int(test_blocks))
     if min(block_counts) <= 0:
-        raise ValueError("train_blocks / valid_blocks / test_blocks 必须为正整数。")
+        raise ValueError("train_blocks / valid_blocks / test_blocks must be positive integers.")
     target_blocks = max(block_counts)
     if n_user_parts < target_blocks:
         print(
-            f"[Config] n_user_parts={n_user_parts} 小于最大目标 block 数 {target_blocks}，"
-            f"自动调整为 {target_blocks}，避免目标 block 无法全部生成。"
+            f"[Config] n_user_parts={n_user_parts} is less than the maximum target block number {target_blocks},"
+            f"Automatically adjust to {target_blocks} to prevent all target blocks from being generated."
         )
         n_user_parts = target_blocks
 
@@ -1158,7 +1157,7 @@ def preprocess_and_split(
         timestamp_unit = detect_timestamp_unit(sample[time_actual_col])
         del sample
     if timestamp_unit not in {"s", "ms"}:
-        raise ValueError("timestamp_unit 只能是 auto/s/ms")
+        raise ValueError("timestamp_unit can only be auto/s/ms")
     behavior_label_window = int(behavior_label_window_seconds) * (1000 if timestamp_unit == "ms" else 1)
     print(
         f"[Config] timestamp_unit={timestamp_unit}, timezone={BEIJING_TZ}, "
@@ -1166,7 +1165,7 @@ def preprocess_and_split(
         f"behavior_label_window_seconds={behavior_label_window_seconds}"
     )
 
-    print("\n[Step 0/9] 加载 ad_feature（用于 raw_sample 与 behavior_log 对齐）")
+    print("\n[Step 0/9] Load ad_feature (for raw_sample and behavior_log alignment)")
     af = load_ad_features(data_dir)
     ad_key_df = af[["adgroup_id", "cate_id", "brand"]].copy()
 
@@ -1191,13 +1190,13 @@ def preprocess_and_split(
             buffer_flush_size=buffer_flush_size,
         )
 
-    print("\n[Step 3/9] 加载 user_profile 并构建 OOV vocab")
+    print("\n[Step 3/9] Load user_profile and build OOV vocab")
     uf = load_user_features(data_dir)
 
     valid_users = {u for u, c in user_counts.items() if c >= min_user_interactions}
     if len(valid_users) == 0:
-        raise ValueError("过滤后有效用户数为 0，请调小 --min_user_interactions。")
-    print(f"  有效用户: {len(valid_users):,} / {len(user_counts):,}")
+        raise ValueError("The number of effective users after filtering is 0, please adjust --min_user_interactions to a smaller value.")
+    print(f"  Valid users: {len(valid_users):,} / {len(user_counts):,}")
 
     user_feat_counters = compute_weighted_feature_counters(uf, "user_id", user_counts, USER_STATIC_FEATURES)
     item_feat_counters = compute_weighted_feature_counters(af, "adgroup_id", item_counts, ITEM_STATIC_FEATURES)
@@ -1209,11 +1208,11 @@ def preprocess_and_split(
         vocabs[col] = build_oov_vocab(af[col].unique(), item_feat_counters[col], min_feat_count)
     vocabs["pid"] = build_ordered_vocab(["__MISSING__"] + sorted(pid_counter.keys(), key=_sort_key), start=1)
 
-    print(f"  OOV 过滤阈值: {min_feat_count}")
+    print(f"  OOV filter threshold: {min_feat_count}")
     for col in USER_STATIC_FEATURES + ITEM_STATIC_FEATURES + ["pid"]:
         print(f"  {col}: vocab_size={len(vocabs[col]) + 1}")
 
-    print("\n[Step 4/9] 按日期比例确定 train/valid/test")
+    print("\n[Step 4/9] Determine train/valid/test based on date ratio")
     sorted_dates = sorted(all_dates)
     split_info = build_date_split(sorted_dates, train_ratio, valid_ratio, test_ratio)
     train_dates = split_info["train_dates"]
@@ -1221,12 +1220,12 @@ def preprocess_and_split(
     test_dates = split_info["test_dates"]
     valid_start_date = split_info["valid_start_date"]
     test_start_date = split_info["test_start_date"]
-    print(f"  总天数: {split_info['n_days']} ({fmt_date_int(sorted_dates[0])} ~ {fmt_date_int(sorted_dates[-1])})")
-    print(f"  train: {split_info['n_train']} 天 {fmt_date_int(train_dates[0])} ~ {fmt_date_int(train_dates[-1])}")
-    print(f"  valid: {split_info['n_valid']} 天 {fmt_date_int(valid_dates[0])} ~ {fmt_date_int(valid_dates[-1])}")
-    print(f"  test : {split_info['n_test']} 天 {fmt_date_int(test_dates[0])} ~ {fmt_date_int(test_dates[-1])}")
+    print(f"  Total days: {split_info['n_days']} ({fmt_date_int(sorted_dates[0])} ~ {fmt_date_int(sorted_dates[-1])})")
+    print(f"  train: {split_info['n_train']} day {fmt_date_int(train_dates[0])} ~ {fmt_date_int(train_dates[-1])}")
+    print(f"  valid: {split_info['n_valid']} days {fmt_date_int(valid_dates[0])} ~ {fmt_date_int(valid_dates[-1])}")
+    print(f"  test: {split_info['n_test']} days {fmt_date_int(test_dates[0])} ~ {fmt_date_int(test_dates[-1])}")
 
-    print("\n[Step 5/9] 构建全局 ID 映射与编码后的静态特征")
+    print("\n[Step 5/9] Construct global ID mapping and encoded static features")
     sorted_users = sorted(valid_users, key=_sort_key)
     user_idx_map = {u: i for i, u in enumerate(sorted_users)}
     sorted_items = sorted(item_counts.keys(), key=_sort_key)
@@ -1253,7 +1252,7 @@ def preprocess_and_split(
     del uf, af, sorted_users, sorted_items, user_feat_counters, item_feat_counters
     gc.collect()
 
-    print("\n[Step 6/9] 逐分区编码 + 按日期切分 + 写 block data/user_info")
+    print("\n[Step 6/9] Encode partition by partition + split by date + write block data/user_info")
     managers = {
         "train": SplitBlockManager("train", output_dir, train_blocks),
         "valid": SplitBlockManager("valid", output_dir, valid_blocks),
@@ -1294,7 +1293,7 @@ def preprocess_and_split(
             sample_counts[split_name] += len(sdf)
 
         done = sum(sample_counts.values())
-        print(f"  partition {pid + 1:3d}/{n_user_parts}: 累计 {done:,} 行")
+        print(f"  partition {pid + 1:3d}/{n_user_parts}: accumulated {done:,} rows")
         del result
         gc.collect()
 
@@ -1303,16 +1302,16 @@ def preprocess_and_split(
 
     total = sum(sample_counts.values())
     if total == 0:
-        raise ValueError("处理后样本数为 0，请检查原始数据或过滤阈值。")
+        raise ValueError("The number of samples after processing is 0, please check the original data or filter threshold.")
     print(f"  train={sample_counts['train']:,} valid={sample_counts['valid']:,} test={sample_counts['test']:,} total={total:,}")
 
-    print("\n[Step 7/9] 为每个 block 构建 item_info")
+    print("\n[Step 7/9] Build item_info for each block")
     for split_name in ["train", "valid", "test"]:
         print(f"  [Build item_info] {split_name}")
         managers[split_name].write_item_info_blocks(global_item_lookup)
         gc.collect()
 
-    print("\n[Step 8/9] 保存 meta_data + block_manifest")
+    print("\n[Step 8/9] Save meta_data + block_manifest")
     meta = {
         "dataset": "Ali_Display_Ad_Click / Taobao",
         "sample_size": {
@@ -1331,7 +1330,7 @@ def preprocess_and_split(
             "valid_range": f"{fmt_date_int(valid_dates[0])} ~ {fmt_date_int(valid_dates[-1])}",
             "test_days": split_info["n_test"],
             "test_range": f"{fmt_date_int(test_dates[0])} ~ {fmt_date_int(test_dates[-1])}",
-            "rule": "按 raw_sample 日期排序后按 train/valid/test 比例切分；官方 8 天数据默认约为 6/1/1。",
+            "rule": "Sort by raw_sample date and split according to train/valid/test ratio; the official 8-day data defaults to about 6/1/1.",
         },
         "behavior_log_usage": {
             "used": bool(use_behavior_labels),
@@ -1339,8 +1338,8 @@ def preprocess_and_split(
             "stats": behavior_stats,
             "match_key": ["user_id", "cate_id", "brand"],
             "behavior_label_window_seconds": int(behavior_label_window_seconds),
-            "rule": "raw_sample 先通过 adgroup_id 映射到 ad_feature.cate_id/brand；对每条曝光样本，若同一 user_id + cate_id + brand 在曝光 time_stamp 之后 behavior_label_window_seconds 秒内出现对应 btag，则该行为标签置为 1，否则为 0。",
-            "note": "behavior_log 不含 adgroup_id，因此这里是类目/品牌粒度、曝光后时间窗口内的行为监督，不是广告 ID 粒度的直接标签。",
+            "rule": "raw_sample is first mapped to ad_feature.cate_id/brand through adgroup_id; for each exposure sample, if the same user_id + cate_id + brand appears within behavior_label_window_seconds seconds after exposure time_stamp, the corresponding btag will be set to 1, otherwise it will be 0.",
+            "note": "behavior_log does not contain adgroup_id, so this is category/brand granularity, behavioral supervision within the post-exposure time window, not a direct label at the advertising ID granularity.",
         },
         "user_filtering": {
             "min_user_interactions": int(min_user_interactions),
@@ -1350,8 +1349,8 @@ def preprocess_and_split(
         "oov_filter": {
             "min_feat_count": int(min_feat_count),
             "applied_to": USER_STATIC_FEATURES + ITEM_STATIC_FEATURES,
-            "rule": "特征值出现次数 < min_feat_count 的统一映射为 0 (unknown/padding)",
-            "freq_source": "基于 raw_sample 中 user/item 出现次数 * 静态特征值统计",
+            "rule": "The uniform mapping of feature value occurrences < min_feat_count is 0 (unknown/padding)",
+            "freq_source": "Based on the number of occurrences of user/item in raw_sample * static feature value statistics",
         },
         "blocked_layout": {
             "n_user_parts": int(n_user_parts),
@@ -1361,7 +1360,7 @@ def preprocess_and_split(
             "train": {"data_dir": "train/data", "user_info_dir": "train/user_info", "item_info_dir": "train/item_info"},
             "valid": {"data_dir": "valid/data", "user_info_dir": "valid/user_info", "item_info_dir": "valid/item_info"},
             "test": {"data_dir": "test/data", "user_info_dir": "test/user_info", "item_info_dir": "test/item_info"},
-            "block_pair_rule": "同一 split 下，data/user_info/item_info 使用相同 part-xxxxx 编号配对读取。",
+            "block_pair_rule": "Under the same split, data/user_info/item_info uses the same part-xxxxx number for paired reading.",
             "local_index_rule": {
                 "user_index": "block-local dense index, starts from 0",
                 "item_index": "block-local dense index, 0 reserved for padding",
@@ -1372,15 +1371,15 @@ def preprocess_and_split(
         "vocab_size": {k: int(v) for k, v in vocab_size.items()},
         "label": LABEL_COLUMNS,
         "action_vocab": {k: int(v) for k, v in action_name2code.items()},
-        "action_vocab_desc": "编码后的多任务 action 词表，用于 dataloader 基于 full_action_seq 构造 task-specific token masks。",
+        "action_vocab_desc": "The encoded multi-task action vocabulary is used by the dataloader to construct task-specific token masks based on full_action_seq.",
         "user_info_schema": {
             "fields": ["user_index", "full_item_seq", "full_action_seq", "full_timestamp_seq"],
-            "full_timestamp_seq_desc": "按时间顺序排列的 raw_sample time_stamp 序列",
-            "desc": "user_index / full_item_seq 中的 item index 为 block-local index；full_action_seq / full_timestamp_seq 为全局时间顺序序列。",
+            "full_timestamp_seq_desc": "chronological sequence of raw_sample time_stamp",
+            "desc": "The item index in user_index / full_item_seq is a block-local index; full_action_seq / full_timestamp_seq is a global time order sequence.",
         },
         "item_info_schema": {
             "fields": ["item_index", "item_id"] + ITEM_STATIC_FEATURES,
-            "desc": "item_index 为 block-local index；item_id 为全局 item feature id。",
+            "desc": "item_index is block-local index; item_id is global item feature id.",
         },
         "feature_schema": {
             "user_static_features": USER_STATIC_FEATURES,
@@ -1408,14 +1407,14 @@ def preprocess_and_split(
         json.dump(block_manifest, f, ensure_ascii=False, indent=4)
     print("  [Saved] block_manifest.json")
 
-    print("\n[Step 9/9] 清理临时文件")
+    print("\n[Step 9/9] Clean up temporary files")
     shutil.rmtree(tmp_dir, ignore_errors=True)
     shutil.rmtree(tmp_behavior_dir, ignore_errors=True)
 
     print("\n" + "=" * 70)
-    print("  Taobao Preprocess Done (多任务标签 + 按日期比例切分 + blocked 输出 + OOV 过滤)")
+    print("  Taobao Preprocess Done (multi-task label + split by date ratio + blocked output + OOV filtering)")
     print("=" * 70)
-    print(f"输出目录: {output_dir}")
+    print(f"Output directory: {output_dir}")
     print(json.dumps(meta, ensure_ascii=False, indent=4))
 
 
@@ -1429,18 +1428,18 @@ def parse_args():
     parser.add_argument("--train_ratio", type=float, default=0.8)
     parser.add_argument("--valid_ratio", type=float, default=0.1)
     parser.add_argument("--test_ratio", type=float, default=0.1)
-    parser.add_argument("--n_user_parts", type=int, default=32, help="按 user hash 的临时分区数；behavior_log 很大，内存不足可调到 128/256")
-    parser.add_argument("--chunk_size", type=int, default=4_000_000, help="读取 raw_sample 时单个 chunk 行数")
-    parser.add_argument("--buffer_flush_size", type=int, default=1_000_000, help="临时分区缓存多少行后落盘")
+    parser.add_argument("--n_user_parts", type=int, default=32, help="The number of temporary partitions according to user hash; behavior_log is very large and can be adjusted to 128/256 if there is insufficient memory.")
+    parser.add_argument("--chunk_size", type=int, default=4_000_000, help="Number of rows in a single chunk when reading raw_sample")
+    parser.add_argument("--buffer_flush_size", type=int, default=1_000_000, help="How many rows are cached in the temporary partition before being flushed to disk?")
     parser.add_argument("--train_blocks", type=int, default=32)
     parser.add_argument("--valid_blocks", type=int, default=8)
     parser.add_argument("--test_blocks", type=int, default=8)
     parser.add_argument("--min_feat_count", type=int, default=MIN_FEAT_COUNT)
     parser.add_argument("--timestamp_unit", type=str, default="auto", choices=["auto", "s", "ms"])
     parser.add_argument("--behavior_label_window_seconds", type=int, default=86400,
-                        help="曝光后多少秒内的同 user/cate/brand 行为会被标为 cart/fav/buy 正样本")
+                        help="How many seconds after exposure the behavior of the same user/cate/brand will be marked as cart/fav/buy positive samples")
     parser.add_argument("--disable_behavior_labels", action="store_true", default=False,
-                        help="禁用 behavior_log 生成 cart/fav/buy 标签，仅保留 is_click")
+                        help="Disable behavior_log to generate cart/fav/buy tags, leaving only is_click")
     parser.add_argument("--overwrite", action="store_true", default=False)
     return parser.parse_args()
 

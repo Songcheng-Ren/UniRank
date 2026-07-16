@@ -18,10 +18,10 @@
 """
 preprocess_MerRec_seq_action.py — Mercari MerRec sequential action preprocessing.
 
-输入:
-  - data_dir/20231001/*.parquet 或 data_dir/*.parquet
+Input:
+  - data_dir/20231001/*.parquet or data_dir/*.parquet
 
-输出:
+Output:
   output_dir/
     train/{data,user_info,item_info}/part-xxxxx.parquet
     valid/{data,user_info,item_info}/part-xxxxx.parquet
@@ -29,13 +29,13 @@ preprocess_MerRec_seq_action.py — Mercari MerRec sequential action preprocessi
     meta_data.json
     block_manifest.json
 
-样本、标签与 action:
-  - 每个 (user_id, item_id) 只保留最早的一条 item_view 作为曝光样本。
-  - 该 view 之后的 Like/Cart/Offer/Checkout/Purchase 事件回填到该样本，形成多热标签。
-  - 非 view 事件只用于回填标签，不会成为独立样本或历史 token。
-  - 历史 action 是上述多热标签组合的编码，与 KuaiRand 的 action 口径一致。
+Samples, labels and actions:
+  - For each (user_id, item_id), only the earliest item_view is retained as the exposure sample.
+  - Backfill later Like/Cart/Offer/Checkout/Purchase events into the retained view as multi-hot labels.
+  - Use non-view events only for label backfilling, not as samples or history tokens.
+  - Encode each multi-hot label combination as a history action, consistent with KuaiRand.
 
-依赖:
+Dependencies:
     pip install pandas numpy pyarrow
 """
 
@@ -72,7 +72,7 @@ EVENT_TO_ACTION_NAME = {
     "buy_comp": "Purchase",
 }
 ACTION_NAMES = [EVENT_TO_ACTION_NAME[name] for name in EVENT_NAMES]
-# Phase 1 中保留原始事件类型，供后续将非 view 事件回填给 view 样本。
+# The original event type is retained in Phase 1 for subsequent backfilling of non-view events into view samples.
 RAW_ACTION_VOCAB = {name: idx + 1 for idx, name in enumerate(ACTION_NAMES)}
 RAW_VIEW_ACTION_ID = RAW_ACTION_VOCAB["exposure"]
 
@@ -178,8 +178,8 @@ def clean_categorical(s: pd.Series) -> pd.Series:
 
 
 def parse_stime(s: pd.Series):
-    # Parquet 的 timestamp[us] 会被 pandas 读为 datetime64[us]；若先转数值，
-    # 会得到微秒整数，按纳秒解析会把 2023 年错误映射到 1970 年的同一小时。
+    # Parquet's timestamp[us] will be read as datetime64[us] by pandas; if you convert the value first,
+    # You get a microsecond integer, and parsing in nanoseconds will incorrectly map the year 2023 to the same hour in 1970.
     if pd.api.types.is_datetime64_any_dtype(s):
         dt = pd.to_datetime(s, utc=True, errors="coerce")
     else:
@@ -778,12 +778,12 @@ def preprocess_and_split(
 
     block_counts = (int(train_blocks), int(valid_blocks), int(test_blocks))
     if min(block_counts) <= 0:
-        raise ValueError("train_blocks / valid_blocks / test_blocks 必须为正整数。")
+        raise ValueError("train_blocks / valid_blocks / test_blocks must be positive integers.")
     target_blocks = max(block_counts)
     if n_user_parts < target_blocks:
         print(
-            f"[Config] n_user_parts={n_user_parts} 小于最大目标 block 数 {target_blocks}，"
-            f"自动调整为 {target_blocks}，避免目标 block 无法全部生成。"
+            f"[Config] n_user_parts={n_user_parts} is less than the maximum target block number {target_blocks},"
+            f"Automatically adjust to {target_blocks} to prevent all target blocks from being generated."
         )
         n_user_parts = target_blocks
 

@@ -59,7 +59,7 @@ class HyFormer(MultiTaskModel):
         self.accumulation_steps = accumulation_steps
         self.masked_avg_pooling = MaskedAveragePooling()
 
-        # 统计非 item 特征维度、item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.non_item_dim = 0
         for feat, spec in self.feature_map.features.items():
@@ -75,7 +75,7 @@ class HyFormer(MultiTaskModel):
 
         self.embedding_layer = FeatureEmbedding(feature_map, embedding_dim)
 
-        # 非序列特征 + target item -> NS tokens
+        # Non-sequential features + target item -> NS tokens
         self.ns_tokenizer = ChunkTokenizer(
             input_dim=self.non_item_dim + self.item_info_dim,
             token_dim=token_dim,
@@ -90,13 +90,13 @@ class HyFormer(MultiTaskModel):
             num_tokens=num_global_token
         )
 
-        # item sequence / target item 投影到统一 token_dim
+        # Project sequence and target items to token_dim
         if self.item_info_dim != token_dim:
             self.item_token_proj = nn.Linear(self.item_info_dim, token_dim)
         else:
             self.item_token_proj = nn.Identity()
 
-        # HyFormer 主体
+        # HyFormer backbone
         self.unified_interaction_layers = HyFormerBlock(
             input_dim=token_dim,
             num_heads=num_heads,
@@ -107,7 +107,7 @@ class HyFormer(MultiTaskModel):
             sequence_encoder_type=sequence_encoder_type
         )
 
-        # 最终使用 Global Tokens 做预测
+        # Predict from the global tokens
         self.tower = nn.ModuleList([
             MLP_Block(input_dim=token_dim,
                       output_dim=1,
@@ -179,7 +179,7 @@ class HyFormer(MultiTaskModel):
 
 class HyFormerBlock(nn.Module):
     """
-    每层:
+    Each layer:
     1) Sequence Representation Encoding
     2) Query Decoding: global tokens -> cross attend over sequence tokens
     3) Query Boosting: concat(decoded global tokens, ns tokens) -> mixer -> residual
@@ -247,9 +247,9 @@ class HyFormerBlock(nn.Module):
 
 class SequenceRepresentationLayer(nn.Module):
     """
-    对应论文中的 Sequence Representation Encoding。
-    - 这里只复现fine-grained interactions的Full Transformer Encoding，即标准 self-attention + FFN
-    - trade-off：没有直接在scaled_dot_product_attention引入自定义mask，用少量的注意力权重稀释换取FlashAttention的计算加速
+    Corresponds to Sequence Representation Encoding in the paper.
+    - Only the Full Transformer Encoding of fine-grained interactions is reproduced here, that is, standard self-attention + FFN
+    - Keep SDPA mask-free to preserve FlashAttention eligibility, accepting minor attention leakage.
     """
     def __init__(self, input_dim, num_heads, dnn_activations="ReLU", sequence_encoder_type="transformer"):
         super(SequenceRepresentationLayer, self).__init__()
@@ -305,9 +305,8 @@ class SequenceRepresentationLayer(nn.Module):
 class QueryDecodingLayer(nn.Module):
     """
     Q^(l) = CrossAttn(Q^(l-1), K^(l), V^(l))
-    工程上这里加了 pre-norm + residual，训练更稳。
-    - trade-off：没有直接在scaled_dot_product_attention引入自定义mask，用少量的注意力权重稀释换取FlashAttention的计算加速，
-      如果在scaled_dot_product_attention直接引入自定义mask，反而效果降低
+    Pre-normalization and residual connections improve training stability.
+    Keep SDPA mask-free to preserve FlashAttention eligibility, accepting minor attention leakage.
     """
     def __init__(self, input_dim, num_heads):
         super(QueryDecodingLayer, self).__init__()
@@ -346,7 +345,7 @@ class QueryDecodingLayer(nn.Module):
 
 class QueryBoostingLayer(nn.Module):
     """
-    论文里的 Query Boosting，实际上就是RankMixer，也可以尝试使用MLP-Mixer代替MultiHeadTokenMixing
+    Query Boosting in the paper is actually RankMixer. You can also try to use MLP-Mixer instead of MultiHeadTokenMixing.
     """
     def __init__(self, input_dim, num_global_token, num_ns_token):
         super(QueryBoostingLayer, self).__init__()

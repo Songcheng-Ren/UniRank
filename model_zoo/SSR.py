@@ -60,7 +60,7 @@ class SSR(MultiTaskModel):
         self.num_ns_token = num_ns_token
         self.accumulation_steps = accumulation_steps
 
-        # 统计非 item 特征维度、item 特征维度
+        # Track item and non-item feature dimensions
         self.item_info_dim = 0
         self.non_item_dim = 0
         for feat, spec in self.feature_map.features.items():
@@ -123,12 +123,12 @@ class SSR(MultiTaskModel):
 
         seq_pooling_emb = self.attention_layers(target_emb, sequence_emb, mask)  # B x embedding_dim
 
-        # concat 所有 feature embeddings 作为 SSR backbone 的输入
+        # concat all feature embeddings as input to the SSR backbone
         user_context_emb = self.embedding_layer(batch_dict, flatten_emb=True)       # B x non_item_dim
         feature_embeddings = torch.cat([user_context_emb, target_emb, seq_pooling_emb], dim=-1)  # B x d_in
 
-        # Multi-view Sparse Filtering 直接作用于 concat 后的 feature embeddings，
-        # 充当 tokenization 的角色，无需额外 tokenizer 包装
+        # Multi-view Sparse Filtering acts directly on feature embeddings after concat,
+        # Acts as tokenization without additional tokenizer packaging
         bottom_output = self.activation_checkpoint(
             self.unified_interaction_layers,
             feature_embeddings

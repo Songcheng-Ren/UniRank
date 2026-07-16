@@ -132,14 +132,14 @@ def parse_gpu_ids(gpu_arg: str):
         return []
     parts = [p.strip() for p in s.split(",") if p.strip() != ""]
     if len(parts) == 0:
-        raise ValueError("--gpu 不能为空，CPU 请使用 --gpu -1")
+        raise ValueError("--gpu cannot be empty, please use --gpu -1 for CPU")
     gpu_ids = []
     for p in parts:
         if not p.isdigit():
-            raise ValueError(f"--gpu 格式错误: {gpu_arg}，示例: --gpu 0,1,2,3")
+            raise ValueError(f"--gpu format error: {gpu_arg}, example: --gpu 0,1,2,3")
         gpu_ids.append(int(p))
     if len(set(gpu_ids)) != len(gpu_ids):
-        raise ValueError(f"--gpu 中存在重复 id: {gpu_arg}")
+        raise ValueError(f"--Duplicate id exists in gpu: {gpu_arg}")
     return gpu_ids
 
 
@@ -152,7 +152,7 @@ def setup_visible_devices(gpu_ids):
 
 def init_distributed_env():
     """
-    torchrun 会注入:
+    torchrun will inject:
       RANK, WORLD_SIZE, LOCAL_RANK, LOCAL_WORLD_SIZE
     """
     world_size = int(os.environ.get("WORLD_SIZE", "1"))

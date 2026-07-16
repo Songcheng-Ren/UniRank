@@ -4,7 +4,7 @@
 preprocess_TencentGR_blocked_seq_action.py
 ==========================================
 
-将 TencentGR / TAAC2025 Seq-Action 预处理与 block 切分合一，直接生成：
+Combine TencentGR / TAAC2025 Seq-Action preprocessing and block segmentation to directly generate:
 
 output_dir/
   train/
@@ -25,26 +25,26 @@ output_dir/
   meta_data.json
   block_manifest.json
 
-核心设计
+Core design
 --------
-1. 先按 user_id hash 把 seq.parquet 分区，避免一次性爆内存
-2. 再逐个 partition 处理，按时间顺序 + 正样本约束切 train/valid/test
-3. 每个 split 再分配到多个 block
-4. 每个 block 单独生成自己的：
+1. Partition seq.parquet by user_id hash to bound memory usage.
+2. Process each partition and split it chronologically with positive-label constraints.
+3. Divide each split into multiple blocks.
+4. Write separate files for each block:
    - data
    - user_info
    - item_info
-5. block 内部的 user_index / item_index 重新映射为局部连续 id
-   - user_id / item_id 保持全局 id，不影响 embedding 一致性
+5. Remap user_index and item_index to contiguous block-local IDs.
+   - Keep user_id and item_id global for consistent embeddings.
 
-新增规则
+Additional rules
 --------
-1. 若一个用户完整行为序列全是负样本（既无 click 也无 conversion），则过滤该用户
-2. test 为最后一个“至少包含 click/conversion 正样本”的最短时间段
-3. valid 为紧挨着 test 的、至少包含 click/conversion 正样本的最短时间段
-4. 剩余全部给 train
-5. 统计 vocab_size 时，显式加入 item static features
-6. label 按转化必然点击的漏斗关系构造：conversion => click
+1. Remove users whose complete sequence has no click or conversion.
+2. Use the shortest trailing interval containing a positive click or conversion for testing.
+3. Use the shortest preceding positive interval for validation.
+4. Use all remaining events for training.
+5. Include item features when calculating vocab_size.
+6. Enforce the funnel relation conversion => click.
 """
 
 import argparse
@@ -62,7 +62,7 @@ import pyarrow.parquet as pq
 
 
 # ================================================================
-# 1. 常量定义
+# 1. Constant definition
 # ================================================================
 
 BEIJING_TZ = "Asia/Shanghai"
@@ -79,12 +79,12 @@ ITEM_STATIC_FEATURES = [
 LABEL_COLUMNS = ["is_click", "is_conversion"]
 CONTEXT_FEATURES = ["day_of_week", "is_weekend", "hour"]
 
-# OOV 过滤阈值：出现次数 < 此阈值的特征值统一映射为 0 (unknown/padding)
+# OOV filtering threshold: feature values occurring fewer than this threshold are mapped to 0 (unknown/padding)
 MIN_FEAT_COUNT = 2
 
-# 需要 OOV 过滤的特征 (非 ID 类别特征)
-# USER_SCALAR_FEATURES 和 ITEM_STATIC_FEATURES 都做 OOV 过滤
-# USER_LIST_FEATURES 的子元素也做 OOV 过滤
+# Features that require OOV filtering (non-ID category features)
+# USER_SCALAR_FEATURES and ITEM_STATIC_FEATURES both do OOV filtering
+# The sub-elements of USER_LIST_FEATURES are also OOV filtered
 OOV_FILTER_SCALAR_FEATURES = USER_SCALAR_FEATURES + ITEM_STATIC_FEATURES
 OOV_FILTER_LIST_FEATURES = USER_LIST_FEATURES
 
@@ -98,20 +98,20 @@ FINAL_COLUMNS = (
 
 
 # ================================================================
-# 2. 工具函数
+# 2. Utilities
 # ================================================================
 
 def prepare_output_dir(output_dir: Path, overwrite: bool = False, data_dir: Path = None):
-    # 安全检查：禁止 output_dir 等于或包含 data_dir，否则会删除原始数据
+    # Security check: output_dir is prohibited from being equal to or containing data_dir, otherwise the original data will be deleted
     if data_dir is not None:
         data_dir = Path(data_dir).resolve()
         output_dir_resolved = Path(output_dir).resolve()
         if data_dir == output_dir_resolved or data_dir.is_relative_to(output_dir_resolved):
             raise ValueError(
-                f"output_dir 不能等于或包含 data_dir，否则会删除原始数据！\n"
+                f"output_dir cannot be equal to or contain data_dir, otherwise the original data will be deleted! \n"
                 f"  data_dir:   {data_dir}\n"
                 f"  output_dir: {output_dir_resolved}\n"
-                f"请将 output_dir 设为与 data_dir 不同的目录。"
+                f"Please set output_dir to a different directory than data_dir."
             )
 
     if output_dir.exists():
@@ -231,17 +231,17 @@ def build_minimal_tail_splits(sorted_dates,
                               require_click_positive=True,
                               require_conversion_positive=True):
     """
-    固定规则：
-    1) test 为最后一个“至少包含正样本”的最短时间段
-    2) valid 为紧挨着 test 的、至少包含正样本的最短时间段
-    3) 剩余全部给 train
+    Fixed rules:
+    1) test is the last shortest time period that "contains at least positive samples"
+    2) valid is the shortest time period next to test that contains at least positive samples.
+    3) Give all the rest to train
     """
     n_days = len(sorted_dates)
     if n_days < 3:
-        raise ValueError(f"数据中仅有 {n_days} 个不同日期，至少需要 3 天才能切分 train/valid/test。")
+        raise ValueError(f"There are only {n_days} different dates in the data, and it takes at least 3 days to split train/valid/test.")
 
     # -------------------------
-    # 先找 test：从最后一天往前扩，直到满足正样本约束
+    # Find test first: expand forward from the last day until the positive sample constraint is met
     # -------------------------
     test_start_idx = None
     test_click_pos = 0
@@ -262,16 +262,16 @@ def build_minimal_tail_splits(sorted_dates,
             break
 
     if test_start_idx is None:
-        raise ValueError("无法构造 test：最后时间段中不存在满足条件的正样本。")
+        raise ValueError("Unable to construct test: There is no positive sample that meets the conditions in the last time period.")
 
-    # 至少还要给 train 和 valid 留 1 天
+    # Leave at least 1 day for train and valid
     if test_start_idx < 2:
-        raise ValueError("无法构造合法切分：test 为最短合法尾段后，前面不足以再划分 train 和 valid。")
+        raise ValueError("Unable to construct a legal segment: after test is the shortest legal tail segment, the front segment is not enough to further divide train and valid.")
 
     # -------------------------
-    # 再找 valid：必须紧挨 test，且为最短合法时间段
+    # Find valid again: it must be next to test and it must be the shortest legal time period.
     # valid = sorted_dates[j:test_start_idx]
-    # 从 test_start_idx-1 往前扩
+    # Expand forward from test_start_idx-1
     # -------------------------
     valid_start_idx = None
     valid_click_pos = 0
@@ -292,11 +292,11 @@ def build_minimal_tail_splits(sorted_dates,
             break
 
     if valid_start_idx is None:
-        raise ValueError("无法构造 valid：test 前面的紧邻时间段中不存在满足条件的正样本。")
+        raise ValueError("Unable to construct valid: There is no positive sample that satisfies the condition in the immediately preceding time period of test.")
 
-    # train 至少留 1 天
+    # train stay at least 1 day
     if valid_start_idx < 1:
-        raise ValueError("无法构造合法切分：valid 为最短合法段后，前面不足以再留给 train。")
+        raise ValueError("Unable to construct a legal segment: after valid is the shortest legal segment, there is not enough in front for train.")
 
     train_dates = sorted_dates[:valid_start_idx]
     valid_dates = sorted_dates[valid_start_idx:test_start_idx]
@@ -320,7 +320,7 @@ def build_minimal_tail_splits(sorted_dates,
 
 
 # ================================================================
-# 3. 加载 user/item 特征
+# 3. Load user/item features
 # ================================================================
 
 def load_user_features(data_dir: Path) -> pd.DataFrame:
@@ -330,7 +330,7 @@ def load_user_features(data_dir: Path) -> pd.DataFrame:
     uf = ensure_str_columns(uf)
 
     if "user_id" not in uf.columns:
-        raise ValueError("user_feat.parquet 缺少 user_id 列")
+        raise ValueError("user_feat.parquet is missing user_id column")
 
     out = pd.DataFrame()
     out["user_id"] = pd.to_numeric(uf["user_id"], errors="coerce").fillna(-1).astype(np.int64)
@@ -359,7 +359,7 @@ def load_item_features(data_dir: Path) -> pd.DataFrame:
     itf = ensure_str_columns(itf)
 
     if "item_id" not in itf.columns:
-        raise ValueError("item_feat.parquet 缺少 item_id 列")
+        raise ValueError("item_feat.parquet is missing item_id column")
 
     out = pd.DataFrame()
     out["item_id"] = pd.to_numeric(itf["item_id"], errors="coerce").fillna(-1).astype(np.int64)
@@ -376,7 +376,7 @@ def load_item_features(data_dir: Path) -> pd.DataFrame:
 
 
 # ================================================================
-# 4. feature size / 准备 user features
+# 4. feature size / prepare user features
 # ================================================================
 
 def build_feature_size_meta(user_feat_df: pd.DataFrame, item_feat_df: pd.DataFrame) -> dict:
@@ -388,7 +388,7 @@ def build_feature_size_meta(user_feat_df: pd.DataFrame, item_feat_df: pd.DataFra
     for col in USER_LIST_FEATURES:
         feat_size[col] = get_list_vocab_size(user_feat_df[col])
 
-    # 新增：把 item static features 显式加入 vocab_size 统计
+    # New: Explicitly add item static features to vocab_size statistics
     for col in ITEM_STATIC_FEATURES:
         feat_size[col] = get_scalar_vocab_size(item_feat_df[col])
 
@@ -405,43 +405,43 @@ def build_feature_size_meta_with_oov(
     list_feat_value_counters: dict,
     min_feat_count: int = MIN_FEAT_COUNT,
 ) -> dict:
-    """基于频次统计构建 feature_size，过滤出现次数 < min_feat_count 的特征值。
+    """Build feature_size based on frequency statistics and filter feature values occurring fewer than min_feat_count times.
 
     Args:
-        user_feat_df: 用户特征 DataFrame
-        item_feat_df: item 特征 DataFrame
+        user_feat_df: User feature DataFrame
+        item_feat_df: item feature DataFrame
         scalar_feat_value_counters: {feature_name: {value_int: count}}
-            统计自日志的 scalar 特征值频次
+            Count the frequency of scalar feature values from logs
         list_feat_value_counters: {feature_name: {value_int: count}}
-            统计自日志的 list 特征子元素频次
-        min_feat_count: 频次阈值
+            Count the frequency of list feature sub-elements from logs
+        min_feat_count: frequency threshold
 
     Returns:
         feat_size: {feature_name: vocab_size}
-        - vocab_size = 保留的最大值 + 1
-        - 被过滤的值在 process_partition 中映射为 0
+        - vocab_size = maximum value retained + 1
+        - Filtered values are mapped to 0 in process_partition
     """
     feat_size = {}
 
-    # ---- USER_SCALAR_FEATURES: 基于 OOV 过滤 ----
+    # ---- USER_SCALAR_FEATURES: OOV based filtering ----
     for col in USER_SCALAR_FEATURES:
         if col in scalar_feat_value_counters:
             counter = scalar_feat_value_counters[col]
             max_kept = 0
             for v, cnt in counter.items():
                 v_int = int(v)
-                # 频次 >= min_feat_count 的值保留
+                # Values with frequency >= min_feat_count are retained
                 if cnt >= min_feat_count:
                     if v_int > max_kept:
                         max_kept = v_int
-            # 也要考虑 user_feat_df 中的值 (即使日志频次 < min_feat_count, 特征表中的值仍可能需要保留)
-            # 但根据 OOV 过滤规则, 日志频次 < min_feat_count 的值统一映射为 0
-            # 所以 vocab_size = max_kept + 1 (0 预留给 padding/被过滤的值)
+            # Also consider the value in user_feat_df (even if the log frequency < min_feat_count, the value in the feature table may still need to be retained)
+            # However, according to OOV filtering rules, values with log frequency < min_feat_count are uniformly mapped to 0
+            # So vocab_size = max_kept + 1 (0 is reserved for padding/filtered values)
             feat_size[col] = max_kept + 1
         else:
             feat_size[col] = get_scalar_vocab_size(user_feat_df[col])
 
-    # ---- USER_LIST_FEATURES: 基于 OOV 过滤 ----
+    # ---- USER_LIST_FEATURES: OOV based filtering ----
     for col in USER_LIST_FEATURES:
         if col in list_feat_value_counters:
             counter = list_feat_value_counters[col]
@@ -455,7 +455,7 @@ def build_feature_size_meta_with_oov(
         else:
             feat_size[col] = get_list_vocab_size(user_feat_df[col])
 
-    # ---- ITEM_STATIC_FEATURES: 基于 OOV 过滤 ----
+    # ---- ITEM_STATIC_FEATURES: OOV based filtering ----
     for col in ITEM_STATIC_FEATURES:
         if col in scalar_feat_value_counters:
             counter = scalar_feat_value_counters[col]
@@ -479,18 +479,18 @@ def build_oov_filtered_vocab(
     feat_value_counters: dict,
     min_feat_count: int = MIN_FEAT_COUNT,
 ) -> dict:
-    """构建 OOV 过滤后的 vocab 映射表。
+    """Build the OOV filtered vocab mapping table.
 
     Args:
         feat_value_counters: {feature_name: {value_int: count}}
-        min_feat_count: 频次阈值
+        min_feat_count: frequency threshold
 
     Returns:
         oov_vocab: {feature_name: {value_int: filtered_value_int}}
-        - 被过滤的值 (频次 < min_feat_count) 映射为 0
-        - 保留的值映射为自身
-        - 使用时: df[col] = df[col].map(oov_vocab[col]).fillna(0)
-        - 注意: 值不在 counter 中的会被 fillna(0) 处理为 0
+        - Filtered values (frequency < min_feat_count) are mapped to 0
+        - The retained value is mapped to itself
+        - When used: df[col] = df[col].map(oov_vocab[col]).fillna(0)
+        - Note: Values not in counter will be processed as 0 by fillna(0)
     """
     oov_vocab = {}
     for col, counter in feat_value_counters.items():
@@ -500,7 +500,7 @@ def build_oov_filtered_vocab(
             if cnt >= min_feat_count:
                 mp[v_int] = v_int
             else:
-                mp[v_int] = 0  # 被过滤的值映射为 0
+                mp[v_int] = 0  # Filtered values map to 0
         oov_vocab[col] = mp
     return oov_vocab
 
@@ -518,7 +518,7 @@ def prepare_user_features(user_feat_df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ================================================================
-# 5. seq.parquet 分批读取 / 预处理
+# 5. seq.parquet batch reading/preprocessing
 # ================================================================
 
 def iter_seq_batches(seq_fp: Path, batch_rows: int = 50000):
@@ -538,7 +538,7 @@ def iter_seq_batches(seq_fp: Path, batch_rows: int = 50000):
 
 def preprocess_seq_batch(batch_df: pd.DataFrame, timestamp_unit: str) -> pd.DataFrame:
     if "user_id" not in batch_df.columns or "seq" not in batch_df.columns:
-        raise ValueError("seq.parquet 需要包含 user_id 和 seq 两列")
+        raise ValueError("seq.parquet needs to contain two columns: user_id and seq")
 
     batch_df = batch_df[["user_id", "seq"]].copy()
     batch_df["user_id"] = pd.to_numeric(batch_df["user_id"], errors="coerce")
@@ -568,7 +568,7 @@ def preprocess_seq_batch(batch_df: pd.DataFrame, timestamp_unit: str) -> pd.Data
     required = ["item_id", "action_type", "timestamp"]
     for c in required:
         if c not in df.columns:
-            raise ValueError(f"展开后的 seq 事件缺少字段: {c}")
+            raise ValueError(f"Expanded seq event is missing field: {c}")
 
     df["item_id"] = pd.to_numeric(df["item_id"], errors="coerce")
     df["action_type"] = pd.to_numeric(df["action_type"], errors="coerce")
@@ -607,7 +607,7 @@ def preprocess_seq_batch(batch_df: pd.DataFrame, timestamp_unit: str) -> pd.Data
 
 
 # ================================================================
-# 6. Phase 1: 先按 user_id hash 分区
+# 6. Phase 1: First partition by user_id hash
 # ================================================================
 
 def phase1_partition_seq_to_parquet(
@@ -621,7 +621,7 @@ def phase1_partition_seq_to_parquet(
 ):
     seq_fp = data_dir / "seq.parquet"
     if not seq_fp.exists():
-        raise FileNotFoundError(f"找不到文件: {seq_fp}")
+        raise FileNotFoundError(f"File not found: {seq_fp}")
 
     tmp_dir.mkdir(parents=True, exist_ok=True)
     for p in range(n_parts):
@@ -634,10 +634,10 @@ def phase1_partition_seq_to_parquet(
     sample_timestamps = sample_evt["timestamp"].tolist()[:100] if "timestamp" in sample_evt.columns else []
     timestamp_unit = detect_timestamp_unit_from_sample(sample_timestamps)
 
-    print(f"  [Phase1] 检测 timestamp 单位: {timestamp_unit}")
-    print(f"  [Phase1] 时间特征按北京时间 {BEIJING_TZ} 提取，并按 KuaiRand 风格编码")
+    print(f"  [Phase1] Detect timestamp unit: {timestamp_unit}")
+    print(f"  [Phase1] Time features are extracted according to Beijing time {BEIJING_TZ} and encoded according to KuaiRand style")
 
-    # ---- 构建 user_id -> user 特征值 映射 (用于 OOV 频次统计) ----
+    # ---- Construct user_id -> user feature value mapping (used for OOV frequency statistics) ----
     user_feat_map = None
     if user_feat_df is not None:
         user_feat_map = {}
@@ -653,7 +653,7 @@ def phase1_partition_seq_to_parquet(
                 else:
                     user_feat_map[uid][col] = []
 
-    # ---- 构建 item_id -> item 特征值 映射 (用于 OOV 频次统计) ----
+    # ---- Construct item_id -> item feature value mapping (used for OOV frequency statistics) ----
     item_feat_map = None
     if item_feat_df is not None:
         item_feat_map = {}
@@ -671,10 +671,10 @@ def phase1_partition_seq_to_parquet(
     date_action_counter = defaultdict(lambda: defaultdict(int))
     user_action_counter = defaultdict(lambda: defaultdict(int))
 
-    # ---- OOV 频次统计容器 ----
-    # scalar 特征: {feature_name: {value_int: count}}
+    # ---- OOV frequency statistics container ----
+    # scalar feature: {feature_name: {value_int: count}}
     scalar_feat_value_counters = {col: defaultdict(int) for col in OOV_FILTER_SCALAR_FEATURES}
-    # list 特征: {feature_name: {value_int: count}}
+    # list feature: {feature_name: {value_int: count}}
     list_feat_value_counters = {col: defaultdict(int) for col in OOV_FILTER_LIST_FEATURES}
 
     buffers = {p: [] for p in range(n_parts)}
@@ -708,7 +708,7 @@ def phase1_partition_seq_to_parquet(
         for uid, cnt in zip(vc.index, vc.values):
             user_counts[int(uid)] += int(cnt)
 
-        # ---- 统计 item_counts ----
+        # ---- Statistics item_counts ----
         ic = chunk["item_id"].value_counts(sort=False)
         for iid, cnt in zip(ic.index, ic.values):
             item_counts[int(iid)] += int(cnt)
@@ -728,8 +728,8 @@ def phase1_partition_seq_to_parquet(
         for (uid, a), cnt in uac.items():
             user_action_counter[int(uid)][int(a)] += int(cnt)
 
-        # ---- OOV 频次统计: 基于 user_counts 和 item_counts ----
-        # 这里不在此处统计, 而是在 Phase1 完成后统一计算 (避免重复)
+        # ---- OOV frequency statistics: based on user_counts and item_counts ----
+        # It is not counted here, but calculated uniformly after the completion of Phase1 (to avoid duplication)
 
         part_arr = chunk["user_id"].values.astype(np.int64) % n_parts
         for pid in range(n_parts):
@@ -755,19 +755,19 @@ def phase1_partition_seq_to_parquet(
     positive_users, kept_users_n, dropped_all_negative_users_n = count_positive_users_from_action_counter(user_action_counter)
 
     print(
-        f"  [Phase1] 完成: {total_rows:,} interactions, "
+        f"  [Phase1] Completed: {total_rows:,} interactions,"
         f"{len(user_counts):,} users, {len(item_ids):,} items, "
         f"{len(all_dates)} dates"
     )
     print(
-        f"  [Phase1] 全负样本用户过滤统计: "
+        f"  [Phase1] All negative sample user filtering statistics:"
         f"kept_positive_users={kept_users_n:,}, "
         f"dropped_all_negative_users={dropped_all_negative_users_n:,}"
     )
 
-    # ---- 基于 user_counts 和 item_counts 计算 OOV 频次统计 ----
+    # ---- Calculate OOV frequency statistics based on user_counts and item_counts ----
     if user_feat_map is not None:
-        print(f"  [Phase1] 计算 USER_SCALAR_FEATURES / USER_LIST_FEATURES 频次 (用于 OOV 过滤)")
+        print(f"  [Phase1] Calculate USER_SCALAR_FEATURES / USER_LIST_FEATURES frequency (for OOV filtering)")
         for uid, cnt in user_counts.items():
             if uid in user_feat_map:
                 feats = user_feat_map[uid]
@@ -778,7 +778,7 @@ def phase1_partition_seq_to_parquet(
                     for sub_val in feats[col]:
                         list_feat_value_counters[col][sub_val] += cnt
 
-        # 打印 OOV 过滤统计
+        # Print OOV filter statistics
         for col in USER_SCALAR_FEATURES:
             n_total = len(scalar_feat_value_counters[col])
             n_kept = sum(1 for v, c in scalar_feat_value_counters[col].items() if c >= MIN_FEAT_COUNT)
@@ -789,7 +789,7 @@ def phase1_partition_seq_to_parquet(
             print(f"  [Phase1] OOV {col}: total_values={n_total}, kept_after_filter={n_kept}")
 
     if item_feat_map is not None:
-        print(f"  [Phase1] 计算 ITEM_STATIC_FEATURES 频次 (用于 OOV 过滤)")
+        print(f"  [Phase1] Calculate ITEM_STATIC_FEATURES frequency (for OOV filtering)")
         for iid, cnt in item_counts.items():
             if iid in item_feat_map:
                 feats = item_feat_map[iid]
@@ -802,7 +802,7 @@ def phase1_partition_seq_to_parquet(
             n_kept = sum(1 for v, c in scalar_feat_value_counters[col].items() if c >= MIN_FEAT_COUNT)
             print(f"  [Phase1] OOV {col}: total_values={n_total}, kept_after_filter={n_kept}")
 
-    # 转换为普通 dict
+    # Convert to plain dict
     scalar_feat_value_counters_plain = {
         k: dict(v) for k, v in scalar_feat_value_counters.items()
     }
@@ -826,7 +826,7 @@ def phase1_partition_seq_to_parquet(
 
 
 # ================================================================
-# 7. 处理单个 partition，得到“全局 id 版本”的 split 数据
+# 7. Process a single partition and obtain the split data of "global id version"
 # ================================================================
 
 def process_partition(
@@ -869,7 +869,7 @@ def process_partition(
         if col not in df.columns:
             df[col] = 0
         df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(np.int32)
-        # ---- 应用 OOV 过滤 ----
+        # ---- Apply OOV filtering ----
         if oov_scalar_vocab is not None and col in oov_scalar_vocab:
             df[col] = df[col].map(oov_scalar_vocab[col]).fillna(0).astype(np.int32)
 
@@ -877,7 +877,7 @@ def process_partition(
         if col not in df.columns:
             df[col] = [[0] * USER_LIST_KEEP for _ in range(len(df))]
         df[col] = df[col].map(lambda x: normalize_list_feature(x, USER_LIST_KEEP))
-        # ---- 应用 OOV 过滤 (list 特征: 过滤子元素) ----
+        # ---- Apply OOV filtering (list feature: filter sub-elements) ----
         if oov_list_vocab is not None and col in oov_list_vocab:
             mp = oov_list_vocab[col]
             df[col] = df[col].map(
@@ -946,7 +946,7 @@ def process_partition(
 
 
 # ================================================================
-# 8. split block 管理器
+# 8. split block manager
 # ================================================================
 
 class SplitBlockManager:
@@ -1015,7 +1015,7 @@ class SplitBlockManager:
         sub_ui = user_info_df[user_info_df["user_index"].isin(active_users_set)].copy()
         if len(sub_ui) == 0:
             raise ValueError(
-                f"[{self.split_name}] partition={pid} 有样本，但找不到对应 user_info，逻辑异常。"
+                f"[{self.split_name}] partition={pid} There are samples, but the corresponding user_info cannot be found, and the logic is abnormal."
             )
 
         out_ui_rows = []
@@ -1132,7 +1132,7 @@ class SplitBlockManager:
 
 
 # ================================================================
-# 9. 构建全局 item lookup（供各 block item_info 使用）
+# 9. Build a global item lookup (for use by each block item_info)
 # ================================================================
 
 def build_global_item_lookup(item_feat_df: pd.DataFrame, global_item_id_map: dict) -> pd.DataFrame:
@@ -1152,16 +1152,16 @@ def build_global_item_lookup_with_oov(
     global_item_id_map: dict,
     oov_scalar_vocab: dict = None,
 ) -> pd.DataFrame:
-    """构建 global item lookup 表，应用 OOV 过滤。
+    """Build a global item lookup table and apply OOV filtering.
 
     Args:
-        item_feat_df: item 特征 DataFrame
+        item_feat_df: item feature DataFrame
         global_item_id_map: {item_id: global_item_index}
         oov_scalar_vocab: {feature_name: {value_int: filtered_value_int}}
-            由 build_oov_filtered_vocab 构建
+            Built by build_oov_filtered_vocab
 
     Returns:
-        DataFrame indexed by global_item_id, 列为 ITEM_STATIC_FEATURES
+        DataFrame indexed by global_item_id, listed as ITEM_STATIC_FEATURES
     """
     vf = item_feat_df[item_feat_df["item_id"].isin(global_item_id_map)].copy()
     vf["global_item_id"] = vf["item_id"].map(global_item_id_map).astype(np.int32)
@@ -1170,7 +1170,7 @@ def build_global_item_lookup_with_oov(
 
     for col in ITEM_STATIC_FEATURES:
         vf[col] = pd.to_numeric(vf[col], errors="coerce").fillna(0).astype(np.int32)
-        # ---- 应用 OOV 过滤 ----
+        # ---- Apply OOV filtering ----
         if oov_scalar_vocab is not None and col in oov_scalar_vocab:
             mp = oov_scalar_vocab[col]
             vf[col] = vf[col].map(mp).fillna(0).astype(np.int32)
@@ -1179,7 +1179,7 @@ def build_global_item_lookup_with_oov(
 
 
 # ================================================================
-# 10. 主流程
+# 10. Main process
 # ================================================================
 
 def preprocess_and_split_blocked(
@@ -1200,29 +1200,29 @@ def preprocess_and_split_blocked(
 
     block_counts = (int(train_blocks), int(valid_blocks), int(test_blocks))
     if min(block_counts) <= 0:
-        raise ValueError("train_blocks / valid_blocks / test_blocks 必须为正整数。")
+        raise ValueError("train_blocks / valid_blocks / test_blocks must be positive integers.")
     target_blocks = max(block_counts)
     if n_user_parts < target_blocks:
         print(
-            f"[Config] n_user_parts={n_user_parts} 小于最大目标 block 数 {target_blocks}，"
-            f"自动调整为 {target_blocks}，避免目标 block 无法全部生成。"
+            f"[Config] n_user_parts={n_user_parts} is less than the maximum target block number {target_blocks},"
+            f"Automatically adjust to {target_blocks} to prevent all target blocks from being generated."
         )
         n_user_parts = target_blocks
 
     prepare_output_dir(output_dir, overwrite=overwrite, data_dir=data_dir)
     tmp_dir = output_dir / "_tmp_partitions"
 
-    print("\n[Step 1/8] 加载 user/item 特征 & 构建 feature size")
+    print("\n[Step 1/8] Load user/item features & build feature size")
     user_feat_df_raw = load_user_features(data_dir)
     item_feat_df = load_item_features(data_dir)
 
     raw2action_name, action_name2code = build_action_maps()
     user_feat_ready = prepare_user_features(user_feat_df_raw)
 
-    print(f"  action 种类: {len(action_name2code)}")
-    print("  用户特征准备完成：标量保留原始 id，list 保留单列 list[int]\n")
+    print(f"  action type: {len(action_name2code)}")
+    print("  User features are ready: the scalar retains the original id, and the list retains a single column list[int]\n")
 
-    print("[Step 2/8] Phase 1: seq.parquet -> 按 user_id hash 分区 parquet (含 OOV 频次统计)")
+    print("[Step 2/8] Phase 1: seq.parquet -> partition parquet by user_id hash (including OOV frequency statistics)")
     phase1_stat = phase1_partition_seq_to_parquet(
         data_dir=data_dir,
         tmp_dir=tmp_dir,
@@ -1246,20 +1246,20 @@ def preprocess_and_split_blocked(
     list_feat_value_counters = phase1_stat.get("list_feat_value_counters", {})
     print("")
 
-    # ---- 构建 OOV 过滤后的 vocab ----
-    print("[Step 2.5/8] 构建 OOV 过滤后的 vocab")
-    print(f"  OOV 过滤阈值 (min_feat_count): {min_feat_count}")
+    # ---- Build OOV filtered vocab ----
+    print("[Step 2.5/8] Build OOV filtered vocab")
+    print(f"  OOV filter threshold (min_feat_count): {min_feat_count}")
 
-    # 构建 scalar 特征的 OOV 过滤映射表
+    # Construct OOV filtering mapping table of scalar features
     oov_scalar_vocab = build_oov_filtered_vocab(
         scalar_feat_value_counters, min_feat_count=min_feat_count
     )
-    # 构建 list 特征的 OOV 过滤映射表
+    # Build an OOV filter mapping table for list features
     oov_list_vocab = build_oov_filtered_vocab(
         list_feat_value_counters, min_feat_count=min_feat_count
     )
 
-    # 构建 OOV 过滤后的 feature_size_meta
+    # Build OOV filtered feature_size_meta
     feature_size_meta = build_feature_size_meta_with_oov(
         user_feat_df_raw,
         item_feat_df,
@@ -1268,7 +1268,7 @@ def preprocess_and_split_blocked(
         min_feat_count=min_feat_count,
     )
 
-    # 打印 OOV 过滤统计
+    # Print OOV filter statistics
     for col in USER_SCALAR_FEATURES + ITEM_STATIC_FEATURES:
         if col in scalar_feat_value_counters:
             counter = scalar_feat_value_counters[col]
@@ -1285,7 +1285,7 @@ def preprocess_and_split_blocked(
             print(f"  [OOV] {col}: total_values={n_total}, kept={n_kept}, filtered={n_filtered}")
     print("")
 
-    print("[Step 2.6/8] 按固定规则切分：最短合法 test + 最短合法 valid + 剩余 train")
+    print("[Step 2.6/8] Split according to fixed rules: shortest legal test + shortest legal valid + remaining train")
     sorted_dates = sorted(all_dates)
     split_info = build_minimal_tail_splits(
         sorted_dates=sorted_dates,
@@ -1300,31 +1300,31 @@ def preprocess_and_split_blocked(
     valid_start_date = split_info["valid_start_date"]
     test_start_date = split_info["test_start_date"]
 
-    print(f"  总天数:    {split_info['n_days']} 天 ({fmt_date_int(sorted_dates[0])} ~ {fmt_date_int(sorted_dates[-1])})")
-    print(f"  训练集:    {split_info['n_train']} 天  {fmt_date_int(train_dates[0])} ~ {fmt_date_int(train_dates[-1])}")
-    print(f"  验证集:    {split_info['n_valid']} 天  {fmt_date_int(valid_dates[0])} ~ {fmt_date_int(valid_dates[-1])}")
-    print(f"  测试集:    {split_info['n_test']} 天  {fmt_date_int(test_dates[0])} ~ {fmt_date_int(test_dates[-1])}")
-    print(f"  valid 正样本: click={split_info['valid_click_pos']:,}, conversion={split_info['valid_conv_pos']:,}")
-    print(f"  test  正样本: click={split_info['test_click_pos']:,}, conversion={split_info['test_conv_pos']:,}")
+    print(f"  Total days: {split_info['n_days']} days ({fmt_date_int(sorted_dates[0])} ~ {fmt_date_int(sorted_dates[-1])})")
+    print(f"  Training set: {split_info['n_train']} days {fmt_date_int(train_dates[0])} ~ {fmt_date_int(train_dates[-1])}")
+    print(f"  Validation set: {split_info['n_valid']} days {fmt_date_int(valid_dates[0])} ~ {fmt_date_int(valid_dates[-1])}")
+    print(f"  Test set: {split_info['n_test']} day {fmt_date_int(test_dates[0])} ~ {fmt_date_int(test_dates[-1])}")
+    print(f"  valid positive sample: click={split_info['valid_click_pos']:,}, conversion={split_info['valid_conv_pos']:,}")
+    print(f"  test positive sample: click={split_info['test_click_pos']:,}, conversion={split_info['test_conv_pos']:,}")
     print("")
 
-    print("[Step 3/8] 过滤低频用户 + 过滤全负样本用户 + 构建全局 ID")
+    print("[Step 3/8] Filter low-frequency users + filter all negative sample users + build global ID")
     valid_users = {u for u, c in user_counts.items() if c >= min_user_interactions}
     n_dropped_low_freq = len(user_counts) - len(valid_users)
 
     valid_users = valid_users.intersection(positive_users)
     n_after_positive_filter = len(valid_users)
 
-    print(f"  低频过滤后有效用户: {len(user_counts) - n_dropped_low_freq:,}")
-    print(f"  全负样本用户过滤数: {dropped_all_negative_users:,}")
-    print(f"  最终保留用户数:     {n_after_positive_filter:,}")
+    print(f"  Valid users after low frequency filtering: {len(user_counts) - n_dropped_low_freq:,}")
+    print(f"  Number of users filtering all negative samples: {dropped_all_negative_users:,}")
+    print(f"  Final number of retained users: {n_after_positive_filter:,}")
 
     sorted_users = sorted(valid_users)
     global_user_index_map = {u: i for i, u in enumerate(sorted_users)}
     sorted_items = sorted(item_ids)
     global_item_id_map = {it: i + 1 for i, it in enumerate(sorted_items)}
 
-    print(f"  全局物品数: {len(global_item_id_map):,}")
+    print(f"  Global item count: {len(global_item_id_map):,}")
 
     vocab_size = {
         "user_id": len(global_user_index_map) + 1,
@@ -1343,7 +1343,7 @@ def preprocess_and_split_blocked(
 
     print("")
 
-    print("[Step 4/8] 逐 partition 编码 + 切分 + 直接写 block data/user_info")
+    print("[Step 4/8] Encoding + segmentation + writing block data/user_info directly partition by partition")
 
     managers = {
         "train": SplitBlockManager("train", output_dir, train_blocks),
@@ -1386,7 +1386,7 @@ def preprocess_and_split_blocked(
             sample_counts[split_name] += len(sdf)
 
         done = sum(sample_counts.values())
-        print(f"  partition {pid + 1:3d}/{n_user_parts}: 累计写出 {done:,} 行")
+        print(f"  partition {pid + 1:3d}/{n_user_parts}: Write out {done:,} rows cumulatively")
 
         del result, user_info_df
         gc.collect()
@@ -1400,12 +1400,12 @@ def preprocess_and_split_blocked(
         f"valid={sample_counts['valid']:,}  "
         f"test={sample_counts['test']:,}"
     )
-    print(f"  总计={total:,}\n")
+    print(f"  Total={total:,}\n")
 
     if total == 0:
-        raise ValueError("处理后数据为空，请检查输入数据或调小 min_user_interactions。")
+        raise ValueError("The data is empty after processing, please check the input data or reduce min_user_interactions.")
 
-    print("[Step 5/8] 为每个 block 构建 item_info (含 OOV 过滤)")
+    print("[Step 5/8] Build item_info for each block (including OOV filtering)")
     global_item_lookup = build_global_item_lookup_with_oov(
         item_feat_df, global_item_id_map, oov_scalar_vocab=oov_scalar_vocab
     )
@@ -1415,7 +1415,7 @@ def preprocess_and_split_blocked(
         managers[split_name].write_item_info_blocks(global_item_lookup)
         gc.collect()
 
-    print("\n[Step 6/8] 保存 block_manifest.json")
+    print("\n[Step 6/8] Save block_manifest.json")
     block_manifest = {
         "train": managers["train"].build_manifest(),
         "valid": managers["valid"].build_manifest(),
@@ -1425,7 +1425,7 @@ def preprocess_and_split_blocked(
         json.dump(block_manifest, f, ensure_ascii=False, indent=4)
     print("  [Saved] block_manifest.json")
 
-    print("\n[Step 7/8] 保存 meta_data.json")
+    print("\n[Step 7/8] Save meta_data.json")
     meta = {
         "sample_size": {
             "total": int(total),
@@ -1447,12 +1447,12 @@ def preprocess_and_split_blocked(
             "valid_conversion_pos": int(split_info["valid_conv_pos"]),
             "test_click_pos": int(split_info["test_click_pos"]),
             "test_conversion_pos": int(split_info["test_conv_pos"]),
-            "rule": "test=最后最短合法正样本时间段; valid=紧邻test的最短合法正样本时间段; 其余=train",
+            "rule": "test=the last shortest legal positive sample time period; valid=the shortest legal positive sample time period immediately adjacent to test; the rest=train",
         },
         "user_filtering": {
             "min_user_interactions": int(min_user_interactions),
             "dropped_all_negative_users": int(dropped_all_negative_users),
-            "rule": "用户完整行为序列若既无 click 也无 conversion，则过滤",
+            "rule": "If the user's complete behavior sequence has neither click nor conversion, filter",
         },
         "oov_filter": {
             "min_feat_count": int(min_feat_count),
@@ -1460,8 +1460,8 @@ def preprocess_and_split_blocked(
                 "scalar_features": USER_SCALAR_FEATURES + ITEM_STATIC_FEATURES,
                 "list_features": USER_LIST_FEATURES,
             },
-            "rule": "特征值出现次数 < min_feat_count 的统一映射为 0 (unknown/padding)",
-            "freq_source": "基于日志中 user/item 出现次数 * 特征值计算",
+            "rule": "The uniform mapping of feature value occurrences < min_feat_count is 0 (unknown/padding)",
+            "freq_source": "Calculated based on the number of user/item occurrences in the log * feature value",
         },
         "blocked_layout": {
             "n_user_parts": int(n_user_parts),
@@ -1484,7 +1484,7 @@ def preprocess_and_split_blocked(
                 "item_info_dir": "test/item_info",
             },
             "block_pair_rule": (
-                "同一 split 下，data/user_info/item_info 使用相同的 part-xxxxx 编号配对读取。"
+                "Under the same split, data/user_info/item_info uses the same part-xxxxx number for paired reading."
             ),
             "local_index_rule": {
                 "user_index": "block-local dense index, starts from 0",
@@ -1502,8 +1502,8 @@ def preprocess_and_split_blocked(
         },
         "action_vocab": {k: int(v) for k, v in action_name2code.items()},
         "action_vocab_desc": (
-            "编码后的 action 词表，用于 dataloader 基于 full_action_seq "
-            "构造 task-specific token masks。"
+            "Encoded action vocabulary for dataloader based on full_action_seq"
+            "Construct task-specific token masks."
         ),
         "action_mapping": {
             "raw_action_type_to_name": {str(k): v for k, v in raw2action_name.items()},
@@ -1517,8 +1517,8 @@ def preprocess_and_split_blocked(
                 "full_timestamp_seq",
             ],
             "desc": (
-                "这里的 user_index / full_item_seq 中的 item index 都是 block-local index；"
-                "full_action_seq / full_timestamp_seq 为全局时间顺序序列。"
+                "The item index in user_index / full_item_seq here is all block-local index;"
+                "full_action_seq / full_timestamp_seq is the global time sequence sequence."
             ),
         },
         "item_info_schema": {
@@ -1527,8 +1527,8 @@ def preprocess_and_split_blocked(
                 "item_id",
             ] + ITEM_STATIC_FEATURES,
             "desc": (
-                "item_index 为 block-local index；item_id 为全局 item feature id，"
-                "用于 embedding 一致性。"
+                "item_index is block-local index; item_id is global item feature id,"
+                "Used for embedding consistency."
             ),
         },
         "feature_schema": {
@@ -1563,15 +1563,15 @@ def preprocess_and_split_blocked(
         json.dump(meta, f, ensure_ascii=False, indent=4)
     print("  [Saved] meta_data.json")
 
-    print("\n[Step 8/8] 清理临时分区文件")
+    print("\n[Step 8/8] Clean up temporary partition files")
     shutil.rmtree(tmp_dir, ignore_errors=True)
     print("  Done.")
 
     print("\n" + "=" * 68)
-    print("  TencentGR / TAAC2025 Blocked Seq-Action Preprocess Done (含 OOV 过滤)")
+    print("  TencentGR / TAAC2025 Blocked Seq-Action Preprocess Done (including OOV filtering)")
     print("=" * 68)
-    print(f"输出目录: {output_dir}\n")
-    print("目录结构示例：")
+    print(f"Output directory: {output_dir}\n")
+    print("Directory structure example:")
     print(f"  {output_dir / 'train' / 'data'}")
     print(f"  {output_dir / 'train' / 'user_info'}")
     print(f"  {output_dir / 'train' / 'item_info'}")
@@ -1595,20 +1595,20 @@ def parse_args():
     parser.add_argument("--min_user_interactions", type=int, default=10)
 
     parser.add_argument("--n_user_parts", type=int, default=20,
-                        help="Phase1 按 user hash 的临时分区数，建议 >= max(train_blocks, valid_blocks, test_blocks)")
+                        help="Phase1 Number of temporary partitions based on user hash, it is recommended >= max(train_blocks, valid_blocks, test_blocks)")
     parser.add_argument("--seq_batch_rows", type=int, default=4_000_000,
-                        help="读取 seq.parquet 时单次处理多少行 user-record")
+                        help="How many user-record rows are processed at a time when reading seq.parquet")
     parser.add_argument("--buffer_flush_size", type=int, default=1_000_000,
-                        help="临时分区缓存多少 interaction 后落盘")
+                        help="How much interaction is cached in the temporary partition and then dropped to disk?")
 
     parser.add_argument("--train_blocks", type=int, default=32)
     parser.add_argument("--valid_blocks", type=int, default=8)
     parser.add_argument("--test_blocks", type=int, default=8)
 
     parser.add_argument("--overwrite", action="store_true",  default=False,
-                        help="若输出目录已存在，则删除后重建")
+                        help="If the output directory already exists, delete it and recreate it.")
     parser.add_argument("--min_feat_count", type=int, default=MIN_FEAT_COUNT,
-                        help="OOV 过滤阈值: 特征值出现次数 < 此值的统一映射为 0")
+                        help="OOV filtering threshold: The number of occurrences of the feature value < the unified mapping of this value is 0")
     return parser.parse_args()
 
 
