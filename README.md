@@ -1,4 +1,8 @@
-# UniRank <sub>[v0.3.2](https://github.com/salmon1802/UniRank/tree/v0.3.2)</sub>
+<p align="center">
+  <img src="./assets/figures/unirank_logo.png" alt="UniRank logo" width="720">
+</p>
+
+# UniRank <sub>[v0.4.0](https://github.com/salmon1802/UniRank/tree/v0.4.0)</sub>
 
 **A Ranking Model Benchmark for Unified Sequential Modeling and Feature Interaction**
 
@@ -60,30 +64,13 @@ UniRank replaces the commonly used **newest-impression supervision** paradigm wi
 
 The paper formalizes the two supervision paradigms as follows. Traditional single-task **New Impression Only (newest-impression)** supervision optimizes
 
-$$
-\mathcal{L}_{\mathrm{NIO}}
-=
-\sum_{i=1}^{N}
-\operatorname{BCE}\!\left(
-y_i,
-f_{\theta}\!\left(H_i^{+}, x_i\right)
-\right).
-$$
+$\displaystyle \mathcal{L}_{\mathrm{NIO}} = \sum_{i=1}^{N} \operatorname{BCE}\!\left(y_i, f_{\theta}\!\left(H_i^{+}, x_i\right)\right).$
 
 Here, $N$ is the number of new-impression samples, $H_i^{+}$ is the fixed positive-feedback history shared by multiple new-impression samples including $i$, $x_i$ is the target impression, and $y_i$ is its single-task label.
 
 UniRank instead uses **chronological point-wise autoregressive** supervision:
 
-$$
-\mathcal{L}_{\mathrm{AR}}
-=
-\sum_{t \in \mathcal{T}}
-\sum_{k=1}^{K}
-\operatorname{BCE}\!\left(
-y_{t,k},
-f_{\theta,k}\!\left(H_{<t}, x_t\right)
-\right).
-$$
+$\displaystyle \mathcal{L}_{\mathrm{AR}} = \sum_{t \in \mathcal{T}} \sum_{k=1}^{K} \operatorname{BCE}\!\left(y_{t,k}, f_{\theta,k}\!\left(H_{<t}, x_t\right)\right).$
 
 Here, $\mathcal{T}$ is the set of eligible chronological targets, $K$ is the number of feedback tasks, $H_{<t}$ is the full-type causal history—including positive and implicit-negative feedback—before target $t$, $x_t$ is the target impression, $y_{t,k}$ is its label for task $k$, and $f_{\theta,k}$ is the corresponding task head. The target itself and all future events are excluded from $H_{<t}$; the dataloader truncates or pads that prefix to `max_len`.
 

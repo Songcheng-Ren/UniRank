@@ -18,6 +18,8 @@
 
 
 import os
+from functools import partial
+
 import numpy as np
 import torch
 import torch.distributed as dist
