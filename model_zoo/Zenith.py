@@ -16,9 +16,8 @@
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 from unirank.pytorch.models import MultiTaskModel
-from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MultiHeadTargetAttention, PerTokenSwiGLU
+from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MultiHeadTargetAttention, PerTokenSwiGLU, ScaledDotProductAttention
 from unirank.pytorch.torch_utils import get_activation
 from unirank.utils import not_in_whitelist
 from unirank.pytorch.layers.tokenization import ChunkTokenizer
@@ -250,6 +249,7 @@ class TokenwiseMultiHeadSelfAttention(nn.Module):
         self.W_k = nn.Parameter(torch.empty(num_token, token_dim, token_dim))
         self.W_v = nn.Parameter(torch.empty(num_token, token_dim, token_dim))
         self.W_o = nn.Linear(token_dim, token_dim, bias=False)
+        self.dot_attention = ScaledDotProductAttention()
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -265,7 +265,7 @@ class TokenwiseMultiHeadSelfAttention(nn.Module):
         Q = Q.view(-1, self.num_token, self.num_head, self.head_dim).transpose(1, 2) # [B, H, T, Dh]
         K = K.view(-1, self.num_token, self.num_head, self.head_dim).transpose(1, 2)
         V = V.view(-1, self.num_token, self.num_head, self.head_dim).transpose(1, 2)
-        attn_out = F.scaled_dot_product_attention(Q, K, V)
+        attn_out, _ = self.dot_attention(Q, K, V, scale=self.head_dim ** 0.5)
         attn_out = attn_out.transpose(1, 2).contiguous().view(-1, self.num_token, self.token_dim)  # [B, T, D]
         attn_out = self.W_o(attn_out)
         return attn_out

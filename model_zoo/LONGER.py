@@ -16,9 +16,8 @@
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 from unirank.pytorch.models import MultiTaskModel
-from unirank.pytorch.layers import FeatureEmbedding, MLP_Block
+from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, ScaledDotProductAttention
 from unirank.pytorch.torch_utils import get_activation
 from unirank.pytorch.layers.tokenization import AutoSplitTokenizer
 
@@ -236,6 +235,7 @@ class InnerTrans(nn.Module):
         self.W_q = nn.Linear(input_dim, input_dim, bias=False)
         self.W_k = nn.Linear(input_dim, input_dim, bias=False)
         self.W_v = nn.Linear(input_dim, input_dim, bias=False)
+        self.dot_attention = ScaledDotProductAttention()
         self.FFN = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim * expansion_factor),
             get_activation(dnn_activations),
@@ -266,7 +266,7 @@ class InnerTrans(nn.Module):
         K = self.W_k(merge_s_tokens)
         V = self.W_v(merge_s_tokens)
 
-        output = F.scaled_dot_product_attention(Q, K, V)
+        output, _ = self.dot_attention(Q, K, V, scale=self.input_dim ** 0.5)
 
         output = output.reshape(B, Lms, self.num_groups * D)
         merge_s_tokens = self.FFN(output)
@@ -286,6 +286,7 @@ class CrossCausalAttention(nn.Module):
         self.W_q = nn.Linear(input_dim, input_dim, bias=False)
         self.W_k = nn.Linear(input_dim, input_dim, bias=False)
         self.W_v = nn.Linear(input_dim, input_dim, bias=False)
+        self.dot_attention = ScaledDotProductAttention()
         self.FFN = nn.Sequential(
             nn.Linear(input_dim, input_dim * expansion_factor),
             get_activation(dnn_activations),
@@ -307,7 +308,7 @@ class CrossCausalAttention(nn.Module):
         K = K.view(B, -1, self.num_heads, self.head_dim).transpose(1, 2)
         V = V.view(B, -1, self.num_heads, self.head_dim).transpose(1, 2)
 
-        output = F.scaled_dot_product_attention(Q, K, V)
+        output, _ = self.dot_attention(Q, K, V, scale=self.head_dim ** 0.5)
 
         output = output.transpose(1, 2).contiguous().view(B, -1, D)
         output = self.FFN(output)
@@ -326,6 +327,7 @@ class SelfCausalAttention(nn.Module):
         self.W_q = nn.Linear(input_dim, input_dim, bias=False)
         self.W_k = nn.Linear(input_dim, input_dim, bias=False)
         self.W_v = nn.Linear(input_dim, input_dim, bias=False)
+        self.dot_attention = ScaledDotProductAttention()
         self.FFN = nn.Sequential(
             nn.Linear(input_dim, input_dim * expansion_factor),
             get_activation(dnn_activations),
@@ -346,7 +348,13 @@ class SelfCausalAttention(nn.Module):
         K = K.view(B, -1, self.num_heads, self.head_dim).transpose(1, 2)
         V = V.view(B, -1, self.num_heads, self.head_dim).transpose(1, 2)
 
-        output = F.scaled_dot_product_attention(Q, K, V, is_causal=True)
+        output, _ = self.dot_attention(
+            Q,
+            K,
+            V,
+            scale=self.head_dim ** 0.5,
+            is_causal=True,
+        )
 
         output = output.transpose(1, 2).contiguous().view(B, L, D)
         output = self.FFN(output)

@@ -16,9 +16,8 @@
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 from unirank.pytorch.models import MultiTaskModel
-from unirank.pytorch.layers import FeatureEmbedding, MLP_Block
+from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, ScaledDotProductAttention
 from unirank.pytorch.torch_utils import get_activation
 from unirank.utils import not_in_whitelist
 from unirank.pytorch.layers.tokenization import build_unified_tokenizer
@@ -41,6 +40,7 @@ class OneTrans(MultiTaskModel):
                  token_dim=64,
                  num_ns_token=4,
                  tokenizer_type="Auto",
+                 attention_activation_type="SoftMax",
                  net_dropout=0,
                  accumulation_steps=1,
                  **kwargs):
@@ -103,7 +103,8 @@ class OneTrans(MultiTaskModel):
             num_layers=num_layers,
             num_ns_token=self.num_ns_token,
             dnn_activations=dnn_activations,
-            expansion_factor=expansion_factor
+            expansion_factor=expansion_factor,
+            attention_activation_type=attention_activation_type,
         )
 
         # Finally, only NS tokens are used for prediction.
@@ -176,7 +177,8 @@ class OneTransBlock(nn.Module):
                  num_layers,
                  num_ns_token,
                  dnn_activations='ReLU',
-                 expansion_factor=4):
+                 expansion_factor=4,
+                 attention_activation_type="SoftMax"):
         super(OneTransBlock, self).__init__()
         self.num_layers = num_layers
 
@@ -191,7 +193,8 @@ class OneTransBlock(nn.Module):
             MixedMHA(
                 input_dim=input_dim,
                 num_heads=num_heads,
-                num_ns_token=num_ns_token
+                num_ns_token=num_ns_token,
+                attention_activation_type=attention_activation_type,
             ) for _ in range(num_layers)
         ])
 
@@ -239,7 +242,8 @@ class OneTransBlock(nn.Module):
 
 
 class MixedMHA(nn.Module):
-    def __init__(self, input_dim, num_heads, num_ns_token):
+    def __init__(self, input_dim, num_heads, num_ns_token,
+                 attention_activation_type="SoftMax"):
         super(MixedMHA, self).__init__()
         assert input_dim % num_heads == 0, \
             "attention_dim={} is not divisible by num_heads={}".format(input_dim, num_heads)
@@ -259,6 +263,9 @@ class MixedMHA(nn.Module):
         self.W_k_ns = nn.Parameter(torch.empty(num_ns_token, input_dim, input_dim))
         self.W_v_ns = nn.Parameter(torch.empty(num_ns_token, input_dim, input_dim))
         self.W_o = nn.Linear(input_dim, input_dim, bias=False)
+        self.dot_attention = ScaledDotProductAttention(
+            attention_activation_type=attention_activation_type
+        )
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -303,9 +310,12 @@ class MixedMHA(nn.Module):
         k = k.view(B, L, self.num_heads, self.head_dim).transpose(1, 2)   # B x H x L x h
         v = v.view(B, L, self.num_heads, self.head_dim).transpose(1, 2)
 
-        output = F.scaled_dot_product_attention(
-            q, k, v,
-            is_causal=True
+        output, _ = self.dot_attention(
+            q,
+            k,
+            v,
+            scale=self.head_dim ** 0.5,
+            is_causal=True,
         )
 
         # concat heads

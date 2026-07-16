@@ -16,9 +16,8 @@
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 from unirank.pytorch.models import MultiTaskModel
-from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MaskedAveragePooling, PerTokenFeedForward, MultiHeadTargetAttention
+from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MaskedAveragePooling, PerTokenFeedForward, MultiHeadTargetAttention, ScaledDotProductAttention
 from unirank.pytorch.torch_utils import get_activation
 from unirank.utils import not_in_whitelist
 from unirank.pytorch.layers.tokenization import FieldWiseTokenizer
@@ -226,12 +225,13 @@ class HiformerAttentionLayer(nn.Module):
         self.W_q = LowRankLinear(input_dim, input_dim, qkv_rank, bias=False)
         self.W_k = LowRankLinear(input_dim, input_dim, qkv_rank, bias=False)
         self.W_v = LowRankLinear(input_dim, input_dim, qkv_rank, bias=False)
+        self.dot_attention = ScaledDotProductAttention()
 
     def forward(self, x: torch.Tensor): # B × T × D
         x = x.flatten(start_dim=1) # B × TD
         Q = self.W_q(x).view(-1, self.num_token, self.num_heads, self.head_dim).transpose(1, 2) # [B, H, T, Dh]
         K = self.W_k(x).view(-1, self.num_token, self.num_heads, self.head_dim).transpose(1, 2)
         V = self.W_v(x).view(-1, self.num_token, self.num_heads, self.head_dim).transpose(1, 2)
-        attn_out = F.scaled_dot_product_attention(Q, K, V)
+        attn_out, _ = self.dot_attention(Q, K, V, scale=self.head_dim ** 0.5)
         attn_out = attn_out.transpose(1, 2).contiguous().view(-1, self.num_token, self.token_dim)  # [B, T, D]
         return attn_out

@@ -16,9 +16,8 @@
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 from unirank.pytorch.models import MultiTaskModel
-from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, PerTokenFeedForward
+from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, PerTokenFeedForward, ScaledDotProductAttention
 from unirank.pytorch.layers.tokenization import AutoSplitTokenizer
 
 
@@ -248,6 +247,7 @@ class MixedHeteroAttention(nn.Module):
         self.W_k_s = nn.Linear(input_dim, input_dim, bias=False)
         self.W_v_s = nn.Linear(input_dim, input_dim, bias=False)
         self.W_o = nn.Linear(input_dim, input_dim, bias=False)
+        self.dot_attention = ScaledDotProductAttention()
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -269,7 +269,7 @@ class MixedHeteroAttention(nn.Module):
         q = q_ns.view(B, Lns, self.num_heads, self.head_dim).transpose(1, 2)
         k = k_s.view(B, Ls, self.num_heads, self.head_dim).transpose(1, 2)
         v = v_s.view(B, Ls, self.num_heads, self.head_dim).transpose(1, 2)
-        output = F.scaled_dot_product_attention(q, k, v, is_causal=False)
+        output, _ = self.dot_attention(q, k, v, scale=self.head_dim ** 0.5)
         output = output.transpose(1, 2).contiguous().view(B, Lns, D)
         return self.W_o(output)
 

@@ -147,6 +147,5 @@ class SparseMoELayer(nn.Module):
 
         expert_out = self._ffn_all_experts(x)                         # [B,T,E,D]
         gates = self.gate_act(torch.einsum("btd,ted->bte", x, self.router))  # [B,T,E]
-        mixed = torch.sum(gates.unsqueeze(-1) * expert_out, dim=2)    # [B,T,D]
-        out = mixed                              # [B,T,D]
+        out = torch.sum(gates.unsqueeze(-1) * expert_out, dim=2)  # [B,T,D]
         return out

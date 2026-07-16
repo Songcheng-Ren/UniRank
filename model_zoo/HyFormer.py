@@ -14,10 +14,8 @@
 # limitations under the License.
 # =========================================================================
 
-import math
 import torch
 from torch import nn
-import torch.nn.functional as F
 from unirank.pytorch.models import MultiTaskModel
 from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MaskedAveragePooling, MultiHeadTokenMixing, PerTokenFeedForward, ScaledDotProductAttention
 from unirank.pytorch.torch_utils import get_activation
@@ -265,6 +263,7 @@ class SequenceRepresentationLayer(nn.Module):
             self.k_proj = nn.Linear(input_dim, input_dim)
             self.v_proj = nn.Linear(input_dim, input_dim)
             self.out_proj = nn.Linear(input_dim, input_dim)
+            self.dot_attention = ScaledDotProductAttention()
         else:
             raise ValueError("sequence_encoder_type not implemented")
 
@@ -288,7 +287,7 @@ class SequenceRepresentationLayer(nn.Module):
         k = self.k_proj(norm_x).view(B, L, self.num_heads, self.head_dim).transpose(1, 2)
         v = self.v_proj(norm_x).view(B, L, self.num_heads, self.head_dim).transpose(1, 2)
 
-        attn_out = F.scaled_dot_product_attention(q, k, v)
+        attn_out, _ = self.dot_attention(q, k, v, scale=self.head_dim ** 0.5)
         attn_out = attn_out.transpose(1, 2).contiguous().view(B, L, D)
         attn_out = self.out_proj(attn_out)
 
@@ -320,6 +319,7 @@ class QueryDecodingLayer(nn.Module):
         self.k_proj = nn.Linear(input_dim, input_dim)
         self.v_proj = nn.Linear(input_dim, input_dim)
         self.out_proj = nn.Linear(input_dim, input_dim)
+        self.dot_attention = ScaledDotProductAttention()
 
     def forward(self, global_tokens, s_tokens, mask=None):
         if mask is not None:
@@ -336,7 +336,7 @@ class QueryDecodingLayer(nn.Module):
         k = self.k_proj(norm_kv).view(B, Lk, self.num_heads, self.head_dim).transpose(1, 2)
         v = self.v_proj(norm_kv).view(B, Lk, self.num_heads, self.head_dim).transpose(1, 2)
 
-        attn_out = F.scaled_dot_product_attention(q, k, v)
+        attn_out, _ = self.dot_attention(q, k, v, scale=self.head_dim ** 0.5)
         attn_out = attn_out.transpose(1, 2).contiguous().view(B, Lq, D)
         attn_out = self.out_proj(attn_out)
 

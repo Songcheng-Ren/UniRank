@@ -138,19 +138,30 @@ def get_loss(loss):
 
 def get_activation(activation, hidden_units=None):
     if isinstance(activation, str):
-        if activation.lower() in ["prelu", "dice"]:
+        activation_name = activation.strip().lower()
+        if activation_name in ["prelu", "dice"]:
             assert type(hidden_units) == int
-        if activation.lower() == "relu":
+        if activation_name == "none":
+            return None
+        if activation_name == "relu":
             return nn.ReLU()
-        elif activation.lower() == "sigmoid":
+        elif activation_name == "softplus":
+            return nn.Softplus()
+        elif activation_name == "silu":
+            return nn.SiLU()
+        elif activation_name == "gelu":
+            return nn.GELU()
+        elif activation_name == "sigmoid":
             return nn.Sigmoid()
-        elif activation.lower() == "tanh":
+        elif activation_name == "mish":
+            return nn.Mish()
+        elif activation_name == "tanh":
             return nn.Tanh()
-        elif activation.lower() == "softmax":
+        elif activation_name == "softmax":
             return nn.Softmax(dim=-1)
-        elif activation.lower() == "prelu":
+        elif activation_name == "prelu":
             return nn.PReLU(hidden_units, init=0.1)
-        elif activation.lower() == "dice":
+        elif activation_name == "dice":
             from unirank.pytorch.layers.activations import Dice
             return Dice(hidden_units)
         else:

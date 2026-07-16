@@ -258,6 +258,26 @@ run_exp "RankMixer_MerRec_Action_Tokenizer_Field"
 run_exp "OneTrans_MerRec_Action_Tokenizer_Field"
 #run_exp "OneTrans_MerRec_Action_Tokenizer_Random"
 
+# ==================================================
+# OneTrans attention activation ablations for KuaiRand and MerRec
+# SoftMax is the baseline and is intentionally omitted here.
+# ==================================================
+run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_None"
+run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_ReLU"
+run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_SoftPlus"
+run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_SiLU"
+run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_GeLU"
+run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_Sigmoid"
+run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_Mish"
+
+run_exp "OneTrans_MerRec_Action_AttentionActivation_None"
+run_exp "OneTrans_MerRec_Action_AttentionActivation_ReLU"
+run_exp "OneTrans_MerRec_Action_AttentionActivation_SoftPlus"
+run_exp "OneTrans_MerRec_Action_AttentionActivation_SiLU"
+run_exp "OneTrans_MerRec_Action_AttentionActivation_GeLU"
+run_exp "OneTrans_MerRec_Action_AttentionActivation_Sigmoid"
+run_exp "OneTrans_MerRec_Action_AttentionActivation_Mish"
+
 run_exp "RankMixer_KuaiRand_Video_Action_Mid"
 run_exp "RankMixer_KuaiRand_Video_Action_Large"
 run_exp "RankMixer_KuaiRand_Video_Action_Ultra"
