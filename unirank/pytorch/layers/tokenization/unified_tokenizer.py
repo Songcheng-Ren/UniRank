@@ -29,7 +29,8 @@ def build_unified_tokenizer(tokenizer_type,
                             token_dim,
                             num_tokens,
                             num_fields,
-                            activation="SiLU"):
+                            activation="SiLU",
+                            layer_norm=True):
     """Build a tokenizer used by unified ranking models.
 
     Returns ``(module, output_token_count, expects_field_input)``. Chunk and
@@ -57,6 +58,7 @@ def build_unified_tokenizer(tokenizer_type,
             token_dim=token_dim,
             num_tokens=num_tokens,
             activation=activation,
+            layer_norm=layer_norm,
         )
         return tokenizer, num_tokens, False
     if tokenizer_type == "Auto":
@@ -65,6 +67,7 @@ def build_unified_tokenizer(tokenizer_type,
             token_dim=token_dim,
             num_tokens=num_tokens,
             activation=activation,
+            layer_norm=layer_norm,
         )
         return tokenizer, num_tokens, False
 
@@ -82,6 +85,7 @@ def build_unified_tokenizer(tokenizer_type,
             token_dim=token_dim,
             num_tokens=num_fields,
             activation=activation,
+            layer_norm=layer_norm,
         )
         return tokenizer, num_fields, True
 
@@ -91,5 +95,6 @@ def build_unified_tokenizer(tokenizer_type,
         num_tokens=num_tokens,
         num_fields=num_fields,
         activation=activation,
+        layer_norm=layer_norm,
     )
     return tokenizer, num_tokens, True

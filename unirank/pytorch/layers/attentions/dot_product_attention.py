@@ -64,6 +64,7 @@ class ScaledDotProductAttention(nn.Module):
         if self.attention_activation_type == "SoftMax":
             if mask is not None:
                 mask = mask.bool()
+            sdpa_scale = None if scale is None else 1.0 / scale
             output = F.scaled_dot_product_attention(
                 Q,
                 K,
@@ -71,6 +72,7 @@ class ScaledDotProductAttention(nn.Module):
                 attn_mask=mask,
                 dropout_p=self.dropout_rate if self.training else 0.0,
                 is_causal=is_causal,
+                scale=sdpa_scale,
             )
             return output, None
 

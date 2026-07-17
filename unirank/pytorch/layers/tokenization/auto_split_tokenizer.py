@@ -21,14 +21,15 @@ from unirank.pytorch.layers.blocks import MLP_Block
 
 
 class AutoSplitTokenizer(nn.Module):
-    def __init__(self, input_dim, token_dim, num_tokens, activation="SiLU"):
+    def __init__(self, input_dim, token_dim, num_tokens, activation="SiLU",
+                 layer_norm=True):
         super(AutoSplitTokenizer, self).__init__()
         self.token_mlps = nn.ModuleList([
             MLP_Block(
                 input_dim=input_dim,
                 hidden_units=[token_dim],
                 hidden_activations=activation,
-                layer_norm=True,
+                layer_norm=layer_norm,
             )
             for _ in range(num_tokens)
         ])
