@@ -216,11 +216,13 @@ class OneTransBlock(nn.Module):
 
         ps_tokens = s_tokens
         for i in range(self.num_layers):
-            # sequence query pruning
-            start = ps_tokens.size(1) // 2
-            ps_tokens = ps_tokens[:, start:, :]
+            # Prune sequence queries only. NS tokens stay in the separate
+            # ns_tokens stream and keep a fixed token count across all layers.
+            num_sequence_tokens = ps_tokens.size(1)
+            sequence_start = num_sequence_tokens // 2
+            ps_tokens = ps_tokens[:, sequence_start:, :]
             if q_mask is not None:
-                q_mask = q_mask[:, start:]
+                q_mask = q_mask[:, sequence_start:]
             norm_s = self.norm1_layers[i](s_tokens)
             norm_ps = self.norm1_layers[i](ps_tokens)
             norm_ns = self.norm1_layers[i](ns_tokens)
@@ -280,6 +282,7 @@ class MixedMHA(nn.Module):
         ns_tokens: B x Lns x D
         kv_mask:   B x Ls, valid mask for full S key/value
         q_mask:    B x qLs, valid mask for pruned S query
+        Keep SDPA mask-free to preserve FlashAttention eligibility, accepting minor attention leakage.
         Torch cannot use the causal_lower_right mask, so full attention is used here to simulate pyramid reduction.
         """
         B, Ls, D = s_tokens.shape

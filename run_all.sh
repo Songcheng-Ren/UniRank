@@ -161,7 +161,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_Taobao_Action"
 # run_exp "TokenFormer_Taobao_Action"
 # run_exp "UltraHSTU_Taobao_Action"
- run_exp "SSR_Taobao_Action"
+# run_exp "SSR_Taobao_Action"
 
 # ==================================================
 # MerRec_Action experiments
@@ -180,7 +180,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_MerRec_Action"
 # run_exp "TokenFormer_MerRec_Action"
 # run_exp "UltraHSTU_MerRec_Action"
- run_exp "SSR_MerRec_Action"
+# run_exp "SSR_MerRec_Action"
 
 # ==================================================
 # QK_Video_Action experiments
@@ -199,7 +199,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "LONGER_QK_Video_Action"
 # run_exp "Zenith_QK_Video_Action"
 # run_exp "HeMix_QK_Video_Action"
- run_exp "SSR_QK_Video_Action"
+# run_exp "SSR_QK_Video_Action"
 
 # ==================================================
 # KuaiRand_Video_Action experiments
@@ -218,7 +218,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_KuaiRand_Video_Action"
 # run_exp "TokenFormer_KuaiRand_Video_Action"
 # run_exp "UltraHSTU_KuaiRand_Video_Action"
- run_exp "SSR_KuaiRand_Video_Action"
+# run_exp "SSR_KuaiRand_Video_Action"
 
 # ==================================================
 # TencentGR_10M_Action experiments
@@ -237,7 +237,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "HeMix_TencentGR_10M_Action"
 # run_exp "TokenFormer_TencentGR_10M_ Action"
 # run_exp "UltraHSTU_TencentGR_10M_Action"
- run_exp "SSR_TencentGR_10M_Action"
+# run_exp "SSR_TencentGR_10M_Action"
 
 # ==================================================
 # Tokenizer ablations for KuaiRand and MerRec
@@ -252,34 +252,52 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 #run_exp "OneTrans_KuaiRand_Video_Action_Tokenizer_Random"
 
 #run_exp "RankMixer_MerRec_Action_Tokenizer_Auto"
-run_exp "RankMixer_MerRec_Action_Tokenizer_Field"
+#run_exp "RankMixer_MerRec_Action_Tokenizer_Field"
 #run_exp "RankMixer_MerRec_Action_Tokenizer_Random"
 #run_exp "OneTrans_MerRec_Action_Tokenizer_Chunk"
-run_exp "OneTrans_MerRec_Action_Tokenizer_Field"
+#run_exp "OneTrans_MerRec_Action_Tokenizer_Field"
 #run_exp "OneTrans_MerRec_Action_Tokenizer_Random"
 
 # ==================================================
 # OneTrans attention activation ablations for KuaiRand and MerRec
 # SoftMax is the baseline and is intentionally omitted here.
 # ==================================================
-run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_None"
-run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_ReLU"
-run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_SoftPlus"
-run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_SiLU"
-run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_GeLU"
-run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_Sigmoid"
-run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_Mish"
+#run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_None"
+#run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_ReLU"
+#run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_SoftPlus"
+#run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_SiLU"
+#run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_GeLU"
+#run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_Sigmoid"
+#run_exp "OneTrans_KuaiRand_Video_Action_AttentionActivation_Mish"
 
-run_exp "OneTrans_MerRec_Action_AttentionActivation_None"
-run_exp "OneTrans_MerRec_Action_AttentionActivation_ReLU"
-run_exp "OneTrans_MerRec_Action_AttentionActivation_SoftPlus"
-run_exp "OneTrans_MerRec_Action_AttentionActivation_SiLU"
-run_exp "OneTrans_MerRec_Action_AttentionActivation_GeLU"
-run_exp "OneTrans_MerRec_Action_AttentionActivation_Sigmoid"
-run_exp "OneTrans_MerRec_Action_AttentionActivation_Mish"
+#run_exp "OneTrans_MerRec_Action_AttentionActivation_None"
+#run_exp "OneTrans_MerRec_Action_AttentionActivation_ReLU"
+#run_exp "OneTrans_MerRec_Action_AttentionActivation_SoftPlus"
+#run_exp "OneTrans_MerRec_Action_AttentionActivation_SiLU"
+#run_exp "OneTrans_MerRec_Action_AttentionActivation_GeLU"
+#run_exp "OneTrans_MerRec_Action_AttentionActivation_Sigmoid"
+#run_exp "OneTrans_MerRec_Action_AttentionActivation_Mish"
 
-run_exp "RankMixer_KuaiRand_Video_Action_Mid"
-run_exp "RankMixer_KuaiRand_Video_Action_Large"
-run_exp "RankMixer_KuaiRand_Video_Action_Ultra"
+# ==================================================
+# OneTrans_var architectural trick ablations
+# Run each enabled trick on both datasets.
+# ==================================================
+run_exp "OneTrans_var_KuaiRand_Video_Action_PreU_True"
+run_exp "OneTrans_var_KuaiRand_Video_Action_PostU_True"
+run_exp "OneTrans_var_KuaiRand_Video_Action_FuseU_True"
+run_exp "OneTrans_var_KuaiRand_Video_Action_SpecT_True"
+run_exp "OneTrans_var_KuaiRand_Video_Action_AttGate_True"
+run_exp "OneTrans_var_KuaiRand_Video_Action_RoPE_True"
+run_exp "OneTrans_var_KuaiRand_Video_Action_QKNorm_True"
+run_exp "OneTrans_var_KuaiRand_Video_Action_GNorm_True"
+
+run_exp "OneTrans_var_MerRec_Action_PreU_True"
+run_exp "OneTrans_var_MerRec_Action_PostU_True"
+run_exp "OneTrans_var_MerRec_Action_FuseU_True"
+run_exp "OneTrans_var_MerRec_Action_SpecT_True"
+run_exp "OneTrans_var_MerRec_Action_AttGate_True"
+run_exp "OneTrans_var_MerRec_Action_RoPE_True"
+run_exp "OneTrans_var_MerRec_Action_QKNorm_True"
+run_exp "OneTrans_var_MerRec_Action_GNorm_True"
 
 echo "All experiments completed successfully."

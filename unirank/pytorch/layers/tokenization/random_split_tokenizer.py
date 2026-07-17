@@ -20,7 +20,8 @@ from unirank.pytorch.layers.blocks import MLP_Block
 
 
 class RandomSplitTokenizer(nn.Module):
-    def __init__(self, input_dim, token_dim, num_tokens, num_fields, activation="SiLU"):
+    def __init__(self, input_dim, token_dim, num_tokens, num_fields,
+                 activation="SiLU", layer_norm=True):
         super(RandomSplitTokenizer, self).__init__()
         if num_tokens <= 0:
             raise ValueError("num_tokens must be positive.")
@@ -43,7 +44,7 @@ class RandomSplitTokenizer(nn.Module):
                 input_dim=group_size * input_dim,
                 hidden_units=[token_dim],
                 hidden_activations=activation,
-                layer_norm=True,
+                layer_norm=layer_norm,
             )
             for group_size in self.group_sizes
         ])
