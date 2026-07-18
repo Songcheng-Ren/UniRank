@@ -32,23 +32,124 @@ The project makes three main contributions:
 
 The following implementations are exported by `model_zoo/__init__.py`:
 
-| No. | Publication | Model | Affiliation | Paper |
-|:--:|:--:|:--|:--|:--|
-| 1 | arXiv'23 | [HiFormer](./model_zoo/HiFormer.py) | <img src="https://cdn.simpleicons.org/google/4285F4" alt="Google" height="18"> Google | [HiFormer: Heterogeneous Feature Interactions Learning with Transformers for Recommender Systems](https://arxiv.org/pdf/2311.05884) |
-| 2 | CIKM'25 | [RankMixer](./model_zoo/RankMixer.py) | <img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance | [RankMixer: Scaling Up Ranking Models in Industrial Recommenders](https://arxiv.org/abs/2507.15551) |
-| 3 | arXiv'25 | [INFNet](./model_zoo/INFNet.py) | <img src="https://cdn.simpleicons.org/kuaishou/FF4906" alt="Kuaishou" height="18"> Kuaishou | [INFNet: A Task-aware Information Flow Network for Large-Scale Recommendation Systems](https://arxiv.org/pdf/2508.11565v1) |
-| 4 | RecSys'25 | [LONGER](./model_zoo/LONGER.py) | <img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance | [LONGER: Scaling Up Long Sequence Modeling in Industrial Recommenders](https://arxiv.org/abs/2505.04421) |
-| 5 | WWW'26 | [OneTrans](./model_zoo/OneTrans.py) | <img src="https://www.google.com/s2/favicons?domain=ntu.edu.sg&amp;sz=64" alt="NTU" height="18"> NTU<br><img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance | [OneTrans: Unified Feature Interaction and Sequence Modeling with One Transformer in Industrial Recommender](https://arxiv.org/abs/2510.26104) |
-| 6 | arXiv'26 | [Zenith](./model_zoo/Zenith.py) | <img src="https://www.google.com/s2/favicons?domain=ncsu.edu&amp;sz=64" alt="NCSU" height="18"> NCSU<br><img src="https://cdn.simpleicons.org/tiktok/000000/FFFFFF" alt="TikTok" height="18"> TikTok<br><img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance | [Zenith: Scaling up Ranking Models for Billion-scale Livestreaming Recommendation](https://arxiv.org/pdf/2601.21285) |
-| 7 | SIGIR'26 | [HyFormer](./model_zoo/HyFormer.py) | <img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance | [HyFormer: Revisiting the Roles of Sequence Modeling and Feature Interaction in CTR Prediction](https://arxiv.org/abs/2601.12681) |
-| 8 | KDD'26 | [MixFormer](./model_zoo/MixFormer.py) | <img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance | [MixFormer: Co-Scaling Up Dense and Sequence in Industrial Recommenders](https://arxiv.org/abs/2602.14110) |
-| 9 | KDD'26 | [TokenMixer](./model_zoo/TokenMixer.py) | <img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance | [TokenMixer-Large: Scaling Up Large Ranking Models in Industrial Recommenders](https://arxiv.org/pdf/2602.06563) |
-| 10 | KDD'26 | [EST](./model_zoo/EST.py) | <img src="https://cdn.simpleicons.org/alibabacloud/FF6A00" alt="Alibaba" height="18"> Alibaba | [EST: Towards Efficient Scaling Laws in Click-Through Rate Prediction via Unified Modeling](https://arxiv.org/pdf/2602.10811) |
-| 11 | arXiv'26 | [HeMix](./model_zoo/HeMix.py) | <img src="https://cdn.simpleicons.org/alibabacloud/FF6A00" alt="Alibaba" height="18"> Alibaba | [Query-Mixed Interest Extraction and Heterogeneous Interaction: A Scalable CTR Model for Industrial Recommender Systems](https://arxiv.org/pdf/2602.09387) |
-| 12 | arXiv'26 | [UniMixer](./model_zoo/UniMixer.py) | <img src="https://cdn.simpleicons.org/kuaishou/FF4906" alt="Kuaishou" height="18"> Kuaishou | [UniMixer: A Unified Architecture for Scaling Laws in Recommendation Systems](https://arxiv.org/pdf/2604.00590) |
-| 13 | arXiv'26 | [TokenFormer](./model_zoo/TokenFormer.py) | <img src="https://www.google.com/s2/favicons?domain=tencent.com&amp;sz=64" alt="Tencent" height="18"> Tencent | [TokenFormer: Unify the Multi-Field and Sequential Recommendation Worlds](https://arxiv.org/abs/2604.13737) |
-| 14 | arXiv'26 | [UltraHSTU](./model_zoo/UltraHSTU.py) | <img src="https://cdn.simpleicons.org/meta/0866FF" alt="Meta" height="18"> Meta | [Bending the Scaling Law Curve in Large-Scale Recommendation Systems](https://arxiv.org/pdf/2602.16986) |
-| 15 | SIGIR'26 | [SSR](./model_zoo/SSR.py) | <img src="https://cdn.simpleicons.org/alibabacloud/FF6A00" alt="Alibaba" height="18"> Alibaba | [Beyond Dense Connectivity: Explicit Sparsity for Scalable Recommendation](https://arxiv.org/pdf/2604.08011) |
+<table>
+  <thead>
+    <tr>
+      <th width="5%" align="center">No.</th>
+      <th width="11%" align="center">Publication</th>
+      <th width="13%">Model</th>
+      <th width="27%">Affiliation</th>
+      <th width="44%">Paper</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center">1</td>
+      <td align="center">arXiv'23</td>
+      <td><a href="./model_zoo/HiFormer.py">HiFormer</a></td>
+      <td><img src="https://cdn.simpleicons.org/google/4285F4" alt="Google" height="18"> Google</td>
+      <td><a href="https://arxiv.org/pdf/2311.05884">HiFormer: Heterogeneous Feature Interactions Learning with Transformers for Recommender Systems</a></td>
+    </tr>
+    <tr>
+      <td align="center">2</td>
+      <td align="center">CIKM'25</td>
+      <td><a href="./model_zoo/RankMixer.py">RankMixer</a></td>
+      <td><img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance</td>
+      <td><a href="https://arxiv.org/abs/2507.15551">RankMixer: Scaling Up Ranking Models in Industrial Recommenders</a></td>
+    </tr>
+    <tr>
+      <td align="center">3</td>
+      <td align="center">arXiv'25</td>
+      <td><a href="./model_zoo/INFNet.py">INFNet</a></td>
+      <td><img src="https://cdn.simpleicons.org/kuaishou/FF4906" alt="Kuaishou" height="18"> Kuaishou</td>
+      <td><a href="https://arxiv.org/pdf/2508.11565v1">INFNet: A Task-aware Information Flow Network for Large-Scale Recommendation Systems</a></td>
+    </tr>
+    <tr>
+      <td align="center">4</td>
+      <td align="center">RecSys'25</td>
+      <td><a href="./model_zoo/LONGER.py">LONGER</a></td>
+      <td><img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance</td>
+      <td><a href="https://arxiv.org/abs/2505.04421">LONGER: Scaling Up Long Sequence Modeling in Industrial Recommenders</a></td>
+    </tr>
+    <tr>
+      <td align="center">5</td>
+      <td align="center">WWW'26</td>
+      <td><a href="./model_zoo/OneTrans.py">OneTrans</a></td>
+      <td><img src="https://www.google.com/s2/favicons?domain=ntu.edu.sg&amp;sz=64" alt="NTU" height="18"> NTU<br><img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance</td>
+      <td><a href="https://arxiv.org/abs/2510.26104">OneTrans: Unified Feature Interaction and Sequence Modeling with One Transformer in Industrial Recommender</a></td>
+    </tr>
+    <tr>
+      <td align="center">6</td>
+      <td align="center">arXiv'26</td>
+      <td><a href="./model_zoo/Zenith.py">Zenith</a></td>
+      <td><img src="https://www.google.com/s2/favicons?domain=ncsu.edu&amp;sz=64" alt="NCSU" height="18"> NCSU<br><img src="https://cdn.simpleicons.org/tiktok/000000/FFFFFF" alt="TikTok" height="18"> TikTok<br><img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance</td>
+      <td><a href="https://arxiv.org/pdf/2601.21285">Zenith: Scaling up Ranking Models for Billion-scale Livestreaming Recommendation</a></td>
+    </tr>
+    <tr>
+      <td align="center">7</td>
+      <td align="center">SIGIR'26</td>
+      <td><a href="./model_zoo/HyFormer.py">HyFormer</a></td>
+      <td><img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance</td>
+      <td><a href="https://arxiv.org/abs/2601.12681">HyFormer: Revisiting the Roles of Sequence Modeling and Feature Interaction in CTR Prediction</a></td>
+    </tr>
+    <tr>
+      <td align="center">8</td>
+      <td align="center">KDD'26</td>
+      <td><a href="./model_zoo/MixFormer.py">MixFormer</a></td>
+      <td><img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance</td>
+      <td><a href="https://arxiv.org/abs/2602.14110">MixFormer: Co-Scaling Up Dense and Sequence in Industrial Recommenders</a></td>
+    </tr>
+    <tr>
+      <td align="center">9</td>
+      <td align="center">KDD'26</td>
+      <td><a href="./model_zoo/TokenMixer.py">TokenMixer</a></td>
+      <td><img src="https://cdn.simpleicons.org/bytedance/3C8CFF" alt="ByteDance" height="18"> ByteDance</td>
+      <td><a href="https://arxiv.org/pdf/2602.06563">TokenMixer-Large: Scaling Up Large Ranking Models in Industrial Recommenders</a></td>
+    </tr>
+    <tr>
+      <td align="center">10</td>
+      <td align="center">KDD'26</td>
+      <td><a href="./model_zoo/EST.py">EST</a></td>
+      <td><img src="https://cdn.simpleicons.org/alibabacloud/FF6A00" alt="Alibaba" height="18"> Alibaba</td>
+      <td><a href="https://arxiv.org/pdf/2602.10811">EST: Towards Efficient Scaling Laws in Click-Through Rate Prediction via Unified Modeling</a></td>
+    </tr>
+    <tr>
+      <td align="center">11</td>
+      <td align="center">arXiv'26</td>
+      <td><a href="./model_zoo/HeMix.py">HeMix</a></td>
+      <td><img src="https://cdn.simpleicons.org/alibabacloud/FF6A00" alt="Alibaba" height="18"> Alibaba</td>
+      <td><a href="https://arxiv.org/pdf/2602.09387">Query-Mixed Interest Extraction and Heterogeneous Interaction: A Scalable CTR Model for Industrial Recommender Systems</a></td>
+    </tr>
+    <tr>
+      <td align="center">12</td>
+      <td align="center">arXiv'26</td>
+      <td><a href="./model_zoo/UniMixer.py">UniMixer</a></td>
+      <td><img src="https://cdn.simpleicons.org/kuaishou/FF4906" alt="Kuaishou" height="18"> Kuaishou</td>
+      <td><a href="https://arxiv.org/pdf/2604.00590">UniMixer: A Unified Architecture for Scaling Laws in Recommendation Systems</a></td>
+    </tr>
+    <tr>
+      <td align="center">13</td>
+      <td align="center">arXiv'26</td>
+      <td><a href="./model_zoo/TokenFormer.py">TokenFormer</a></td>
+      <td><img src="https://www.google.com/s2/favicons?domain=tencent.com&amp;sz=64" alt="Tencent" height="18"> Tencent</td>
+      <td><a href="https://arxiv.org/abs/2604.13737">TokenFormer: Unify the Multi-Field and Sequential Recommendation Worlds</a></td>
+    </tr>
+    <tr>
+      <td align="center">14</td>
+      <td align="center">arXiv'26</td>
+      <td><a href="./model_zoo/UltraHSTU.py">UltraHSTU</a></td>
+      <td><img src="https://cdn.simpleicons.org/meta/0866FF" alt="Meta" height="18"> Meta</td>
+      <td><a href="https://arxiv.org/pdf/2602.16986">Bending the Scaling Law Curve in Large-Scale Recommendation Systems</a></td>
+    </tr>
+    <tr>
+      <td align="center">15</td>
+      <td align="center">SIGIR'26</td>
+      <td><a href="./model_zoo/SSR.py">SSR</a></td>
+      <td><img src="https://cdn.simpleicons.org/alibabacloud/FF6A00" alt="Alibaba" height="18"> Alibaba</td>
+      <td><a href="https://arxiv.org/pdf/2604.08011">Beyond Dense Connectivity: Explicit Sparsity for Scalable Recommendation</a></td>
+    </tr>
+  </tbody>
+</table>
 
 ## Training Paradigm
 
@@ -220,13 +321,60 @@ The paper reports the following statistics after preprocessing:
 
 Dataset semantics and repository entry points are aligned as follows:
 
-| Dataset ID | Feedback tasks | Time range and construction | Raw data | Preprocessed data | Preprocessing script |
-|:--|:--|:--|:--|:--|:--|
-| `QK_Video_Action` | click, follow, like, share | September 17--December 7, 2021; public timestamps are removed, so released order is preserved. | [QK-Video](https://static.qblv.qq.com/qblv/h5/algo-frontend/tenrec_dataset.html) | [QK_Video](https://huggingface.co/datasets/salmon1802/QK-Video) | [Script](./data/QK_Video/preprocess_QK_seq_action.py) |
-| `KuaiRand_Video_Action` | click, follow, like, comment, forward, long-view | April 8--May 8, 2022; events are ordered chronologically. | [KuaiRand](https://kuairand.com/) | [KuaiRand](https://huggingface.co/datasets/salmon1802/KuaiRand) | [Script](./data/KuaiRand/preprocess_Kuairand_seq_action.py) |
-| `TencentGR_10M_Action` | click, conversion | De-identified TAAC 2025 data; dates are undisclosed, users without positive feedback are removed, and conversion implies click. The paper names the processed benchmark TAAC-25. | [TAAC2025/TencentGR-10M](https://huggingface.co/datasets/TAAC2025/TencentGR-10M) | [TAAC-25](https://huggingface.co/datasets/salmon1802/TAAC-25) | [Script](./data/TAAC2025/preprocess_TAAC2025_seq_action.py) |
-| `Taobao_Action` | click, cart, favorite, buy | Ad impressions from May 6--13, 2017 are joined with behaviors from April 22--May 13 using the preceding 24-hour window. | [Taobao Ad Display/Click Data](https://tianchi.aliyun.com/dataset/56) | [Taobao](https://huggingface.co/datasets/salmon1802/Taobao) | [Script](./data/Taobao/preprocess_Taobao_seq_action.py) |
-| `MerRec_Action` | like, cart, offer, checkout, purchase | May--October 2023; the current benchmark preprocessing uses the October partition. | [Mercari MerRec](https://huggingface.co/datasets/mercari-us/merrec) | [MerRec](https://huggingface.co/datasets/salmon1802/MerRec) | [Script](./data/MerRec/preprocess_MerRec_seq_action.py) |
+<table>
+  <thead>
+    <tr>
+      <th width="15%">Dataset ID</th>
+      <th width="18%">Feedback tasks</th>
+      <th width="35%">Time range and construction</th>
+      <th width="10%">Raw data</th>
+      <th width="12%">Preprocessed data</th>
+      <th width="10%">Preprocessing script</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>QK_Video_Action</code></td>
+      <td>click, follow, like, share</td>
+      <td>September 17--December 7, 2021; public timestamps are removed, so released order is preserved.</td>
+      <td><a href="https://static.qblv.qq.com/qblv/h5/algo-frontend/tenrec_dataset.html">QK-Video</a></td>
+      <td><a href="https://huggingface.co/datasets/salmon1802/QK-Video">QK_Video</a></td>
+      <td><a href="./data/QK_Video/preprocess_QK_seq_action.py">Script</a></td>
+    </tr>
+    <tr>
+      <td><code>KuaiRand_Video_Action</code></td>
+      <td>click, follow, like, comment, forward, long-view</td>
+      <td>April 8--May 8, 2022; events are ordered chronologically.</td>
+      <td><a href="https://kuairand.com/">KuaiRand</a></td>
+      <td><a href="https://huggingface.co/datasets/salmon1802/KuaiRand">KuaiRand</a></td>
+      <td><a href="./data/KuaiRand/preprocess_Kuairand_seq_action.py">Script</a></td>
+    </tr>
+    <tr>
+      <td><code>TencentGR_10M_Action</code></td>
+      <td>click, conversion</td>
+      <td>De-identified TAAC 2025 data; dates are undisclosed, users without positive feedback are removed, and conversion implies click. The paper names the processed benchmark TAAC-25.</td>
+      <td><a href="https://huggingface.co/datasets/TAAC2025/TencentGR-10M">TAAC2025</a></td>
+      <td><a href="https://huggingface.co/datasets/salmon1802/TAAC-25">TAAC-25</a></td>
+      <td><a href="./data/TAAC2025/preprocess_TAAC2025_seq_action.py">Script</a></td>
+    </tr>
+    <tr>
+      <td><code>Taobao_Action</code></td>
+      <td>click, cart, favorite, buy</td>
+      <td>Ad impressions from May 6--13, 2017 are joined with behaviors from April 22--May 13 using the preceding 24-hour window.</td>
+      <td><a href="https://tianchi.aliyun.com/dataset/56">Taobao Ad Display/Click Data</a></td>
+      <td><a href="https://huggingface.co/datasets/salmon1802/Taobao">Taobao</a></td>
+      <td><a href="./data/Taobao/preprocess_Taobao_seq_action.py">Script</a></td>
+    </tr>
+    <tr>
+      <td><code>MerRec_Action</code></td>
+      <td>like, cart, offer, checkout, purchase</td>
+      <td>May--October 2023; the current benchmark preprocessing uses the October partition.</td>
+      <td><a href="https://huggingface.co/datasets/mercari-us/merrec">Mercari MerRec</a></td>
+      <td><a href="https://huggingface.co/datasets/salmon1802/MerRec">MerRec</a></td>
+      <td><a href="./data/MerRec/preprocess_MerRec_seq_action.py">Script</a></td>
+    </tr>
+  </tbody>
+</table>
 
 Features are organized into user, context, sequence, and action groups. Low-frequency categorical values map to a shared OOV ID, multi-value categorical fields use masked average pooling, and dense numeric fields are bucketized as categorical inputs.
 
