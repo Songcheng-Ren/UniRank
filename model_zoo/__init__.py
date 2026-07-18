@@ -15,7 +15,6 @@
 # =========================================================================
 
 from .OneTrans import OneTrans
-from .OneTrans_var import OneTrans_var
 from .RankMixer import RankMixer
 from .Zenith import Zenith
 from .HyFormer import HyFormer

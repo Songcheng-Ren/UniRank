@@ -1,4 +1,4 @@
-2026-07-16 14:24:53,041 P2509744 INFO Params: {
+2026-07-17 03:42:59,580 P2869947 INFO Params: {
     "accumulation_steps": "1",
     "attention_dropout": "0",
     "batch_size": "8192",
@@ -66,56 +66,56 @@
     "verbose": "1",
     "world_size": "4"
 }
-2026-07-16 14:24:53,043 P2509744 INFO Set up feature processor...
-2026-07-16 14:24:53,044 P2509744 INFO Fit feature processor...
-2026-07-16 14:24:53,044 P2509744 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-16 14:24:53,044 P2509744 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-16 14:24:53,044 P2509744 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-16 14:24:53,044 P2509744 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 27286}
-2026-07-16 14:24:53,049 P2509744 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 32038726, 'source': 'item'}
-2026-07-16 14:24:59,269 P2509744 INFO Processing column: {'name': 'video_type', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4, 'source': 'item'}
-2026-07-16 14:24:59,275 P2509744 INFO Processing column: {'name': 'primary_tag', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 60, 'source': 'item'}
-2026-07-16 14:24:59,280 P2509744 INFO Processing column: {'name': 'music_type', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8, 'source': 'item'}
-2026-07-16 14:24:59,282 P2509744 INFO Processing column: {'name': 'duration_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8, 'source': 'item'}
-2026-07-16 14:24:59,285 P2509744 INFO Processing column: {'name': 'user_active_degree', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11}
-2026-07-16 14:24:59,287 P2509744 INFO Processing column: {'name': 'is_lowactive_period', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
-2026-07-16 14:24:59,288 P2509744 INFO Processing column: {'name': 'is_live_streamer', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-16 14:24:59,289 P2509744 INFO Processing column: {'name': 'is_video_author', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-16 14:24:59,290 P2509744 INFO Processing column: {'name': 'follow_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}
-2026-07-16 14:24:59,290 P2509744 INFO Processing column: {'name': 'fans_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11}
-2026-07-16 14:24:59,290 P2509744 INFO Processing column: {'name': 'friend_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
-2026-07-16 14:24:59,290 P2509744 INFO Processing column: {'name': 'register_days_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}
-2026-07-16 14:24:59,290 P2509744 INFO Processing column: {'name': 'onehot_feat0', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
-2026-07-16 14:24:59,290 P2509744 INFO Processing column: {'name': 'onehot_feat1', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
-2026-07-16 14:24:59,290 P2509744 INFO Processing column: {'name': 'onehot_feat2', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 52}
-2026-07-16 14:24:59,290 P2509744 INFO Processing column: {'name': 'onehot_feat3', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1473}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat4', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat5', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 36}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat6', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat7', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 120}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat8', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 456}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat9', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat10', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat11', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat12', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat13', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-16 14:24:59,291 P2509744 INFO Processing column: {'name': 'onehot_feat14', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-16 14:24:59,292 P2509744 INFO Processing column: {'name': 'onehot_feat15', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-16 14:24:59,292 P2509744 INFO Processing column: {'name': 'onehot_feat16', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-16 14:24:59,292 P2509744 INFO Processing column: {'name': 'onehot_feat17', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
-2026-07-16 14:24:59,292 P2509744 INFO Processing column: {'name': 'tab', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 16}
-2026-07-16 14:24:59,292 P2509744 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
-2026-07-16 14:24:59,292 P2509744 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
-2026-07-16 14:24:59,292 P2509744 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
-2026-07-16 14:24:59,292 P2509744 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 65, 'source': 'action'}
-2026-07-16 14:24:59,293 P2509744 INFO Set column index...
-2026-07-16 14:24:59,293 P2509744 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_map.json
-2026-07-16 14:24:59,372 P2509744 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_processor.pkl
-2026-07-16 14:25:00,445 P2509744 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_vocab.json
-2026-07-16 14:25:28,794 P2509744 INFO Set feature processor done.
-2026-07-16 14:25:28,808 P2509744 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_map.json
-2026-07-16 14:25:28,811 P2509744 INFO Set column index...
-2026-07-16 14:25:28,811 P2509744 INFO Feature specs: {
+2026-07-17 03:42:59,582 P2869947 INFO Set up feature processor...
+2026-07-17 03:42:59,582 P2869947 INFO Fit feature processor...
+2026-07-17 03:42:59,582 P2869947 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-17 03:42:59,582 P2869947 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-17 03:42:59,582 P2869947 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-17 03:42:59,582 P2869947 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 27286}
+2026-07-17 03:42:59,587 P2869947 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 32038726, 'source': 'item'}
+2026-07-17 03:43:05,934 P2869947 INFO Processing column: {'name': 'video_type', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4, 'source': 'item'}
+2026-07-17 03:43:05,936 P2869947 INFO Processing column: {'name': 'primary_tag', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 60, 'source': 'item'}
+2026-07-17 03:43:05,937 P2869947 INFO Processing column: {'name': 'music_type', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8, 'source': 'item'}
+2026-07-17 03:43:05,937 P2869947 INFO Processing column: {'name': 'duration_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8, 'source': 'item'}
+2026-07-17 03:43:05,937 P2869947 INFO Processing column: {'name': 'user_active_degree', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11}
+2026-07-17 03:43:05,938 P2869947 INFO Processing column: {'name': 'is_lowactive_period', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-17 03:43:05,939 P2869947 INFO Processing column: {'name': 'is_live_streamer', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-17 03:43:05,939 P2869947 INFO Processing column: {'name': 'is_video_author', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-17 03:43:05,939 P2869947 INFO Processing column: {'name': 'follow_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}
+2026-07-17 03:43:05,939 P2869947 INFO Processing column: {'name': 'fans_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 11}
+2026-07-17 03:43:05,939 P2869947 INFO Processing column: {'name': 'friend_user_num_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
+2026-07-17 03:43:05,939 P2869947 INFO Processing column: {'name': 'register_days_range', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10}
+2026-07-17 03:43:05,939 P2869947 INFO Processing column: {'name': 'onehot_feat0', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 4}
+2026-07-17 03:43:05,939 P2869947 INFO Processing column: {'name': 'onehot_feat1', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
+2026-07-17 03:43:05,939 P2869947 INFO Processing column: {'name': 'onehot_feat2', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 52}
+2026-07-17 03:43:05,939 P2869947 INFO Processing column: {'name': 'onehot_feat3', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1473}
+2026-07-17 03:43:05,940 P2869947 INFO Processing column: {'name': 'onehot_feat4', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18}
+2026-07-17 03:43:05,940 P2869947 INFO Processing column: {'name': 'onehot_feat5', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 36}
+2026-07-17 03:43:05,940 P2869947 INFO Processing column: {'name': 'onehot_feat6', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-17 03:43:05,940 P2869947 INFO Processing column: {'name': 'onehot_feat7', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 120}
+2026-07-17 03:43:05,940 P2869947 INFO Processing column: {'name': 'onehot_feat8', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 456}
+2026-07-17 03:43:05,940 P2869947 INFO Processing column: {'name': 'onehot_feat9', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 9}
+2026-07-17 03:43:05,940 P2869947 INFO Processing column: {'name': 'onehot_feat10', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7}
+2026-07-17 03:43:05,940 P2869947 INFO Processing column: {'name': 'onehot_feat11', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7}
+2026-07-17 03:43:05,940 P2869947 INFO Processing column: {'name': 'onehot_feat12', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-17 03:43:05,940 P2869947 INFO Processing column: {'name': 'onehot_feat13', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-17 03:43:05,941 P2869947 INFO Processing column: {'name': 'onehot_feat14', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-17 03:43:05,941 P2869947 INFO Processing column: {'name': 'onehot_feat15', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-17 03:43:05,941 P2869947 INFO Processing column: {'name': 'onehot_feat16', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-17 03:43:05,941 P2869947 INFO Processing column: {'name': 'onehot_feat17', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 5}
+2026-07-17 03:43:05,941 P2869947 INFO Processing column: {'name': 'tab', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 16}
+2026-07-17 03:43:05,941 P2869947 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
+2026-07-17 03:43:05,941 P2869947 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-17 03:43:05,941 P2869947 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
+2026-07-17 03:43:05,941 P2869947 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 65, 'source': 'action'}
+2026-07-17 03:43:05,942 P2869947 INFO Set column index...
+2026-07-17 03:43:05,942 P2869947 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_map.json
+2026-07-17 03:43:05,947 P2869947 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_processor.pkl
+2026-07-17 03:43:06,903 P2869947 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_vocab.json
+2026-07-17 03:43:34,505 P2869947 INFO Set feature processor done.
+2026-07-17 03:43:34,522 P2869947 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRand_Video_Action/feature_map.json
+2026-07-17 03:43:34,525 P2869947 INFO Set column index...
+2026-07-17 03:43:34,525 P2869947 INFO Feature specs: {
     "action": "{'source': 'action', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 65}",
     "day_of_week": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 8}",
     "duration_bucket": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 8}",
@@ -157,49 +157,49 @@
     "user_index": "{'type': 'meta'}",
     "video_type": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 4}"
 }
-2026-07-16 14:25:33,616 P2509744 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=3950658), sparse=Adagrad(lr=0.05, params=513095952)
-2026-07-16 14:25:33,616 P2509744 INFO ************ compile start ************
-2026-07-16 14:25:35,197 P2509744 INFO Compiled dense module: attention_layers
-2026-07-16 14:25:35,198 P2509744 INFO Compiled dense module: unified_interaction_layers
-2026-07-16 14:25:35,199 P2509744 INFO Compiled dense module: tower.0
-2026-07-16 14:25:35,200 P2509744 INFO Compiled dense module: tower.1
-2026-07-16 14:25:35,202 P2509744 INFO Compiled dense module: tower.2
-2026-07-16 14:25:35,202 P2509744 INFO Compiled dense module: tower.3
-2026-07-16 14:25:35,203 P2509744 INFO Compiled dense module: tower.4
-2026-07-16 14:25:35,204 P2509744 INFO Compiled dense module: tower.5
-2026-07-16 14:25:37,810 P2509744 INFO Total number of parameters: 517046610.
-2026-07-16 14:25:37,810 P2509744 INFO Number of embedding parameters: 513095952.
-2026-07-16 14:25:37,810 P2509744 INFO Number of dense parameters: 3950658.
-2026-07-16 14:25:37,810 P2509744 INFO Loading datasets...
-2026-07-16 14:25:38,021 P2509744 INFO Train samples: total/64044603, blocks/8
-2026-07-16 14:25:38,049 P2509744 INFO Validation samples: total/8526433, blocks/2
-2026-07-16 14:25:38,049 P2509744 INFO Loading train and validation data done.
-2026-07-16 14:25:38,051 P2509744 INFO BF16 mixed precision: True
-2026-07-16 14:25:38,051 P2509744 INFO Gradient checkpointing: False
-2026-07-16 14:25:38,051 P2509744 INFO Start training: 7814 local batches/epoch
-2026-07-16 14:25:38,051 P2509744 INFO DDP blocked training: True
-2026-07-16 14:25:38,051 P2509744 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
-2026-07-16 14:25:38,051 P2509744 INFO ************ Epoch=1 start ************
-2026-07-16 14:45:36,256 P2509744 INFO Train loss: 1.036864
-2026-07-16 14:45:36,264 P2509744 INFO Evaluation @epoch 1 - batch 7814:
-2026-07-16 14:46:50,715 P2509744 INFO [Task: is_click][Metrics] AUC: 0.787826 - logloss: 0.531361
-2026-07-16 14:47:07,277 P2509744 INFO [Task: is_follow][Metrics] AUC: 0.881911 - logloss: 0.006529
-2026-07-16 14:47:23,636 P2509744 INFO [Task: is_like][Metrics] AUC: 0.928881 - logloss: 0.053479
-2026-07-16 14:47:40,033 P2509744 INFO [Task: is_comment][Metrics] AUC: 0.891771 - logloss: 0.015065
-2026-07-16 14:47:56,429 P2509744 INFO [Task: is_forward][Metrics] AUC: 0.850941 - logloss: 0.005713
-2026-07-16 14:48:14,991 P2509744 INFO [Task: long_view][Metrics] AUC: 0.806211 - logloss: 0.445177
-2026-07-16 14:48:16,003 P2509744 INFO Save best model: monitor(max)=0.857924
-2026-07-16 14:48:18,804 P2509744 INFO ************ Epoch=1 end ************
-2026-07-16 14:48:18,806 P2509744 INFO Training finished.
-2026-07-16 14:48:18,806 P2509744 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/KuaiRand_Video_Action/SSR_KuaiRand_Video_Action.model
-2026-07-16 14:48:21,889 P2509744 INFO ******** Test evaluation ********
-2026-07-16 14:48:21,889 P2509744 INFO Loading datasets...
-2026-07-16 14:48:21,929 P2509744 INFO Test samples: total/8235836, blocks/2
-2026-07-16 14:48:21,930 P2509744 INFO Loading test data done.
-2026-07-16 14:49:27,540 P2509744 INFO [Task: is_click][Metrics] logloss: 0.532993 - AUC: 0.787229
-2026-07-16 14:49:44,457 P2509744 INFO [Task: is_follow][Metrics] logloss: 0.006388 - AUC: 0.878239
-2026-07-16 14:50:00,323 P2509744 INFO [Task: is_like][Metrics] logloss: 0.053675 - AUC: 0.927431
-2026-07-16 14:50:15,965 P2509744 INFO [Task: is_comment][Metrics] logloss: 0.015019 - AUC: 0.888553
-2026-07-16 14:50:31,329 P2509744 INFO [Task: is_forward][Metrics] logloss: 0.005825 - AUC: 0.853009
-2026-07-16 14:50:48,680 P2509744 INFO [Task: long_view][Metrics] logloss: 0.447527 - AUC: 0.805588
-2026-07-16 14:50:50,815 P2509744 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/KuaiRand_Video_Action/SSR_KuaiRand_Video_Action.model
+2026-07-17 03:43:39,160 P2869947 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=3950658), sparse=Adagrad(lr=0.05, params=513095952)
+2026-07-17 03:43:39,161 P2869947 INFO ************ compile start ************
+2026-07-17 03:43:40,629 P2869947 INFO Compiled dense module: attention_layers
+2026-07-17 03:43:40,631 P2869947 INFO Compiled dense module: unified_interaction_layers
+2026-07-17 03:43:40,632 P2869947 INFO Compiled dense module: tower.0
+2026-07-17 03:43:40,633 P2869947 INFO Compiled dense module: tower.1
+2026-07-17 03:43:40,634 P2869947 INFO Compiled dense module: tower.2
+2026-07-17 03:43:40,635 P2869947 INFO Compiled dense module: tower.3
+2026-07-17 03:43:40,636 P2869947 INFO Compiled dense module: tower.4
+2026-07-17 03:43:40,637 P2869947 INFO Compiled dense module: tower.5
+2026-07-17 03:43:43,236 P2869947 INFO Total number of parameters: 517046610.
+2026-07-17 03:43:43,236 P2869947 INFO Number of embedding parameters: 513095952.
+2026-07-17 03:43:43,236 P2869947 INFO Number of dense parameters: 3950658.
+2026-07-17 03:43:43,237 P2869947 INFO Loading datasets...
+2026-07-17 03:43:43,321 P2869947 INFO Train samples: total/64044603, blocks/8
+2026-07-17 03:43:43,349 P2869947 INFO Validation samples: total/8526433, blocks/2
+2026-07-17 03:43:43,349 P2869947 INFO Loading train and validation data done.
+2026-07-17 03:43:43,359 P2869947 INFO BF16 mixed precision: True
+2026-07-17 03:43:43,359 P2869947 INFO Gradient checkpointing: False
+2026-07-17 03:43:43,359 P2869947 INFO Start training: 7814 local batches/epoch
+2026-07-17 03:43:43,359 P2869947 INFO DDP blocked training: True
+2026-07-17 03:43:43,359 P2869947 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
+2026-07-17 03:43:43,360 P2869947 INFO ************ Epoch=1 start ************
+2026-07-17 04:02:57,515 P2869947 INFO Train loss: 1.036864
+2026-07-17 04:02:57,523 P2869947 INFO Evaluation @epoch 1 - batch 7814:
+2026-07-17 04:04:08,730 P2869947 INFO [Task: is_click][Metrics] AUC: 0.787826 - logloss: 0.531361
+2026-07-17 04:04:24,349 P2869947 INFO [Task: is_follow][Metrics] AUC: 0.881911 - logloss: 0.006529
+2026-07-17 04:04:40,167 P2869947 INFO [Task: is_like][Metrics] AUC: 0.928881 - logloss: 0.053479
+2026-07-17 04:04:56,507 P2869947 INFO [Task: is_comment][Metrics] AUC: 0.891771 - logloss: 0.015065
+2026-07-17 04:05:12,617 P2869947 INFO [Task: is_forward][Metrics] AUC: 0.850941 - logloss: 0.005713
+2026-07-17 04:05:30,575 P2869947 INFO [Task: long_view][Metrics] AUC: 0.806211 - logloss: 0.445177
+2026-07-17 04:05:31,553 P2869947 INFO Save best model: monitor(max)=0.857924
+2026-07-17 04:05:34,189 P2869947 INFO ************ Epoch=1 end ************
+2026-07-17 04:05:34,189 P2869947 INFO Training finished.
+2026-07-17 04:05:34,189 P2869947 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/KuaiRand_Video_Action/SSR_KuaiRand_Video_Action.model
+2026-07-17 04:05:37,377 P2869947 INFO ******** Test evaluation ********
+2026-07-17 04:05:37,377 P2869947 INFO Loading datasets...
+2026-07-17 04:05:37,976 P2869947 INFO Test samples: total/8235836, blocks/2
+2026-07-17 04:05:37,977 P2869947 INFO Loading test data done.
+2026-07-17 04:06:42,160 P2869947 INFO [Task: is_click][Metrics] logloss: 0.532993 - AUC: 0.787229
+2026-07-17 04:06:57,302 P2869947 INFO [Task: is_follow][Metrics] logloss: 0.006388 - AUC: 0.878239
+2026-07-17 04:07:12,712 P2869947 INFO [Task: is_like][Metrics] logloss: 0.053675 - AUC: 0.927431
+2026-07-17 04:07:27,727 P2869947 INFO [Task: is_comment][Metrics] logloss: 0.015019 - AUC: 0.888553
+2026-07-17 04:07:42,564 P2869947 INFO [Task: is_forward][Metrics] logloss: 0.005825 - AUC: 0.853009
+2026-07-17 04:07:59,090 P2869947 INFO [Task: long_view][Metrics] logloss: 0.447527 - AUC: 0.805588
+2026-07-17 04:08:00,914 P2869947 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/KuaiRand_Video_Action/SSR_KuaiRand_Video_Action.model

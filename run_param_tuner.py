@@ -1,7 +1,7 @@
 # =========================================================================
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
 # Copyright (C) 2025. FuxiCTR Authors. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,9 +22,9 @@ import autotuner
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, default='./benchmark/TransAct_kuaivideo_x2/TransAct_kuaivideo_x2_tuner_config_01_50.yaml',
+    parser.add_argument('--config', type=str, default='./config/',
                         help='The config directory or file path for para tuning.')
-    parser.add_argument('--tag', type=str, default=None, 
+    parser.add_argument('--tag', type=str, default=None,
                         help='Use the tag to determine which expid to run, e.g. 001 for the first expid.')
     parser.add_argument('--gpu', nargs='+', default=[0], help='The list of gpu devices, -1 for cpu.')
     args = vars(parser.parse_args())

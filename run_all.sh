@@ -279,25 +279,18 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 #run_exp "OneTrans_MerRec_Action_AttentionActivation_Mish"
 
 # ==================================================
-# OneTrans_var architectural trick ablations
-# Run each enabled trick on both datasets.
+# RankMixer dense optimizer ablations with HeavyBall
 # ==================================================
-run_exp "OneTrans_var_KuaiRand_Video_Action_PreU_True"
-run_exp "OneTrans_var_KuaiRand_Video_Action_PostU_True"
-run_exp "OneTrans_var_KuaiRand_Video_Action_FuseU_True"
-run_exp "OneTrans_var_KuaiRand_Video_Action_SpecT_True"
-run_exp "OneTrans_var_KuaiRand_Video_Action_AttGate_True"
-run_exp "OneTrans_var_KuaiRand_Video_Action_RoPE_True"
-run_exp "OneTrans_var_KuaiRand_Video_Action_QKNorm_True"
-run_exp "OneTrans_var_KuaiRand_Video_Action_GNorm_True"
+#run_exp "RankMixer_KuaiRand_Video_Action_Optimizer_Muon"
+#run_exp "RankMixer_KuaiRand_Video_Action_Optimizer_LaProp"
+#run_exp "RankMixer_KuaiRand_Video_Action_Optimizer_Scion"
+#run_exp "RankMixer_KuaiRand_Video_Action_Optimizer_SOAP"
+#run_exp "RankMixer_KuaiRand_Video_Action_Optimizer_RMSProp"
 
-run_exp "OneTrans_var_MerRec_Action_PreU_True"
-run_exp "OneTrans_var_MerRec_Action_PostU_True"
-run_exp "OneTrans_var_MerRec_Action_FuseU_True"
-run_exp "OneTrans_var_MerRec_Action_SpecT_True"
-run_exp "OneTrans_var_MerRec_Action_AttGate_True"
-run_exp "OneTrans_var_MerRec_Action_RoPE_True"
-run_exp "OneTrans_var_MerRec_Action_QKNorm_True"
-run_exp "OneTrans_var_MerRec_Action_GNorm_True"
+#run_exp "RankMixer_MerRec_Action_Optimizer_Muon"
+#run_exp "RankMixer_MerRec_Action_Optimizer_LaProp"
+#run_exp "RankMixer_MerRec_Action_Optimizer_Scion"
+#run_exp "RankMixer_MerRec_Action_Optimizer_SOAP"
+#run_exp "RankMixer_MerRec_Action_Optimizer_RMSProp"
 
 echo "All experiments completed successfully."

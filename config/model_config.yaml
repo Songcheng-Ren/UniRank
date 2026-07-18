@@ -100,6 +100,31 @@ RankMixer_KuaiRand_Video_Action_Tokenizer_Random:
     <<: *rankmixer_kuairand_tokenizer_base
     tokenizer_type: Random
 
+RankMixer_KuaiRand_Video_Action_Optimizer_Muon:
+    <<: *rankmixer_kuairand_tokenizer_base
+    dense_optimizer: heavyball.Muon
+    dense_learning_rate: 1.0e-2
+
+RankMixer_KuaiRand_Video_Action_Optimizer_LaProp:
+    <<: *rankmixer_kuairand_tokenizer_base
+    dense_optimizer: heavyball.LaProp
+    dense_learning_rate: 4.0e-4
+
+RankMixer_KuaiRand_Video_Action_Optimizer_Scion:
+    <<: *rankmixer_kuairand_tokenizer_base
+    dense_optimizer: heavyball.Scion
+    dense_learning_rate: 2.5e-3
+
+RankMixer_KuaiRand_Video_Action_Optimizer_SOAP:
+    <<: *rankmixer_kuairand_tokenizer_base
+    dense_optimizer: heavyball.SOAP
+    dense_learning_rate: 1.0e-3
+
+RankMixer_KuaiRand_Video_Action_Optimizer_RMSProp:
+    <<: *rankmixer_kuairand_tokenizer_base
+    dense_optimizer: heavyball.RMSprop
+    dense_learning_rate: 1.0e-4
+
 RankMixer_KuaiRand_Video_Action_Mid: # This is a config template
     model: RankMixer
     dataset_id: KuaiRand_Video_Action
@@ -269,6 +294,31 @@ RankMixer_MerRec_Action_Tokenizer_Field:
 RankMixer_MerRec_Action_Tokenizer_Random:
     <<: *rankmixer_merrec_tokenizer_base
     tokenizer_type: Random
+
+RankMixer_MerRec_Action_Optimizer_Muon:
+    <<: *rankmixer_merrec_tokenizer_base
+    dense_optimizer: heavyball.Muon
+    dense_learning_rate: 1.0e-2
+
+RankMixer_MerRec_Action_Optimizer_LaProp:
+    <<: *rankmixer_merrec_tokenizer_base
+    dense_optimizer: heavyball.LaProp
+    dense_learning_rate: 4.0e-4
+
+RankMixer_MerRec_Action_Optimizer_Scion:
+    <<: *rankmixer_merrec_tokenizer_base
+    dense_optimizer: heavyball.Scion
+    dense_learning_rate: 2.5e-3
+
+RankMixer_MerRec_Action_Optimizer_SOAP:
+    <<: *rankmixer_merrec_tokenizer_base
+    dense_optimizer: heavyball.SOAP
+    dense_learning_rate: 1.0e-3
+
+RankMixer_MerRec_Action_Optimizer_RMSProp:
+    <<: *rankmixer_merrec_tokenizer_base
+    dense_optimizer: heavyball.RMSprop
+    dense_learning_rate: 1.0e-4
 
 UniMixer_QK_Video_Action: # This is a config template
     model: UniMixer
@@ -663,144 +713,6 @@ OneTrans_MerRec_Action_AttentionActivation_Sigmoid:
 OneTrans_MerRec_Action_AttentionActivation_Mish:
     <<: *onetrans_merrec_tokenizer_base
     attention_activation_type: Mish
-
-OneTrans_var_KuaiRand_Video_Action: &onetrans_var_kuairand_base
-    model: OneTrans_var
-    dataset_id: KuaiRand_Video_Action
-    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
-    metrics: ['logloss', 'AUC']
-    task: binary_classification
-    batch_size: 8192
-    embedding_dim: 16
-    tower_hidden_units: [128, 64]
-    num_tasks: 6
-    num_layers: 3
-    num_heads: 2
-    token_dim: 256
-    num_ns_token: 4
-    tokenizer_type: Auto
-    attention_activation_type: SoftMax
-    pre_u: False
-    post_u: False
-    fuse_u: True
-    spec_t: False
-    att_gate: False
-    rope: False
-    qk_norm: False
-    g_norm: False
-    dnn_activations: ReLU
-    tower_activations: ReLU
-    net_dropout: 0
-    epochs: 1
-    shuffle: True
-    seed: 20262027
-    monitor: {'AUC': 1, 'logloss': 0}
-    monitor_mode: 'max'
-    max_len: 100
-    accumulation_steps: 1
-
-OneTrans_var_KuaiRand_Video_Action_PreU_True:
-    <<: *onetrans_var_kuairand_base
-    pre_u: True
-    fuse_u: False
-
-OneTrans_var_KuaiRand_Video_Action_PostU_True:
-    <<: *onetrans_var_kuairand_base
-    post_u: True
-    fuse_u: False
-
-OneTrans_var_KuaiRand_Video_Action_FuseU_True:
-    <<: *onetrans_var_kuairand_base
-    fuse_u: True
-
-OneTrans_var_KuaiRand_Video_Action_SpecT_True:
-    <<: *onetrans_var_kuairand_base
-    spec_t: True
-
-OneTrans_var_KuaiRand_Video_Action_AttGate_True:
-    <<: *onetrans_var_kuairand_base
-    att_gate: True
-
-OneTrans_var_KuaiRand_Video_Action_RoPE_True:
-    <<: *onetrans_var_kuairand_base
-    rope: True
-
-OneTrans_var_KuaiRand_Video_Action_QKNorm_True:
-    <<: *onetrans_var_kuairand_base
-    qk_norm: True
-
-OneTrans_var_KuaiRand_Video_Action_GNorm_True:
-    <<: *onetrans_var_kuairand_base
-    g_norm: True
-
-OneTrans_var_MerRec_Action: &onetrans_var_merrec_base
-    model: OneTrans_var
-    dataset_id: MerRec_Action
-    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
-    metrics: ['logloss', 'AUC']
-    task: binary_classification
-    batch_size: 8192
-    embedding_dim: 16
-    tower_hidden_units: [128, 64]
-    num_tasks: 5
-    num_layers: 3
-    num_heads: 2
-    token_dim: 256
-    num_ns_token: 4
-    tokenizer_type: Auto
-    attention_activation_type: SoftMax
-    pre_u: False
-    post_u: False
-    fuse_u: True
-    spec_t: False
-    att_gate: False
-    rope: False
-    qk_norm: False
-    g_norm: False
-    dnn_activations: ReLU
-    tower_activations: ReLU
-    net_dropout: 0
-    epochs: 1
-    shuffle: True
-    seed: 20262027
-    monitor: {'AUC': 1, 'logloss': 0}
-    monitor_mode: 'max'
-    max_len: 100
-    accumulation_steps: 1
-
-OneTrans_var_MerRec_Action_PreU_True:
-    <<: *onetrans_var_merrec_base
-    pre_u: True
-    fuse_u: False
-
-OneTrans_var_MerRec_Action_PostU_True:
-    <<: *onetrans_var_merrec_base
-    post_u: True
-    fuse_u: False
-
-OneTrans_var_MerRec_Action_FuseU_True:
-    <<: *onetrans_var_merrec_base
-    fuse_u: True
-
-OneTrans_var_MerRec_Action_SpecT_True:
-    <<: *onetrans_var_merrec_base
-    spec_t: True
-
-OneTrans_var_MerRec_Action_AttGate_True:
-    <<: *onetrans_var_merrec_base
-    att_gate: True
-
-OneTrans_var_MerRec_Action_RoPE_True:
-    <<: *onetrans_var_merrec_base
-    rope: True
-
-OneTrans_var_MerRec_Action_QKNorm_True:
-    <<: *onetrans_var_merrec_base
-    qk_norm: True
-
-OneTrans_var_MerRec_Action_GNorm_True:
-    <<: *onetrans_var_merrec_base
-    g_norm: True
 
 HyFormer_QK_Video_Action: # This is a config template
     model: HyFormer

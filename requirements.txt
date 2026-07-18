@@ -4,6 +4,7 @@ PyYAML
 scikit-learn
 numpy
 h5py
+heavyball==3.2.0
 tqdm
 huggingface_hub
 pyarrow

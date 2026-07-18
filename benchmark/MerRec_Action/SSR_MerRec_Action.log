@@ -1,4 +1,4 @@
-2026-07-14 16:40:20,925 P657465 INFO Params: {
+2026-07-17 02:43:50,220 P2852257 INFO Params: {
     "accumulation_steps": "1",
     "attention_dropout": "0",
     "batch_size": "8192",
@@ -66,36 +66,36 @@
     "verbose": "1",
     "world_size": "4"
 }
-2026-07-14 16:40:20,927 P657465 INFO Set up feature processor...
-2026-07-14 16:40:20,927 P657465 INFO Fit feature processor...
-2026-07-14 16:40:20,927 P657465 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-14 16:40:20,927 P657465 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-14 16:40:20,927 P657465 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
-2026-07-14 16:40:20,927 P657465 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1697916}
-2026-07-14 16:40:21,283 P657465 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 43817684, 'source': 'item'}
-2026-07-14 16:40:29,234 P657465 INFO Processing column: {'name': 'product_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 893620, 'source': 'item'}
-2026-07-14 16:40:29,395 P657465 INFO Processing column: {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10, 'source': 'item'}
-2026-07-14 16:40:29,395 P657465 INFO Processing column: {'name': 'c0_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18, 'source': 'item'}
-2026-07-14 16:40:29,396 P657465 INFO Processing column: {'name': 'c1_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 310, 'source': 'item'}
-2026-07-14 16:40:29,396 P657465 INFO Processing column: {'name': 'c2_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3042, 'source': 'item'}
-2026-07-14 16:40:29,397 P657465 INFO Processing column: {'name': 'brand_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 19783, 'source': 'item'}
-2026-07-14 16:40:29,400 P657465 INFO Processing column: {'name': 'item_condition_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}
-2026-07-14 16:40:29,400 P657465 INFO Processing column: {'name': 'size_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 356, 'source': 'item'}
-2026-07-14 16:40:29,400 P657465 INFO Processing column: {'name': 'shipper_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3, 'source': 'item'}
-2026-07-14 16:40:29,400 P657465 INFO Processing column: {'name': 'color', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7311, 'source': 'item'}
-2026-07-14 16:40:29,401 P657465 INFO Processing column: {'name': 'session_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3701837}
-2026-07-14 16:40:30,103 P657465 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
-2026-07-14 16:40:30,104 P657465 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
-2026-07-14 16:40:30,104 P657465 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
-2026-07-14 16:40:30,105 P657465 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 33, 'source': 'action'}
-2026-07-14 16:40:30,105 P657465 INFO Set column index...
-2026-07-14 16:40:30,106 P657465 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
-2026-07-14 16:40:30,172 P657465 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_processor.pkl
-2026-07-14 16:40:31,750 P657465 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_vocab.json
-2026-07-14 16:41:16,845 P657465 INFO Set feature processor done.
-2026-07-14 16:41:16,860 P657465 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
-2026-07-14 16:41:16,863 P657465 INFO Set column index...
-2026-07-14 16:41:16,863 P657465 INFO Feature specs: {
+2026-07-17 02:43:50,222 P2852257 INFO Set up feature processor...
+2026-07-17 02:43:50,222 P2852257 INFO Fit feature processor...
+2026-07-17 02:43:50,222 P2852257 INFO Processing column: {'name': 'user_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-17 02:43:50,222 P2852257 INFO Processing column: {'name': 'item_index', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-17 02:43:50,222 P2852257 INFO Processing column: {'name': 'seq_len', 'active': True, 'dtype': 'int', 'type': 'meta'}
+2026-07-17 02:43:50,222 P2852257 INFO Processing column: {'name': 'user_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 1697916}
+2026-07-17 02:43:50,543 P2852257 INFO Processing column: {'name': 'item_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 43817684, 'source': 'item'}
+2026-07-17 02:43:58,266 P2852257 INFO Processing column: {'name': 'product_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 893620, 'source': 'item'}
+2026-07-17 02:43:58,418 P2852257 INFO Processing column: {'name': 'price_bucket', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 10, 'source': 'item'}
+2026-07-17 02:43:58,418 P2852257 INFO Processing column: {'name': 'c0_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 18, 'source': 'item'}
+2026-07-17 02:43:58,419 P2852257 INFO Processing column: {'name': 'c1_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 310, 'source': 'item'}
+2026-07-17 02:43:58,419 P2852257 INFO Processing column: {'name': 'c2_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3042, 'source': 'item'}
+2026-07-17 02:43:58,419 P2852257 INFO Processing column: {'name': 'brand_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 19783, 'source': 'item'}
+2026-07-17 02:43:58,422 P2852257 INFO Processing column: {'name': 'item_condition_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7, 'source': 'item'}
+2026-07-17 02:43:58,423 P2852257 INFO Processing column: {'name': 'size_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 356, 'source': 'item'}
+2026-07-17 02:43:58,423 P2852257 INFO Processing column: {'name': 'shipper_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3, 'source': 'item'}
+2026-07-17 02:43:58,423 P2852257 INFO Processing column: {'name': 'color', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 7311, 'source': 'item'}
+2026-07-17 02:43:58,424 P2852257 INFO Processing column: {'name': 'session_id', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3701837}
+2026-07-17 02:43:59,089 P2852257 INFO Processing column: {'name': 'day_of_week', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 8}
+2026-07-17 02:43:59,089 P2852257 INFO Processing column: {'name': 'is_weekend', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 3}
+2026-07-17 02:43:59,089 P2852257 INFO Processing column: {'name': 'hour', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 25}
+2026-07-17 02:43:59,089 P2852257 INFO Processing column: {'name': 'action', 'active': True, 'dtype': 'int', 'type': 'categorical', 'vocab_size': 33, 'source': 'action'}
+2026-07-17 02:43:59,090 P2852257 INFO Set column index...
+2026-07-17 02:43:59,090 P2852257 INFO Save feature_map to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
+2026-07-17 02:43:59,096 P2852257 INFO Pickle feature_encode: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_processor.pkl
+2026-07-17 02:44:00,572 P2852257 INFO Save feature_vocab to json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_vocab.json
+2026-07-17 02:44:42,825 P2852257 INFO Set feature processor done.
+2026-07-17 02:44:42,849 P2852257 INFO Load feature_map from json: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/MerRec_Action/feature_map.json
+2026-07-17 02:44:42,852 P2852257 INFO Set column index...
+2026-07-17 02:44:42,853 P2852257 INFO Feature specs: {
     "action": "{'source': 'action', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 33}",
     "brand_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 19783}",
     "c0_id": "{'source': 'item', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 18}",
@@ -117,46 +117,46 @@
     "user_id": "{'source': '', 'type': 'categorical', 'padding_idx': 0, 'vocab_size': 1697916}",
     "user_index": "{'type': 'meta'}"
 }
-2026-07-14 16:41:24,379 P657465 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=3778369), sparse=Adagrad(lr=0.05, params=802271456)
-2026-07-14 16:41:24,379 P657465 INFO ************ compile start ************
-2026-07-14 16:41:26,094 P657465 INFO Compiled dense module: attention_layers
-2026-07-14 16:41:26,096 P657465 INFO Compiled dense module: unified_interaction_layers
-2026-07-14 16:41:26,097 P657465 INFO Compiled dense module: tower.0
-2026-07-14 16:41:26,098 P657465 INFO Compiled dense module: tower.1
-2026-07-14 16:41:26,099 P657465 INFO Compiled dense module: tower.2
-2026-07-14 16:41:26,100 P657465 INFO Compiled dense module: tower.3
-2026-07-14 16:41:26,101 P657465 INFO Compiled dense module: tower.4
-2026-07-14 16:41:30,067 P657465 INFO Total number of parameters: 806049825.
-2026-07-14 16:41:30,069 P657465 INFO Number of embedding parameters: 802271456.
-2026-07-14 16:41:30,070 P657465 INFO Number of dense parameters: 3778369.
-2026-07-14 16:41:30,072 P657465 INFO Loading datasets...
-2026-07-14 16:41:30,106 P657465 INFO Train samples: total/36090865, blocks/2
-2026-07-14 16:41:30,132 P657465 INFO Validation samples: total/4124870, blocks/2
-2026-07-14 16:41:30,132 P657465 INFO Loading train and validation data done.
-2026-07-14 16:41:30,133 P657465 INFO BF16 mixed precision: True
-2026-07-14 16:41:30,133 P657465 INFO Gradient checkpointing: False
-2026-07-14 16:41:30,133 P657465 INFO Start training: 4405 local batches/epoch
-2026-07-14 16:41:30,133 P657465 INFO DDP blocked training: True
-2026-07-14 16:41:30,133 P657465 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
-2026-07-14 16:41:30,133 P657465 INFO ************ Epoch=1 start ************
-2026-07-14 16:51:38,343 P657465 INFO Train loss: 0.429836
-2026-07-14 16:51:38,359 P657465 INFO Evaluation @epoch 1 - batch 4405:
-2026-07-14 16:52:20,005 P657465 INFO [Task: Like][Metrics] AUC: 0.748331 - logloss: 0.332210
-2026-07-14 16:52:27,573 P657465 INFO [Task: Cart][Metrics] AUC: 0.798015 - logloss: 0.056555
-2026-07-14 16:52:35,045 P657465 INFO [Task: Offer][Metrics] AUC: 0.760984 - logloss: 0.023874
-2026-07-14 16:52:42,487 P657465 INFO [Task: Checkout][Metrics] AUC: 0.850243 - logloss: 0.005429
-2026-07-14 16:52:49,897 P657465 INFO [Task: Purchase][Metrics] AUC: 0.855867 - logloss: 0.003607
-2026-07-14 16:52:50,296 P657465 INFO Save best model: monitor(max)=0.802688
-2026-07-14 16:52:54,752 P657465 INFO ************ Epoch=1 end ************
-2026-07-14 16:52:54,754 P657465 INFO Training finished.
-2026-07-14 16:52:54,754 P657465 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/SSR_MerRec_Action.model
-2026-07-14 16:52:58,014 P657465 INFO ******** Test evaluation ********
-2026-07-14 16:52:58,014 P657465 INFO Loading datasets...
-2026-07-14 16:52:58,057 P657465 INFO Test samples: total/2919932, blocks/2
-2026-07-14 16:52:58,058 P657465 INFO Loading test data done.
-2026-07-14 16:53:24,428 P657465 INFO [Task: Like][Metrics] logloss: 0.329563 - AUC: 0.747009
-2026-07-14 16:53:29,821 P657465 INFO [Task: Cart][Metrics] logloss: 0.053391 - AUC: 0.800488
-2026-07-14 16:53:35,158 P657465 INFO [Task: Offer][Metrics] logloss: 0.021065 - AUC: 0.759118
-2026-07-14 16:53:40,445 P657465 INFO [Task: Checkout][Metrics] logloss: 0.004650 - AUC: 0.847274
-2026-07-14 16:53:45,778 P657465 INFO [Task: Purchase][Metrics] logloss: 0.002986 - AUC: 0.855165
-2026-07-14 16:53:46,922 P657465 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/SSR_MerRec_Action.model
+2026-07-17 02:44:49,872 P2852257 INFO Optimizers: dense=AdamW(lr=0.0001, weight_decay=0, params=3778369), sparse=Adagrad(lr=0.05, params=802271456)
+2026-07-17 02:44:49,873 P2852257 INFO ************ compile start ************
+2026-07-17 02:44:51,543 P2852257 INFO Compiled dense module: attention_layers
+2026-07-17 02:44:51,545 P2852257 INFO Compiled dense module: unified_interaction_layers
+2026-07-17 02:44:51,546 P2852257 INFO Compiled dense module: tower.0
+2026-07-17 02:44:51,547 P2852257 INFO Compiled dense module: tower.1
+2026-07-17 02:44:51,548 P2852257 INFO Compiled dense module: tower.2
+2026-07-17 02:44:51,549 P2852257 INFO Compiled dense module: tower.3
+2026-07-17 02:44:51,550 P2852257 INFO Compiled dense module: tower.4
+2026-07-17 02:44:55,438 P2852257 INFO Total number of parameters: 806049825.
+2026-07-17 02:44:55,438 P2852257 INFO Number of embedding parameters: 802271456.
+2026-07-17 02:44:55,438 P2852257 INFO Number of dense parameters: 3778369.
+2026-07-17 02:44:55,439 P2852257 INFO Loading datasets...
+2026-07-17 02:44:55,468 P2852257 INFO Train samples: total/36090865, blocks/2
+2026-07-17 02:44:55,495 P2852257 INFO Validation samples: total/4124870, blocks/2
+2026-07-17 02:44:55,495 P2852257 INFO Loading train and validation data done.
+2026-07-17 02:44:55,526 P2852257 INFO BF16 mixed precision: True
+2026-07-17 02:44:55,526 P2852257 INFO Gradient checkpointing: False
+2026-07-17 02:44:55,526 P2852257 INFO Start training: 4405 local batches/epoch
+2026-07-17 02:44:55,527 P2852257 INFO DDP blocked training: True
+2026-07-17 02:44:55,527 P2852257 INFO Disable step-wise eval and use epoch-end synchronized eval for DDP + blocked dataloader.
+2026-07-17 02:44:55,527 P2852257 INFO ************ Epoch=1 start ************
+2026-07-17 03:18:23,764 P2852257 INFO Train loss: 0.429836
+2026-07-17 03:18:23,791 P2852257 INFO Evaluation @epoch 1 - batch 4405:
+2026-07-17 03:19:20,123 P2852257 INFO [Task: Like][Metrics] AUC: 0.748331 - logloss: 0.332210
+2026-07-17 03:19:27,612 P2852257 INFO [Task: Cart][Metrics] AUC: 0.798015 - logloss: 0.056555
+2026-07-17 03:19:35,049 P2852257 INFO [Task: Offer][Metrics] AUC: 0.760984 - logloss: 0.023874
+2026-07-17 03:19:42,554 P2852257 INFO [Task: Checkout][Metrics] AUC: 0.850243 - logloss: 0.005429
+2026-07-17 03:19:50,055 P2852257 INFO [Task: Purchase][Metrics] AUC: 0.855867 - logloss: 0.003607
+2026-07-17 03:19:50,450 P2852257 INFO Save best model: monitor(max)=0.802688
+2026-07-17 03:19:54,471 P2852257 INFO ************ Epoch=1 end ************
+2026-07-17 03:19:54,471 P2852257 INFO Training finished.
+2026-07-17 03:19:54,471 P2852257 INFO Load best model: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/SSR_MerRec_Action.model
+2026-07-17 03:19:57,910 P2852257 INFO ******** Test evaluation ********
+2026-07-17 03:19:57,910 P2852257 INFO Loading datasets...
+2026-07-17 03:19:57,949 P2852257 INFO Test samples: total/2919932, blocks/2
+2026-07-17 03:19:57,949 P2852257 INFO Loading test data done.
+2026-07-17 03:20:34,455 P2852257 INFO [Task: Like][Metrics] logloss: 0.329563 - AUC: 0.747009
+2026-07-17 03:20:39,769 P2852257 INFO [Task: Cart][Metrics] logloss: 0.053391 - AUC: 0.800488
+2026-07-17 03:20:45,020 P2852257 INFO [Task: Offer][Metrics] logloss: 0.021065 - AUC: 0.759118
+2026-07-17 03:20:50,185 P2852257 INFO [Task: Checkout][Metrics] logloss: 0.004650 - AUC: 0.847274
+2026-07-17 03:20:55,417 P2852257 INFO [Task: Purchase][Metrics] logloss: 0.002986 - AUC: 0.855165
+2026-07-17 03:20:56,606 P2852257 INFO Deleted model checkpoint: /mnt/ceph-nj1-csp/bingoozhang/salmonli/ft_local/UniRank/checkpoints/MerRec_Action/SSR_MerRec_Action.model
