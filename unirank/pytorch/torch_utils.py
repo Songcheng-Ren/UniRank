@@ -2,7 +2,7 @@
 # Copyright (C) 2026. UniRank Authors. All rights reserved.
 # Copyright (C) 2024. The FuxiCTR Library. All rights reserved.
 # Copyright (C) 2022. Huawei Technologies Co., Ltd. All rights reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 
 
 import os
+import sys
 from functools import partial
 
 import numpy as np
@@ -99,7 +100,7 @@ def get_device(gpu=-1):
     if gpu >= 0 and torch.cuda.is_available():
         device = torch.device("cuda:" + str(gpu))
     else:
-        device = torch.device("cpu")   
+        device = torch.device("cpu")
     return device
 
 def get_optimizer(optimizer, params, lr, weight_decay=0):
@@ -107,23 +108,88 @@ def get_optimizer(optimizer, params, lr, weight_decay=0):
     if len(params) == 0:
         return None
     if isinstance(optimizer, str):
-        optimizer_alias = {
-            "adam": "Adam",
-            "adamw": "AdamW",
-            "adagrad": "Adagrad",
-            "sgd": "SGD",
-            "sparseadam": "SparseAdam",
+        optimizer_name = optimizer.strip()
+        optimizer_key = optimizer_name.lower()
+        heavyball_alias = {
+            "muon": "Muon",
+            "laprop": "LaProp",
+            "scion": "Scion",
+            "soap": "SOAP",
         }
-        optimizer = optimizer_alias.get(optimizer.lower(), optimizer)
+        use_heavyball = optimizer_key.startswith("heavyball.")
+        if use_heavyball:
+            heavyball_name = optimizer_name.split(".", 1)[1]
+        else:
+            heavyball_name = heavyball_alias.get(optimizer_key)
+            use_heavyball = heavyball_name is not None
+
+        if use_heavyball:
+            if sys.version_info < (3, 10):
+                raise RuntimeError(
+                    "HeavyBall 3.2.0 requires Python 3.10 or newer."
+                )
+            try:
+                import heavyball
+            except ImportError as error:
+                raise ImportError(
+                    "HeavyBall optimizer '{}' requires the 'heavyball' package. "
+                    "Install dependencies with `pip install -r requirements.txt`."
+                    .format(optimizer_name)
+                ) from error
+
+            heavyball_classes = {}
+            for name in dir(heavyball):
+                candidate = getattr(heavyball, name)
+                if (
+                    inspect.isclass(candidate)
+                    and issubclass(candidate, torch.optim.Optimizer)
+                ):
+                    heavyball_classes[name.lower()] = name
+            resolved_name = heavyball_classes.get(heavyball_name.lower())
+            if resolved_name is None:
+                raise NotImplementedError(
+                    "HeavyBall optimizer={} is not supported.".format(
+                        heavyball_name
+                    )
+                )
+            optimizer_cls = getattr(heavyball, resolved_name)
+        else:
+            optimizer_alias = {
+                "adam": "Adam",
+                "adamw": "AdamW",
+                "adagrad": "Adagrad",
+                "sgd": "SGD",
+                "sparseadam": "SparseAdam",
+            }
+            optimizer_name = optimizer_alias.get(optimizer_key, optimizer_name)
+            try:
+                optimizer_cls = getattr(torch.optim, optimizer_name)
+            except AttributeError as error:
+                raise NotImplementedError(
+                    "optimizer={} is not supported.".format(optimizer_name)
+                ) from error
+    else:
+        optimizer_cls = optimizer
+
+    if not callable(optimizer_cls):
+        raise NotImplementedError(
+            "optimizer={} is not supported.".format(optimizer_cls)
+        )
+
+    kwargs = {"lr": lr}
+    if "weight_decay" in inspect.signature(optimizer_cls).parameters:
+        kwargs["weight_decay"] = weight_decay
     try:
-        optimizer_cls = getattr(torch.optim, optimizer)
-        kwargs = {"lr": lr}
-        if "weight_decay" in inspect.signature(optimizer_cls).parameters:
-            kwargs["weight_decay"] = weight_decay
-        optimizer = optimizer_cls(params, **kwargs)
-    except Exception:
-        raise NotImplementedError("optimizer={} is not supported.".format(optimizer))
-    return optimizer
+        return optimizer_cls(params, **kwargs)
+    except Exception as error:
+        raise RuntimeError(
+            "Failed to initialize optimizer={} with lr={} and weight_decay={}."
+            .format(
+                getattr(optimizer_cls, "__name__", str(optimizer_cls)),
+                lr,
+                weight_decay,
+            )
+        ) from error
 
 def get_loss(loss):
     if isinstance(loss, str):
@@ -132,10 +198,10 @@ def get_loss(loss):
     try:
         loss_fn = getattr(torch.functional.F, loss)
     except:
-        try: 
+        try:
             loss_fn = eval("losses." + loss)
         except:
-            raise NotImplementedError("loss={} is not supported.".format(loss))       
+            raise NotImplementedError("loss={} is not supported.".format(loss))
     return loss_fn
 
 def get_activation(activation, hidden_units=None):
