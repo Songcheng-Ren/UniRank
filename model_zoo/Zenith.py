@@ -42,6 +42,7 @@ class Zenith(MultiTaskModel):
                  num_token=4,
                  net_dropout=0,
                  accumulation_steps=1,
+                 attention_activation_type="SoftMax",
                  **kwargs):
         super(Zenith, self).__init__(feature_map,
                                        model_id=model_id,
@@ -95,7 +96,8 @@ class Zenith(MultiTaskModel):
         self.attention_layers = MultiHeadTargetAttention(
             input_dim=self.item_info_dim,
             attention_dim=token_dim if attention_dim is None else attention_dim,
-            dropout_rate=attention_dropout
+            dropout_rate=attention_dropout,
+            attention_activation_type=attention_activation_type,
         )
 
         # Final number of tokens = user_id(1) + item_id(1) + user_context_tokens(num_ns) + item_attribute_tokens(num_ns)

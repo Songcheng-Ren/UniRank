@@ -43,6 +43,7 @@ class RankMixer(MultiTaskModel):
                  tokenizer_type="Chunk",
                  net_dropout=0,
                  accumulation_steps=1,
+                 attention_activation_type="SoftMax",
                  **kwargs):
         super(RankMixer, self).__init__(feature_map,
                                        model_id=model_id,
@@ -90,7 +91,8 @@ class RankMixer(MultiTaskModel):
         self.attention_layers = MultiHeadTargetAttention(
             input_dim=self.item_info_dim,
             attention_dim=token_dim if attention_dim is None else attention_dim,
-            dropout_rate=attention_dropout
+            dropout_rate=attention_dropout,
+            attention_activation_type=attention_activation_type,
         )
         self.unified_interaction_layers = RankMixerBlock(input_dim=token_dim,
                                          num_ns_token=self.num_ns_token,
