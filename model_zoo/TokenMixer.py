@@ -40,6 +40,7 @@ class TokenMixer(MultiTaskModel):
                  num_group_token=4,
                  net_dropout=0,
                  accumulation_steps=1,
+                 attention_activation_type="SoftMax",
                  **kwargs):
         super(TokenMixer, self).__init__(feature_map,
                                        model_id=model_id,
@@ -80,7 +81,8 @@ class TokenMixer(MultiTaskModel):
         self.attention_layers = MultiHeadTargetAttention(
             input_dim=self.item_info_dim,
             attention_dim=token_dim if attention_dim is None else attention_dim,
-            dropout_rate=attention_dropout
+            dropout_rate=attention_dropout,
+            attention_activation_type=attention_activation_type,
         )
         self.unified_interaction_layers = TokenMixerBlocks(input_dim=token_dim,
                                          num_tokens=1 + num_group_token,

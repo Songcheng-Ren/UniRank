@@ -204,7 +204,6 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # ==================================================
 # KuaiRand_Video_Action experiments
 # ==================================================
-# run_exp "RankMixer_KuaiRand_Video_Action_Small"
 # run_exp "UniMixer_KuaiRand_Video_Action"
 # run_exp "OneTrans_KuaiRand_Video_Action"
 # run_exp "HyFormer_KuaiRand_Video_Action"
@@ -221,6 +220,42 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "SSR_KuaiRand_Video_Action"
 
 # ==================================================
+# RankMixer single-axis scaling ablations on KuaiRand
+# ==================================================
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_TokenDim_Tiny"
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_TokenDim_Small"
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_TokenDim_Mid"
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_TokenDim_Large"
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_TokenDim_Ultra"
+
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_MaxLen_Tiny"
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_MaxLen_Small"
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_MaxLen_Mid"
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_MaxLen_Large"
+
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_NumLayers_Mid"
+#run_exp "RankMixer_KuaiRand_Video_Action_Ablation_NumLayers_Large"
+
+# ==================================================
+# OneTrans single-axis scaling ablations on KuaiRand
+# ==================================================
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_TokenDim_Tiny"
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_TokenDim_Small"
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_TokenDim_Mid"
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_TokenDim_Large"
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_TokenDim_Ultra"
+
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_MaxLen_Tiny"
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_MaxLen_Small"
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_MaxLen_Mid"
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_MaxLen_Large"
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_MaxLen_Ultra"
+
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_NumLayers_Small"
+#run_exp "OneTrans_KuaiRand_Video_Action_Ablation_NumLayers_Mid"
+run_exp "OneTrans_KuaiRand_Video_Action_Ablation_NumLayers_Large"
+
+# ==================================================
 # TencentGR_10M_Action experiments
 # ==================================================
 # run_exp "RankMixer_TencentGR_10M_Action"
@@ -235,7 +270,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "LONGER_TencentGR_10M_Action"
 # run_exp "Zenith_TencentGR_10M_Action"
 # run_exp "HeMix_TencentGR_10M_Action"
-# run_exp "TokenFormer_TencentGR_10M_ Action"
+# run_exp "TokenFormer_TencentGR_10M_Action"
 # run_exp "UltraHSTU_TencentGR_10M_Action"
 # run_exp "SSR_TencentGR_10M_Action"
 

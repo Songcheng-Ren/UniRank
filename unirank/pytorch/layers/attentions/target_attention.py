@@ -28,7 +28,8 @@ class MultiHeadTargetAttention(nn.Module):
                  num_heads=1,
                  dropout_rate=0,
                  use_scale=True,
-                 use_qkvo=True):
+                 use_qkvo=True,
+                 attention_activation_type="SoftMax"):
         super(MultiHeadTargetAttention, self).__init__()
         if isinstance(attention_dim, (list, tuple)):
             attention_dim = attention_dim[0] if len(attention_dim) > 0 else input_dim
@@ -45,7 +46,10 @@ class MultiHeadTargetAttention(nn.Module):
             self.W_k = nn.Linear(input_dim, attention_dim, bias=False)
             self.W_v = nn.Linear(input_dim, attention_dim, bias=False)
             self.W_o = nn.Linear(attention_dim, input_dim, bias=False)
-        self.dot_attention = ScaledDotProductAttention(dropout_rate)
+        self.dot_attention = ScaledDotProductAttention(
+            dropout_rate=dropout_rate,
+            attention_activation_type=attention_activation_type,
+        )
 
     def forward(self, target_item, history_sequence, mask=None):
         """

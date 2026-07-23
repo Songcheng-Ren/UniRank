@@ -41,6 +41,7 @@ class OneTrans(MultiTaskModel):
                  num_ns_token=4,
                  tokenizer_type="Auto",
                  attention_activation_type="SoftMax",
+                 reduction_ratio=0.5,
                  net_dropout=0,
                  accumulation_steps=1,
                  **kwargs):
@@ -105,6 +106,7 @@ class OneTrans(MultiTaskModel):
             dnn_activations=dnn_activations,
             expansion_factor=expansion_factor,
             attention_activation_type=attention_activation_type,
+            reduction_ratio=reduction_ratio,
         )
 
         # Finally, only NS tokens are used for prediction.
@@ -178,9 +180,16 @@ class OneTransBlock(nn.Module):
                  num_ns_token,
                  dnn_activations='ReLU',
                  expansion_factor=4,
-                 attention_activation_type="SoftMax"):
+                 attention_activation_type="SoftMax",
+                 reduction_ratio=0.5):
         super(OneTransBlock, self).__init__()
         self.num_layers = num_layers
+        self.reduction_ratio = float(reduction_ratio)
+        if not 0.0 <= self.reduction_ratio < 1.0:
+            raise ValueError(
+                "reduction_ratio must be in [0, 1), got {}"
+                .format(reduction_ratio)
+            )
 
         self.norm1_layers = nn.ModuleList([
             nn.LayerNorm(input_dim) for _ in range(num_layers)
@@ -219,7 +228,7 @@ class OneTransBlock(nn.Module):
             # Prune sequence queries only. NS tokens stay in the separate
             # ns_tokens stream and keep a fixed token count across all layers.
             num_sequence_tokens = ps_tokens.size(1)
-            sequence_start = num_sequence_tokens // 2
+            sequence_start = int(num_sequence_tokens * self.reduction_ratio)
             ps_tokens = ps_tokens[:, sequence_start:, :]
             if q_mask is not None:
                 q_mask = q_mask[:, sequence_start:]

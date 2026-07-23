@@ -42,6 +42,7 @@ class HiFormer(MultiTaskModel):
                  qkv_rank=256,
                  net_dropout=0,
                  accumulation_steps=1,
+                 attention_activation_type="SoftMax",
                  **kwargs):
         super(HiFormer, self).__init__(feature_map,
                                        model_id=model_id,
@@ -79,7 +80,8 @@ class HiFormer(MultiTaskModel):
         self.attention_layers = MultiHeadTargetAttention(
             input_dim=self.item_info_dim,
             attention_dim=token_dim if attention_dim is None else attention_dim,
-            dropout_rate=attention_dropout
+            dropout_rate=attention_dropout,
+            attention_activation_type=attention_activation_type,
         )
 
         self.unified_interaction_layers = HiFormerBlocks(token_dim=token_dim,

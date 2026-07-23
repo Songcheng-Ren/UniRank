@@ -61,7 +61,7 @@ RankMixer_QK_Video_Action: # This is a config template
     max_len: 100
     accumulation_steps: 1
 
-RankMixer_KuaiRand_Video_Action_Small: &rankmixer_kuairand_tokenizer_base # This is a config template
+RankMixer_KuaiRand_Video_Action: &rankmixer_kuairand_scaling_base
     model: RankMixer
     dataset_id: KuaiRand_Video_Action
     loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
@@ -87,122 +87,99 @@ RankMixer_KuaiRand_Video_Action_Small: &rankmixer_kuairand_tokenizer_base # This
     max_len: 100
     accumulation_steps: 1
 
+# Scale only token_dim; num_layers=2, num_ns_token=4, and max_len=100 remain fixed.
+RankMixer_KuaiRand_Video_Action_Ablation_TokenDim_Tiny:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 2
+    token_dim: 32
+
+RankMixer_KuaiRand_Video_Action_Ablation_TokenDim_Small:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 2
+    token_dim: 64
+
+RankMixer_KuaiRand_Video_Action_Ablation_TokenDim_Mid:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 2
+    token_dim: 128
+
+RankMixer_KuaiRand_Video_Action_Ablation_TokenDim_Large:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 2
+    token_dim: 256
+
+RankMixer_KuaiRand_Video_Action_Ablation_TokenDim_Ultra:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 2
+    token_dim: 512
+
+# Scale only max_len; num_layers=2, token_dim=256, and num_ns_token=4 remain fixed.
+RankMixer_KuaiRand_Video_Action_Ablation_MaxLen_Tiny:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 2
+    max_len: 32
+
+RankMixer_KuaiRand_Video_Action_Ablation_MaxLen_Small:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 2
+    max_len: 64
+
+RankMixer_KuaiRand_Video_Action_Ablation_MaxLen_Mid:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 2
+    max_len: 128
+
+RankMixer_KuaiRand_Video_Action_Ablation_MaxLen_Large:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 2
+    max_len: 256
+
+# Scale only num_layers; reuse the existing 2-layer and 3-layer results.
+RankMixer_KuaiRand_Video_Action_Ablation_NumLayers_Mid:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 4
+
+RankMixer_KuaiRand_Video_Action_Ablation_NumLayers_Large:
+    <<: *rankmixer_kuairand_scaling_base
+    num_layers: 6
+
 RankMixer_KuaiRand_Video_Action_Tokenizer_Auto:
-    <<: *rankmixer_kuairand_tokenizer_base
+    <<: *rankmixer_kuairand_scaling_base
     tokenizer_type: Auto
 
 RankMixer_KuaiRand_Video_Action_Tokenizer_Field:
-    <<: *rankmixer_kuairand_tokenizer_base
+    <<: *rankmixer_kuairand_scaling_base
     token_dim: 128
     tokenizer_type: Field
 
 RankMixer_KuaiRand_Video_Action_Tokenizer_Random:
-    <<: *rankmixer_kuairand_tokenizer_base
+    <<: *rankmixer_kuairand_scaling_base
     tokenizer_type: Random
 
 RankMixer_KuaiRand_Video_Action_Optimizer_Muon:
-    <<: *rankmixer_kuairand_tokenizer_base
+    <<: *rankmixer_kuairand_scaling_base
     dense_optimizer: heavyball.Muon
     dense_learning_rate: 1.0e-2
 
 RankMixer_KuaiRand_Video_Action_Optimizer_LaProp:
-    <<: *rankmixer_kuairand_tokenizer_base
+    <<: *rankmixer_kuairand_scaling_base
     dense_optimizer: heavyball.LaProp
     dense_learning_rate: 4.0e-4
 
 RankMixer_KuaiRand_Video_Action_Optimizer_Scion:
-    <<: *rankmixer_kuairand_tokenizer_base
+    <<: *rankmixer_kuairand_scaling_base
     dense_optimizer: heavyball.Scion
     dense_learning_rate: 2.5e-3
 
 RankMixer_KuaiRand_Video_Action_Optimizer_SOAP:
-    <<: *rankmixer_kuairand_tokenizer_base
+    <<: *rankmixer_kuairand_scaling_base
     dense_optimizer: heavyball.SOAP
     dense_learning_rate: 1.0e-3
 
 RankMixer_KuaiRand_Video_Action_Optimizer_RMSProp:
-    <<: *rankmixer_kuairand_tokenizer_base
+    <<: *rankmixer_kuairand_scaling_base
     dense_optimizer: heavyball.RMSprop
     dense_learning_rate: 1.0e-4
-
-RankMixer_KuaiRand_Video_Action_Mid: # This is a config template
-    model: RankMixer
-    dataset_id: KuaiRand_Video_Action
-    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
-    num_tasks: 6
-    metrics: ['logloss', 'AUC']
-    task: binary_classification
-    batch_size: 8192
-    embedding_dim: 16
-    num_layers: 3
-    expansion_factor: 2
-    token_dim: 512
-    num_ns_token: 8
-    tokenizer_type: Chunk
-    tower_hidden_units: [128, 64]
-    tower_activations: ReLU
-    attention_dropout: 0
-    net_dropout: 0
-    epochs: 1
-    shuffle: True
-    seed: 20262027
-    monitor: {'AUC': 1, 'logloss': 0}
-    monitor_mode: 'max'
-    max_len: 200
-    accumulation_steps: 1
-
-RankMixer_KuaiRand_Video_Action_Large: # This is a config template
-    model: RankMixer
-    dataset_id: KuaiRand_Video_Action
-    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
-    num_tasks: 6
-    metrics: ['logloss', 'AUC']
-    task: binary_classification
-    batch_size: 8192
-    embedding_dim: 16
-    num_layers: 3
-    expansion_factor: 2
-    token_dim: 1024
-    num_ns_token: 16
-    tokenizer_type: Chunk
-    tower_hidden_units: [128, 64]
-    tower_activations: ReLU
-    attention_dropout: 0
-    net_dropout: 0
-    epochs: 1
-    shuffle: True
-    seed: 20262027
-    monitor: {'AUC': 1, 'logloss': 0}
-    monitor_mode: 'max'
-    max_len: 400
-    accumulation_steps: 1
-
-RankMixer_KuaiRand_Video_Action_Ultra: # This is a config template
-    model: RankMixer
-    dataset_id: KuaiRand_Video_Action
-    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
-    num_tasks: 6
-    metrics: ['logloss', 'AUC']
-    task: binary_classification
-    batch_size: 4096
-    embedding_dim: 16
-    num_layers: 3
-    expansion_factor: 2
-    token_dim: 1024
-    num_ns_token: 16
-    tokenizer_type: Chunk
-    tower_hidden_units: [128, 64]
-    tower_activations: ReLU
-    attention_dropout: 0
-    net_dropout: 0
-    epochs: 1
-    shuffle: True
-    seed: 20262027
-    monitor: {'AUC': 1, 'logloss': 0}
-    monitor_mode: 'max'
-    max_len: 1000
-    accumulation_steps: 2
-    gradient_checkpointing: True
 
 RankMixer_TencentGR_10M_Action: # This is a config template
     model: RankMixer
@@ -514,6 +491,7 @@ OneTrans_QK_Video_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
+    reduction_ratio: 0.5
     tokenizer_type: Auto
     dnn_activations: ReLU
     tower_activations: ReLU
@@ -540,6 +518,7 @@ OneTrans_KuaiRand_Video_Action: &onetrans_kuairand_tokenizer_base # This is a co
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
+    reduction_ratio: 0.5
     tokenizer_type: Auto
     attention_activation_type: SoftMax
     dnn_activations: ReLU
@@ -552,6 +531,81 @@ OneTrans_KuaiRand_Video_Action: &onetrans_kuairand_tokenizer_base # This is a co
     monitor_mode: 'max'
     max_len: 100
     accumulation_steps: 1
+
+# Scale only token_dim; num_layers=2, num_ns_token=4, and max_len=100 remain fixed.
+OneTrans_KuaiRand_Video_Action_Ablation_TokenDim_Tiny:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    token_dim: 32
+
+OneTrans_KuaiRand_Video_Action_Ablation_TokenDim_Small:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    token_dim: 64
+
+OneTrans_KuaiRand_Video_Action_Ablation_TokenDim_Mid:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    token_dim: 128
+
+OneTrans_KuaiRand_Video_Action_Ablation_TokenDim_Large:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    token_dim: 256
+
+OneTrans_KuaiRand_Video_Action_Ablation_TokenDim_Ultra:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    token_dim: 512
+
+# Scale only max_len; num_layers=2, token_dim=256, and num_ns_token=4 remain fixed.
+OneTrans_KuaiRand_Video_Action_Ablation_MaxLen_Tiny:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    max_len: 32
+
+OneTrans_KuaiRand_Video_Action_Ablation_MaxLen_Small:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    max_len: 64
+
+OneTrans_KuaiRand_Video_Action_Ablation_MaxLen_Mid:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    max_len: 128
+
+OneTrans_KuaiRand_Video_Action_Ablation_MaxLen_Large:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    max_len: 256
+
+OneTrans_KuaiRand_Video_Action_Ablation_MaxLen_Ultra:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    max_len: 512
+
+# Scale only num_layers with a fixed 1024-token sequence and effective batch size.
+OneTrans_KuaiRand_Video_Action_Ablation_NumLayers_Small:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 2
+    max_len: 1024
+    batch_size: 2048
+    accumulation_steps: 4
+
+OneTrans_KuaiRand_Video_Action_Ablation_NumLayers_Mid:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 4
+    max_len: 1024
+    batch_size: 2048
+    accumulation_steps: 4
+
+OneTrans_KuaiRand_Video_Action_Ablation_NumLayers_Large:
+    <<: *onetrans_kuairand_tokenizer_base
+    num_layers: 8
+    max_len: 1024
+    batch_size: 2048
+    accumulation_steps: 4
+    reduction_ratio: 0.3
 
 OneTrans_KuaiRand_Video_Action_Tokenizer_Chunk:
     <<: *onetrans_kuairand_tokenizer_base
@@ -608,6 +662,7 @@ OneTrans_TencentGR_10M_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
+    reduction_ratio: 0.5
     tokenizer_type: Auto
     dnn_activations: ReLU
     tower_activations: ReLU
@@ -634,6 +689,7 @@ OneTrans_Taobao_Action: # This is a config template
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
+    reduction_ratio: 0.5
     tokenizer_type: Auto
     dnn_activations: ReLU
     tower_activations: ReLU
@@ -660,6 +716,7 @@ OneTrans_MerRec_Action: &onetrans_merrec_tokenizer_base # This is a config templ
     num_heads: 2
     token_dim: 256
     num_ns_token: 4
+    reduction_ratio: 0.5
     tokenizer_type: Auto
     attention_activation_type: SoftMax
     dnn_activations: ReLU
