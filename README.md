@@ -478,3 +478,15 @@ UniRank is built on top of, and deeply inspired by, the excellent [FuxiCTR](http
 ## License
 
 This project is released under the [Apache License 2.0](./LICENSE).
+
+## Citation
+If you find our code helpful for your research, please cite the following paper:
+
+```bibtex
+@article{li2026unirank,
+  title={{UniRank: Benchmarking Ranking Models for Unified Sequential Modeling and Feature Interaction}},
+  author={Li, Honghao and Wang, Xianquan and Zhang, Zibin and Zhang, Yi and Lin, Kangyi and Zhang, Yiwen},
+  journal={arXiv preprint arXiv:2607.19987},
+  year={2026}
+}
+```
