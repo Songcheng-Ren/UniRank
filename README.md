@@ -2,7 +2,7 @@
   <img src="./assets/figures/unirank_logo.png" alt="UniRank logo" width="720">
 </p>
 
-# UniRank: Benchmarking Ranking Models for Unified Sequential Modeling and Feature Interaction <sub>[v0.7.0](https://github.com/salmon1802/UniRank/tree/v0.7.0)</sub>
+# UniRank: Benchmarking Ranking Models for Unified Sequential Modeling and Feature Interaction <sub>[v0.7.1](https://github.com/salmon1802/UniRank/tree/v0.7.1)</sub>
 
 UniRank is an open PyTorch benchmark for unified sequential modeling and feature interaction in large-scale recommendation ranking. It standardizes chronological point-wise autoregressive supervision, multi-feedback evaluation, model implementations, data processing, and distributed training in one reproducible pipeline.
 
