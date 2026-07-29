@@ -17,7 +17,15 @@
 import torch
 from torch import nn
 from unirank.pytorch.models import MultiTaskModel
-from unirank.pytorch.layers import FeatureEmbedding, MLP_Block, MultiHeadTokenMixing, PerTokenSwiGLU, SwiGLU, ScaledDotProductAttention
+from unirank.pytorch.layers import (
+    FeatureEmbedding,
+    MLP_Block,
+    MaskedAveragePooling,
+    MultiHeadTokenMixing,
+    PerTokenSwiGLU,
+    ScaledDotProductAttention,
+    SwiGLU,
+)
 from unirank.pytorch.torch_utils import get_activation
 from unirank.utils import not_in_whitelist
 from unirank.pytorch.layers.tokenization import FieldWiseTokenizer
@@ -50,6 +58,7 @@ class EST(MultiTaskModel):
         self.embedding_dim = embedding_dim
         self.token_dim = token_dim
         self.accumulation_steps = accumulation_steps
+        self.masked_avg_pooling = MaskedAveragePooling()
         self.num_field = feature_map.get_num_fields()
         # Track item and non-item feature dimensions
         self.item_info_dim = 0
@@ -134,7 +143,10 @@ class EST(MultiTaskModel):
             mask
         )
 
-        bottom_output = torch.cat([unified_tokens.flatten(start_dim=1), s_tokens.mean(dim=1)], dim=-1)
+        bottom_output = torch.cat([
+            unified_tokens.flatten(start_dim=1),
+            self.masked_avg_pooling(s_tokens, mask),
+        ], dim=-1)
         tower_output = [self.tower[i](bottom_output) for i in range(self.num_tasks)]
         y_pred = [self.output_activation[i](tower_output[i]) for i in range(self.num_tasks)]
         return_dict = {}
