@@ -2,7 +2,7 @@
   <img src="./assets/figures/unirank_logo.png" alt="UniRank logo" width="720">
 </p>
 
-# UniRank: Benchmarking Ranking Models for Unified Sequential Modeling and Feature Interaction <sub>[v0.7.1](https://github.com/salmon1802/UniRank/tree/v0.7.1)</sub>
+# UniRank: Benchmarking Ranking Models for Unified Sequential Modeling and Feature Interaction <sub>[v0.7.2](https://github.com/salmon1802/UniRank/tree/v0.7.2)</sub>
 
 UniRank is an open PyTorch benchmark for unified sequential modeling and feature interaction in large-scale recommendation ranking. It standardizes chronological point-wise autoregressive supervision, multi-feedback evaluation, model implementations, data processing, and distributed training in one reproducible pipeline.
 
@@ -462,14 +462,27 @@ All current models expose their main interaction block through the shared activa
 5. Add a dataset entry to `config/dataset_config.yaml` and a statistics script alongside the preprocessor.
 6. Add one nearby experiment configuration per model to keep cross-dataset comparisons organized.
 
-## Reproducibility Notes
+## Reproducibility and Statistical Significance
 
-- Compare models on identical generated dataset files, not only identical raw sources.
-- Keep label construction windows and action-token rules fixed across experiments.
-- Report binary Logloss and global AUC for every configured task under the default protocol.
-- Preserve the per-user chronological 80%/10%/10% split and any positive-aware boundary adjustments when evaluating warm-start future ranking.
-- Use several seeds for small reported gains, especially when model differences are below normal run-to-run variation.
-- Record model size, sequence length, token dimension, batch size, precision, and GPU count together with accuracy metrics.
+### Released benchmark protocol
+
+- Each result in the paper and `benchmark/` comes from one independent run of the selected configuration with the fixed base seed `20262027`. Model-specific hyperparameters are searched under this same seed; the tables do not aggregate results across multiple seeds and therefore do not report standard deviations or confidence intervals. This controlled-budget convention follows [FuxiCTR](https://github.com/reczoo/FuxiCTR) and [BARS](https://github.com/reczoo/BARS/tree/main/ranking/ctr).
+- In DDP, `seed + rank` creates a separate RNG stream for each rank within one distributed run. It must not be interpreted as multiple independent runs.
+- The default `epochs: 1` is deliberate. CTR models commonly exhibit the [one-epoch phenomenon](https://arxiv.org/abs/2209.06053), reaching their best result during the first pass and degrading early in the second; one-pass training also reflects industrial streaming settings. Additional UniRank checks commonly observed lower AUC in the second epoch.
+- Exploratory multi-seed runs showed typical variation of about `0.001` absolute AUC, while overall rankings were generally stable. An improvement near `0.001` is a useful CTR-ranking heuristic, not proof of statistical significance. Smaller differences, especially around `1e-4`, should be interpreted cautiously, although they may still matter at production scale, as discussed in [FinalMLP](https://arxiv.org/abs/2304.00902).
+
+### Recommended significance protocol
+
+> [!IMPORTANT]
+> A single fixed-seed AUC difference, including a difference above `0.001`, does not establish formal statistical significance. When a significance claim is required:
+>
+> 1. Tune all candidate models with the same fixed seed and identify the strongest baseline.
+> 2. Rerun only the proposed model and that strongest baseline using the same set of multiple independent base seeds.
+> 3. Perform a two-tailed t-test on the per-seed results and report the p-value. For auditability, also report the seed set, individual results, and mean ± standard deviation.
+
+This focused comparison avoids the unnecessary cost and multiple-comparison burden of rerunning every benchmark model with many seeds. See the detailed clarification in [Issue #11](https://github.com/salmon1802/UniRank/issues/11#issuecomment-5169254442).
+
+For every reproduction, use identical generated dataset files, label windows, action-token rules, chronological split boundaries, metrics, and checkpoint-selection rules. Report model size, sequence length, token dimension, batch size, precision, GPU count, and all changed configuration values together with accuracy results.
 
 ## Acknowledgement
 
