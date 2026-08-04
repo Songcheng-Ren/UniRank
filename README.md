@@ -478,7 +478,7 @@ All current models expose their main interaction block through the shared activa
 >
 > 1. Tune all candidate models with the same fixed seed and identify the strongest baseline.
 > 2. Rerun only the proposed model and that strongest baseline using the same set of multiple independent base seeds.
-> 3. Perform a two-tailed t-test on the per-seed results and report the p-value. For auditability, also report the seed set, individual results, and mean ± standard deviation.
+> 3. Perform a two-tailed t-test on the per-seed results and report the p-value.
 
 This focused comparison avoids the unnecessary cost and multiple-comparison burden of rerunning every benchmark model with many seeds. See the detailed clarification in [Issue #11](https://github.com/salmon1802/UniRank/issues/11#issuecomment-5169254442).
 
