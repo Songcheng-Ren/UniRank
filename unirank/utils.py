@@ -233,8 +233,20 @@ def load_dataset_config(config_dir, dataset_id):
             config_dict = yaml.load(cfg, Loader=yaml.FullLoader)
             if dataset_id in config_dict:
                 params.update(config_dict[dataset_id])
-                return params
-    raise RuntimeError(f'dataset_id={dataset_id} is not found in config.')
+                break
+    else:
+        raise RuntimeError(f'dataset_id={dataset_id} is not found in config.')
+
+    # Cluster configs use absolute paths. Allow local machines and other
+    # clusters to relocate the complete dataset tree without editing YAML.
+    local_data_root = os.environ.get("UNIRANK_DATA_ROOT")
+    configured_data_root = params.get("data_root")
+    if local_data_root and configured_data_root:
+        for key, value in list(params.items()):
+            if isinstance(value, str) and value.startswith(configured_data_root):
+                params[key] = os.path.join(local_data_root, value[len(configured_data_root):].lstrip("/"))
+        params["data_root"] = local_data_root
+    return params
 
 def set_logger(params):
     dataset_id = params['dataset_id']

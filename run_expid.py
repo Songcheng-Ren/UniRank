@@ -58,7 +58,7 @@ if __name__ == '__main__':
     parser.add_argument('--config', type=str, default='./config/', help='The config directory.')
     parser.add_argument('--expid', type=str, default='RankMixer_KuaiRand_Video_Action', help='The experiment id to run.')
     parser.add_argument('--gpu', type=str, default='0,1,2,3', help='GPU ids, e.g. "0" or "0,1,2,3"; use "-1" for cpu')
-    parser.add_argument('--enable_bf16', type=bool, default=True, help='Enable bfloat16 mixed precision training (default: True).')
+    parser.add_argument('--enable_bf16', type=lambda value: str(value).lower() in ('1', 'true', 'yes', 'y'), default=True, help='Enable bfloat16 mixed precision training (default: True).')
     args = vars(parser.parse_args())
 
     try:
