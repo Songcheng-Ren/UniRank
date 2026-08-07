@@ -28,4 +28,8 @@ from .HeMix import HeMix
 from .UniMixer import UniMixer
 from .TokenFormer import TokenFormer
 from .UltraHSTU import UltraHSTU
+from .HSTU import HSTU
+from .DCNv2 import DCNv2
+from .QFormerCross import QFormerCross
+
 from .SSR import SSR
