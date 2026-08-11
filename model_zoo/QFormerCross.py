@@ -119,7 +119,7 @@ class QFormerCross(MultiTaskModel):
         ])
         self.group_fusion_layers = nn.ModuleList([
             QFormerLayer(token_dim, num_heads, int(token_dim * ffn_ratio), net_dropout)
-            for _ in range(3)
+            for _ in range(1)
         ])
         self.group_fusion_norm = nn.LayerNorm(token_dim)
 
@@ -134,7 +134,7 @@ class QFormerCross(MultiTaskModel):
         )
         self.seq_fusion_layers = nn.ModuleList([
             QFormerLayer(token_dim, num_heads, int(token_dim * ffn_ratio), net_dropout)
-            for _ in range(2)
+            for _ in range(1)
         ])
         self.seq_fusion_norm = nn.LayerNorm(token_dim)
 
@@ -256,11 +256,11 @@ class QFormerCross(MultiTaskModel):
 
 
 class QFormerStage(nn.Module):
-    """Input-conditioned QFormer with cross-value attention.
+    """QFormer with learnable queries + input conditioning.
 
-    Queries are generated from the input features (input-conditioned), then
-    iteratively refined through self-attention, cross-value attention, and
-    FFN blocks.
+    Queries are initialized as learnable parameters, then modulated by a
+    context vector derived from the input features (input-conditioned).
+    This preserves spatial information better than mean-pool → Linear.
     """
 
     def __init__(self, token_dim, num_heads, num_layers, num_queries, ffn_dim, dropout=0.0):
@@ -268,18 +268,28 @@ class QFormerStage(nn.Module):
         self.token_dim = token_dim
         self.num_heads = num_heads
         self.num_queries = num_queries
-        self.query_proj = nn.Linear(token_dim, num_queries * token_dim)
+        self.learnable_queries = nn.Parameter(torch.empty(num_queries, token_dim))
+        self.context_proj = nn.Linear(token_dim, token_dim)
+        self.context_norm = nn.LayerNorm(token_dim)
         self.query_norm = nn.LayerNorm(token_dim)
         self.layers = nn.ModuleList([
             QFormerLayer(token_dim, num_heads, ffn_dim, dropout)
             for _ in range(num_layers)
         ])
         self.final_norm = nn.LayerNorm(token_dim)
+        self._reset_parameters()
+
+    def _reset_parameters(self):
+        nn.init.xavier_normal_(self.learnable_queries)
+        nn.init.xavier_uniform_(self.context_proj.weight)
+        nn.init.zeros_(self.context_proj.bias)
 
     def forward(self, features, mask=None):
         batch_size = features.size(0)
-        pooled = features.mean(dim=1)
-        queries = self.query_proj(pooled).view(batch_size, self.num_queries, self.token_dim)
+        context = self.context_proj(features.mean(dim=1))
+        context = self.context_norm(context)
+        queries = self.learnable_queries.unsqueeze(0).expand(batch_size, -1, -1)
+        queries = queries + context.unsqueeze(1)
         queries = self.query_norm(queries)
         for layer in self.layers:
             queries = layer(queries, features, mask)
@@ -314,10 +324,17 @@ class MultiHeadAttention(nn.Module):
             raise ValueError("token_dim must be divisible by num_heads")
         self.num_heads = num_heads
         self.head_dim = token_dim // num_heads
+        self.scale = 1.0 / math.sqrt(self.head_dim)
         self.w_q = nn.Linear(token_dim, token_dim)
         self.w_k = nn.Linear(token_dim, token_dim)
         self.w_v = nn.Linear(token_dim, token_dim)
         self.w_o = nn.Linear(token_dim, token_dim)
+        self._reset_parameters()
+
+    def _reset_parameters(self):
+        for m in [self.w_q, self.w_k, self.w_v, self.w_o]:
+            nn.init.xavier_uniform_(m.weight)
+            nn.init.zeros_(m.bias)
 
     def forward(self, query, key, value):
         batch_size, seq_q, _ = query.shape
@@ -325,7 +342,7 @@ class MultiHeadAttention(nn.Module):
         q = self.w_q(query).view(batch_size, seq_q, self.num_heads, self.head_dim).transpose(1, 2)
         k = self.w_k(key).view(batch_size, seq_k, self.num_heads, self.head_dim).transpose(1, 2)
         v = self.w_v(value).view(batch_size, seq_k, self.num_heads, self.head_dim).transpose(1, 2)
-        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
+        scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         attn = torch.softmax(scores, dim=-1)
         out = torch.matmul(attn, v).transpose(1, 2).contiguous().view(batch_size, seq_q, -1)
         return self.w_o(out)
@@ -335,7 +352,8 @@ class CrossValueAttention(nn.Module):
     """Cross-value attention with pairwise query-feature interaction.
 
     Attention scores use normal QK, but the value is a pairwise interaction
-    (q_i * f_j) projected and aggregated by the attention weights.
+    (q_i * f_j) projected and aggregated by the attention weights. Includes
+    scale normalization for numerical stability.
     """
 
     def __init__(self, token_dim, num_heads):
@@ -345,12 +363,19 @@ class CrossValueAttention(nn.Module):
         self.token_dim = token_dim
         self.num_heads = num_heads
         self.head_dim = token_dim // num_heads
+        self.scale = 1.0 / math.sqrt(self.head_dim)
         self.w_q = nn.Linear(token_dim, token_dim)
         self.w_k = nn.Linear(token_dim, token_dim)
         self.w_qi = nn.Linear(token_dim, token_dim)
         self.w_fi = nn.Linear(token_dim, token_dim)
         self.w_v_pair = nn.Linear(token_dim, token_dim)
         self.w_o = nn.Linear(token_dim, token_dim)
+        self._reset_parameters()
+
+    def _reset_parameters(self):
+        for m in [self.w_q, self.w_k, self.w_qi, self.w_fi, self.w_v_pair, self.w_o]:
+            nn.init.xavier_uniform_(m.weight)
+            nn.init.zeros_(m.bias)
 
     def forward(self, queries, keys, values, mask=None):
         batch_size, num_queries, _ = queries.shape
@@ -358,7 +383,7 @@ class CrossValueAttention(nn.Module):
 
         q = self.w_q(queries).view(batch_size, num_queries, self.num_heads, self.head_dim).transpose(1, 2)
         k = self.w_k(keys).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
+        scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         if mask is not None:
             key_mask = mask.to(dtype=scores.dtype, device=scores.device).view(batch_size, 1, 1, seq_len)
             scores = scores + (1.0 - key_mask) * -1e9
@@ -384,6 +409,13 @@ class FeedForward(nn.Module):
         self.fc1 = nn.Linear(token_dim, ffn_dim)
         self.fc2 = nn.Linear(ffn_dim, token_dim)
         self.dropout = nn.Dropout(dropout)
+        self._reset_parameters()
+
+    def _reset_parameters(self):
+        nn.init.xavier_uniform_(self.fc1.weight)
+        nn.init.zeros_(self.fc1.bias)
+        nn.init.xavier_uniform_(self.fc2.weight)
+        nn.init.zeros_(self.fc2.bias)
 
     def forward(self, x):
         return self.dropout(self.fc2(F.gelu(self.fc1(x))))
