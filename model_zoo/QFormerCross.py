@@ -244,18 +244,18 @@ class QFormerCross(MultiTaskModel):
                                history_tokens, history_mask):
         target_query = self.target_query_norm(candidate_token)
         history_keys = self.history_key_norm(history_tokens)
-        scores = torch.matmul(
-            target_query, history_keys.transpose(1, 2)
-        ) / math.sqrt(self.token_dim)
-
-        valid = history_mask.to(dtype=torch.bool, device=scores.device).unsqueeze(1)
-        scores = scores.masked_fill(~valid, torch.finfo(scores.dtype).min)
-        weights = torch.softmax(scores, dim=-1)
-        # Renormalization keeps the all-padding edge case finite and maps it to
-        # a zero history-interest vector.
-        weights = weights * valid.to(dtype=weights.dtype)
-        weights = weights / weights.sum(dim=-1, keepdim=True).clamp_min(1e-9)
-        history_interest = torch.matmul(weights, history_tokens)
+        valid = history_mask.to(
+            dtype=torch.bool, device=history_tokens.device
+        ).view(history_tokens.size(0), 1, 1, history_tokens.size(1))
+        history_interest = F.scaled_dot_product_attention(
+            target_query.unsqueeze(1),
+            history_keys.unsqueeze(1),
+            history_tokens.unsqueeze(1),
+            attn_mask=valid,
+            dropout_p=0.0,
+            is_causal=False,
+            scale=1.0 / math.sqrt(self.token_dim),
+        ).squeeze(1)
 
         context_token = self.context_shortcut_proj(context_embedding).unsqueeze(1)
         shortcut_input = torch.cat([
@@ -456,18 +456,25 @@ class MultiHeadAttention(nn.Module):
         v = self.w_v(value).view(batch_size, seq_k, self.num_heads, self.head_dim).transpose(1, 2)
         q = self.q_norm(q)
         k = self.k_norm(k)
-        scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
-        attn = torch.softmax(scores, dim=-1)
-        out = torch.matmul(attn, v).transpose(1, 2).contiguous().view(batch_size, seq_q, -1)
+        out = F.scaled_dot_product_attention(
+            q,
+            k,
+            v,
+            dropout_p=0.0,
+            is_causal=False,
+            scale=self.scale,
+        )
+        out = out.transpose(1, 2).contiguous().view(batch_size, seq_q, -1)
         return self.w_o(out)
 
 
 class CrossValueAttention(nn.Module):
-    """Cross-value attention with pairwise query-feature interaction.
+    """SDPA-backed explicit query-feature interaction.
 
-    Attention scores use normal QK, but the value is a pairwise interaction
-    (q_i * f_j) projected and aggregated by the attention weights. Includes
-    scale normalization for numerical stability.
+    Q, K and feature values use standard head-local layouts so PyTorch can
+    dispatch scaled_dot_product_attention to a fused kernel. After SDPA pools
+    the relevant feature value for each query and head, an explicit
+    query-feature product is formed and projected back to token_dim.
     """
 
     def __init__(self, token_dim, num_heads, qk_norm=False):
@@ -499,40 +506,35 @@ class CrossValueAttention(nn.Module):
 
         q = self.w_q(queries).view(batch_size, num_queries, self.num_heads, self.head_dim).transpose(1, 2)
         k = self.w_k(keys).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        v = self.w_fi(values).view(
+            batch_size, seq_len, self.num_heads, self.head_dim
+        ).transpose(1, 2)
         q = self.q_norm(q)
         k = self.k_norm(k)
-        scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
-        attention_mass = None
+
+        key_mask = None
         if mask is not None:
-            key_mask = mask.to(dtype=torch.bool, device=scores.device).view(
+            key_mask = mask.to(dtype=torch.bool, device=q.device).view(
                 batch_size, 1, 1, seq_len
             )
-            scores = scores.masked_fill(~key_mask, torch.finfo(scores.dtype).min)
-        attn = torch.softmax(scores, dim=-1)
-        if mask is not None:
-            attn = attn * key_mask.to(dtype=attn.dtype)
-            attn = attn / attn.sum(dim=-1, keepdim=True).clamp_min(1e-9)
-            attention_mass = attn.sum(dim=-1, keepdim=True)
-
-        q_inter = self.w_qi(queries)
-        f_inter = self.w_fi(keys)
-        # Linear projection and attention-weighted summation commute. Aggregate
-        # features before forming the query-feature product to avoid allocating
-        # the original B x Q x S x D pair tensor (multiple GB at batch_size=8192).
-        attended_features = torch.einsum("bhqs,bsd->bhqd", attn, f_inter)
-        pair_summary = q_inter.unsqueeze(1) * attended_features
-        pair_weight = self.w_v_pair.weight.view(
-            self.num_heads, self.head_dim, self.token_dim
+        attended_features = F.scaled_dot_product_attention(
+            q,
+            k,
+            v,
+            attn_mask=key_mask,
+            dropout_p=0.0,
+            is_causal=False,
+            scale=self.scale,
         )
-        out = torch.einsum("bhqd,hkd->bhqk", pair_summary, pair_weight)
-        if self.w_v_pair.bias is not None:
-            pair_bias = self.w_v_pair.bias.view(
-                1, self.num_heads, 1, self.head_dim
-            )
-            if attention_mass is not None:
-                pair_bias = pair_bias * attention_mass
-            out = out + pair_bias
-        out = out.transpose(1, 2).contiguous().view(batch_size, num_queries, self.token_dim)
+
+        q_inter = self.w_qi(queries).view(
+            batch_size, num_queries, self.num_heads, self.head_dim
+        ).transpose(1, 2)
+        pair_summary = q_inter * attended_features
+        pair_summary = pair_summary.transpose(1, 2).contiguous().view(
+            batch_size, num_queries, self.token_dim
+        )
+        out = self.w_v_pair(pair_summary)
         return self.w_o(out)
 
 

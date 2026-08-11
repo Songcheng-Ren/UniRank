@@ -7,7 +7,7 @@ from model_zoo.QFormerCross import CrossValueAttention, QFormerCross, QFormerSta
 
 
 def naive_cross_value_attention(module, queries, keys, mask=None):
-    """Reference implementation that explicitly materializes every Q x K pair."""
+    """Unfused reference for the head-local SDPA CrossValue path."""
     batch_size, num_queries, _ = queries.shape
     seq_len = keys.size(1)
 
@@ -19,27 +19,27 @@ def naive_cross_value_attention(module, queries, keys, mask=None):
     ).transpose(1, 2)
     q = module.q_norm(q)
     k = module.k_norm(k)
+    v = module.w_fi(keys).view(
+        batch_size, seq_len, module.num_heads, module.head_dim
+    ).transpose(1, 2)
     scores = torch.matmul(q, k.transpose(-2, -1)) * module.scale
     if mask is not None:
-        key_mask = mask.to(dtype=scores.dtype).view(batch_size, 1, 1, seq_len)
-        scores = scores + (1.0 - key_mask) * -1e9
+        key_mask = mask.to(dtype=torch.bool).view(batch_size, 1, 1, seq_len)
+        scores = scores.masked_fill(~key_mask, torch.finfo(scores.dtype).min)
     attn = torch.softmax(scores, dim=-1)
+    if mask is not None:
+        attn = attn * key_mask.to(dtype=attn.dtype)
+        attn = attn / attn.sum(dim=-1, keepdim=True).clamp_min(1e-9)
 
-    q_inter = module.w_qi(queries)
-    f_inter = module.w_fi(keys)
-    pair = q_inter.unsqueeze(2) * f_inter.unsqueeze(1)
-    v_pair = module.w_v_pair(pair).view(
-        batch_size,
-        num_queries,
-        seq_len,
-        module.num_heads,
-        module.head_dim,
-    ).permute(0, 3, 1, 2, 4)
-    out = (attn.unsqueeze(-1) * v_pair).sum(dim=3)
-    out = out.transpose(1, 2).contiguous().view(
+    attended_features = torch.matmul(attn, v)
+    q_inter = module.w_qi(queries).view(
+        batch_size, num_queries, module.num_heads, module.head_dim
+    ).transpose(1, 2)
+    pair_summary = q_inter * attended_features
+    pair_summary = pair_summary.transpose(1, 2).contiguous().view(
         batch_size, num_queries, module.token_dim
     )
-    return module.w_o(out)
+    return module.w_o(module.w_v_pair(pair_summary))
 
 
 class DummyFeatureMap:
@@ -100,7 +100,7 @@ class QFormerCrossTest(unittest.TestCase):
         actual = stage(padded_features, padded_mask)
         torch.testing.assert_close(actual, expected, atol=1e-6, rtol=1e-6)
 
-    def test_factorized_cross_value_attention_matches_naive_version(self):
+    def test_sdpa_cross_value_attention_matches_unfused_reference(self):
         torch.manual_seed(11)
         attention = CrossValueAttention(12, 3, qk_norm=True).double()
         queries = torch.randn(2, 4, 12, dtype=torch.double, requires_grad=True)
