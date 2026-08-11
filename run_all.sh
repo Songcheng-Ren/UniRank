@@ -165,6 +165,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "QFormerCross_Taobao_Action"
 # run_exp "QFormerCross2_Taobao_Action"
 # run_exp "QFormerCross3_Taobao_Action"
+# run_exp "QFormerCross4_Taobao_Action"
 
 # ==================================================
 # MerRec_Action experiments
