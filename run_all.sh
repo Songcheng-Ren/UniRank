@@ -162,6 +162,8 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "TokenFormer_Taobao_Action"
 # run_exp "UltraHSTU_Taobao_Action"
 # run_exp "SSR_Taobao_Action"
+# run_exp "QFormerCross_Taobao_Action"
+# run_exp "QFormerCross2_Taobao_Action"
 
 # ==================================================
 # MerRec_Action experiments
@@ -218,6 +220,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "TokenFormer_KuaiRand_Video_Action"
 # run_exp "UltraHSTU_KuaiRand_Video_Action"
 # run_exp "SSR_KuaiRand_Video_Action"
+# run_exp "QFormerCross_KuaiRand_Video_Action"
 
 # ==================================================
 # RankMixer single-axis scaling ablations on KuaiRand

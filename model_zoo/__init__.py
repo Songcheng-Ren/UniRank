@@ -31,5 +31,6 @@ from .UltraHSTU import UltraHSTU
 from .HSTU import HSTU
 from .DCNv2 import DCNv2
 from .QFormerCross import QFormerCross
+from .QFormerCross2 import QFormerCross2
 
 from .SSR import SSR

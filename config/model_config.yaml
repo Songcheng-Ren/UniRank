@@ -2121,7 +2121,7 @@ DCNv2_KuaiRand_Video_Action: # DCNv2 baseline with pooled sequence history
     max_len: 100
     accumulation_steps: 1
 
-QFormerCross_Taobao_Action: # Grouped multi-emb QFormer (tuned)
+QFormerCross_Taobao_Action: # Grouped multi-emb QFormer with target-aware shortcut
     model: QFormerCross
     dataset_id: Taobao_Action
     loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
@@ -2131,16 +2131,18 @@ QFormerCross_Taobao_Action: # Grouped multi-emb QFormer (tuned)
     embedding_dim: 16
     token_dim: 256
     num_heads: 4
-    num_layers: 2
+    num_layers: 3
     num_groups: 4
     num_queries_per_group: 4
     seq_num_queries: 4
     ffn_ratio: 4.0
+    qk_norm: True
+    use_target_aware_shortcut: True
     num_tasks: 4
     tower_hidden_units: [256, 128]
     tower_activations: ReLU
-    net_dropout: 0.1
-    dense_learning_rate: 5.0e-5
+    net_dropout: 0
+    dense_learning_rate: 1.0e-4
     epochs: 1
     shuffle: True
     seed: 20262027
@@ -2149,7 +2151,7 @@ QFormerCross_Taobao_Action: # Grouped multi-emb QFormer (tuned)
     max_len: 100
     accumulation_steps: 1
 
-QFormerCross_KuaiRand_Video_Action: # Grouped multi-emb QFormer (tuned)
+QFormerCross_KuaiRand_Video_Action: # Grouped multi-emb QFormer with target-aware shortcut
     model: QFormerCross
     dataset_id: KuaiRand_Video_Action
     loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
@@ -2159,16 +2161,46 @@ QFormerCross_KuaiRand_Video_Action: # Grouped multi-emb QFormer (tuned)
     embedding_dim: 16
     token_dim: 256
     num_heads: 4
-    num_layers: 2
+    num_layers: 3
     num_groups: 4
     num_queries_per_group: 4
     seq_num_queries: 4
     ffn_ratio: 4.0
+    qk_norm: True
+    use_target_aware_shortcut: True
     num_tasks: 6
     tower_hidden_units: [256, 128]
     tower_activations: ReLU
-    net_dropout: 0.1
-    dense_learning_rate: 5.0e-5
+    net_dropout: 0
+    dense_learning_rate: 1.0e-4
+    epochs: 1
+    shuffle: True
+    seed: 20262027
+    monitor: {'AUC': 1, 'logloss': 0}
+    monitor_mode: 'max'
+    max_len: 100
+    accumulation_steps: 1
+
+QFormerCross2_Taobao_Action: # Two-stage field-cross then sequence-unified QFormer
+    model: QFormerCross2
+    dataset_id: Taobao_Action
+    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
+    metrics: ['logloss', 'AUC']
+    task: binary_classification
+    batch_size: 8192
+    embedding_dim: 16
+    token_dim: 256
+    num_heads: 4
+    num_queries: 8
+    num_ns_layers: 2
+    num_unified_layers: 3
+    ffn_ratio: 4.0
+    qk_norm: True
+    num_tasks: 4
+    tower_hidden_units: [256, 128]
+    tower_activations: ReLU
+    net_dropout: 0
+    dense_learning_rate: 1.0e-4
     epochs: 1
     shuffle: True
     seed: 20262027

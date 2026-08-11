@@ -28,6 +28,9 @@ class QFormerCross(MultiTaskModel):
     3. Sequence QFormer: the item/action history is compressed by a QFormerStage
        that uses the non-sequential output as base tokens, following the same
        per-sequence → aggregation → self-attention pipeline.
+    4. Target-aware shortcut: user/context, target, attentive history and their
+       target-history interaction bypass the query bottleneck and are supplied
+       directly to both the sequence QFormer and task towers.
 
     Cross-value attention is used throughout: the value is a pairwise
     query-feature interaction rather than a plain linear projection.
@@ -48,6 +51,8 @@ class QFormerCross(MultiTaskModel):
                  num_queries_per_group=8,
                  seq_num_queries=4,
                  ffn_ratio=1.0,
+                 qk_norm=True,
+                 use_target_aware_shortcut=True,
                  num_tasks=4,
                  net_dropout=0,
                  accumulation_steps=1,
@@ -62,6 +67,7 @@ class QFormerCross(MultiTaskModel):
         self.token_dim = token_dim
         self.accumulation_steps = accumulation_steps
         self.num_groups = num_groups
+        self.use_target_aware_shortcut = use_target_aware_shortcut
 
         # ---- collect feature names by source ----
         self.item_features = []
@@ -82,11 +88,24 @@ class QFormerCross(MultiTaskModel):
             feature_map.features[f].get("embedding_dim", embedding_dim)
             for f in self.user_features
         )
+        if not self.item_features:
+            raise ValueError("QFormerCross requires at least one item/action feature")
+        if not self.user_features:
+            raise ValueError("QFormerCross requires at least one user/context feature")
+        if not 1 <= num_groups <= len(self.item_features):
+            raise ValueError(
+                "num_groups must be in [1, number of item/action features], "
+                f"got num_groups={num_groups}, features={len(self.item_features)}"
+            )
 
         self.embedding_layer = FeatureEmbedding(feature_map, embedding_dim)
 
         # ---- per-group item feature boundaries ----
-        self.item_group_bounds = self._compute_group_bounds(self.item_features, num_groups)
+        item_feature_dims = [
+            feature_map.features[f].get("embedding_dim", embedding_dim)
+            for f in self.item_features
+        ]
+        self.item_group_bounds = self._compute_group_bounds(item_feature_dims, num_groups)
         self.item_group_dims = [
             self.item_group_bounds[g + 1] - self.item_group_bounds[g]
             for g in range(num_groups)
@@ -99,7 +118,7 @@ class QFormerCross(MultiTaskModel):
         ])
         # ---- per-group item projections (from feature subspace to token_dim) ----
         self.item_multi_proj = nn.ModuleList([
-            nn.Linear(max(1, dim), token_dim)
+            nn.Linear(dim, token_dim)
             for dim in self.item_group_dims
         ])
         # ---- shared item projection for sequence QFormer ----
@@ -114,11 +133,14 @@ class QFormerCross(MultiTaskModel):
                 num_queries=num_queries_per_group,
                 ffn_dim=int(token_dim * ffn_ratio),
                 dropout=net_dropout,
+                qk_norm=qk_norm,
             )
             for _ in range(num_groups)
         ])
         self.group_fusion_layers = nn.ModuleList([
-            QFormerLayer(token_dim, num_heads, int(token_dim * ffn_ratio), net_dropout)
+            QFormerLayer(
+                token_dim, num_heads, int(token_dim * ffn_ratio), net_dropout, qk_norm
+            )
             for _ in range(1)
         ])
         self.group_fusion_norm = nn.LayerNorm(token_dim)
@@ -131,17 +153,36 @@ class QFormerCross(MultiTaskModel):
             num_queries=seq_num_queries,
             ffn_dim=int(token_dim * ffn_ratio),
             dropout=net_dropout,
+            qk_norm=qk_norm,
         )
         self.seq_fusion_layers = nn.ModuleList([
-            QFormerLayer(token_dim, num_heads, int(token_dim * ffn_ratio), net_dropout)
+            QFormerLayer(
+                token_dim, num_heads, int(token_dim * ffn_ratio), net_dropout, qk_norm
+            )
             for _ in range(1)
         ])
         self.seq_fusion_norm = nn.LayerNorm(token_dim)
 
+        # ---- target-aware residual path ----
+        # The QFormer queries are deliberately narrow information bottlenecks.
+        # Preserve a direct route for user, target and target-conditioned history
+        # features so the prediction tower does not need to reconstruct them from
+        # compressed queries alone.
+        if use_target_aware_shortcut:
+            self.context_shortcut_proj = nn.Linear(self.non_item_dim, token_dim)
+            self.target_query_norm = nn.LayerNorm(token_dim)
+            self.history_key_norm = nn.LayerNorm(token_dim)
+            self.shortcut_fusion = nn.Sequential(
+                nn.Linear(4 * token_dim, token_dim),
+                nn.GELU(),
+                nn.LayerNorm(token_dim),
+            )
+
         # ---- prediction ----
         non_seq_dim = num_groups * num_queries_per_group * token_dim
         seq_dim = seq_num_queries * token_dim
-        combined_dim = non_seq_dim + seq_dim
+        shortcut_dim = token_dim if use_target_aware_shortcut else 0
+        combined_dim = non_seq_dim + seq_dim + shortcut_dim
         self.tower = nn.ModuleList([
             MLP_Block(
                 input_dim=combined_dim,
@@ -169,19 +210,61 @@ class QFormerCross(MultiTaskModel):
         self.model_to_device()
 
     @staticmethod
-    def _compute_group_bounds(item_features, num_groups):
-        """Compute balanced feature boundaries for item groups."""
-        n = len(item_features)
+    def _compute_group_bounds(feature_dims, num_groups):
+        """Return flattened embedding offsets for balanced field groups.
+
+        ``FeatureEmbedding(..., flatten_emb=True)`` concatenates embedding
+        dimensions, not field indices. The old implementation returned field
+        indices and therefore sliced only a few scalar dimensions from the
+        flattened tensor (for example ``[0:2]`` instead of ``[0:32]`` for two
+        16-dimensional fields).
+        """
+        n = len(feature_dims)
         if n == 0:
-            return [0] * (num_groups + 1)
+            raise ValueError("feature_dims must not be empty")
+        if not 1 <= num_groups <= n:
+            raise ValueError("num_groups must be between 1 and len(feature_dims)")
+        dim_offsets = [0]
+        for dim in feature_dims:
+            if dim <= 0:
+                raise ValueError(f"feature embedding dimensions must be positive, got {dim}")
+            dim_offsets.append(dim_offsets[-1] + dim)
+
         base = n // num_groups
         remainder = n % num_groups
         bounds = [0]
         feat_idx = 0
         for g in range(num_groups):
             size = base + (1 if g < remainder else 0)
-            bounds.append(bounds[-1] + size)
+            feat_idx += size
+            bounds.append(dim_offsets[feat_idx])
         return bounds
+
+    def _target_aware_shortcut(self, context_embedding, candidate_token,
+                               history_tokens, history_mask):
+        target_query = self.target_query_norm(candidate_token)
+        history_keys = self.history_key_norm(history_tokens)
+        scores = torch.matmul(
+            target_query, history_keys.transpose(1, 2)
+        ) / math.sqrt(self.token_dim)
+
+        valid = history_mask.to(dtype=torch.bool, device=scores.device).unsqueeze(1)
+        scores = scores.masked_fill(~valid, torch.finfo(scores.dtype).min)
+        weights = torch.softmax(scores, dim=-1)
+        # Renormalization keeps the all-padding edge case finite and maps it to
+        # a zero history-interest vector.
+        weights = weights * valid.to(dtype=weights.dtype)
+        weights = weights / weights.sum(dim=-1, keepdim=True).clamp_min(1e-9)
+        history_interest = torch.matmul(weights, history_tokens)
+
+        context_token = self.context_shortcut_proj(context_embedding).unsqueeze(1)
+        shortcut_input = torch.cat([
+            context_token,
+            candidate_token,
+            history_interest,
+            candidate_token * history_interest,
+        ], dim=-1)
+        return self.shortcut_fusion(shortcut_input)
 
     def forward(self, inputs):
         batch_dict, item_dict, mask = self.get_inputs(inputs)
@@ -203,16 +286,21 @@ class QFormerCross(MultiTaskModel):
 
         # ---- shared item projection for sequence QFormer ----
         history_tokens = self.item_proj(history_embeddings)
+        candidate_token = self.item_proj(candidate_embedding)
 
         history_mask = mask.to(dtype=history_tokens.dtype, device=history_tokens.device)
+
+        shortcut_token = None
+        if self.use_target_aware_shortcut:
+            shortcut_token = self._target_aware_shortcut(
+                context_embedding, candidate_token, history_tokens, history_mask
+            )
 
         # ---- grouped non-sequential QFormer ----
         # Each group projects its own feature subspace of item embeddings.
         group_outputs = []
         for g in range(self.num_groups):
             start, end = self.item_group_bounds[g], self.item_group_bounds[g + 1]
-            if end <= start:
-                continue
             item_group_history = self.item_multi_proj[g](history_embeddings[:, :, start:end])
             item_group_candidate = self.item_multi_proj[g](candidate_embedding[:, :, start:end])
             group_features = torch.cat([
@@ -224,7 +312,9 @@ class QFormerCross(MultiTaskModel):
                 torch.ones(batch_size, 2, device=history_mask.device, dtype=history_mask.dtype),
                 history_mask,
             ], dim=1)
-            group_queries = self.group_qformers[g](group_features, group_mask)
+            group_queries = self.activation_checkpoint(
+                self.group_qformers[g], group_features, group_mask
+            )
             group_outputs.append(group_queries)
 
         x = torch.cat(group_outputs, dim=1)
@@ -234,12 +324,22 @@ class QFormerCross(MultiTaskModel):
 
         # ---- sequence QFormer ----
         base_tokens = non_seq_queries
-        seq_features = torch.cat([history_tokens, base_tokens], dim=1)
+        seq_feature_parts = [history_tokens, base_tokens]
+        if shortcut_token is not None:
+            seq_feature_parts.append(shortcut_token)
+        seq_features = torch.cat(seq_feature_parts, dim=1)
         seq_mask = torch.cat([
             history_mask,
-            torch.ones(batch_size, base_tokens.size(1), device=history_mask.device, dtype=history_mask.dtype),
+            torch.ones(
+                batch_size,
+                seq_features.size(1) - history_tokens.size(1),
+                device=history_mask.device,
+                dtype=history_mask.dtype,
+            ),
         ], dim=1)
-        seq_queries = self.seq_qformer(seq_features, seq_mask)
+        seq_queries = self.activation_checkpoint(
+            self.seq_qformer, seq_features, seq_mask
+        )
         for layer in self.seq_fusion_layers:
             seq_queries = layer(seq_queries, seq_queries, None)
         seq_queries = self.seq_fusion_norm(seq_queries)
@@ -247,7 +347,10 @@ class QFormerCross(MultiTaskModel):
         # ---- prediction ----
         non_seq_flat = non_seq_queries.reshape(batch_size, -1)
         seq_flat = seq_queries.reshape(batch_size, -1)
-        combined = torch.cat([non_seq_flat, seq_flat], dim=-1)
+        prediction_parts = [non_seq_flat, seq_flat]
+        if shortcut_token is not None:
+            prediction_parts.append(shortcut_token.squeeze(1))
+        combined = torch.cat(prediction_parts, dim=-1)
 
         tower_output = [self.tower[i](combined) for i in range(self.num_tasks)]
         y_pred = [self.output_activation[i](tower_output[i]) for i in range(self.num_tasks)]
@@ -263,7 +366,8 @@ class QFormerStage(nn.Module):
     This preserves spatial information better than mean-pool → Linear.
     """
 
-    def __init__(self, token_dim, num_heads, num_layers, num_queries, ffn_dim, dropout=0.0):
+    def __init__(self, token_dim, num_heads, num_layers, num_queries, ffn_dim,
+                 dropout=0.0, qk_norm=False):
         super().__init__()
         self.token_dim = token_dim
         self.num_heads = num_heads
@@ -273,7 +377,7 @@ class QFormerStage(nn.Module):
         self.context_norm = nn.LayerNorm(token_dim)
         self.query_norm = nn.LayerNorm(token_dim)
         self.layers = nn.ModuleList([
-            QFormerLayer(token_dim, num_heads, ffn_dim, dropout)
+            QFormerLayer(token_dim, num_heads, ffn_dim, dropout, qk_norm)
             for _ in range(num_layers)
         ])
         self.final_norm = nn.LayerNorm(token_dim)
@@ -286,7 +390,13 @@ class QFormerStage(nn.Module):
 
     def forward(self, features, mask=None):
         batch_size = features.size(0)
-        context = self.context_proj(features.mean(dim=1))
+        if mask is None:
+            pooled_features = features.mean(dim=1)
+        else:
+            valid = mask.to(dtype=features.dtype, device=features.device).unsqueeze(-1)
+            pooled_features = (features * valid).sum(dim=1)
+            pooled_features = pooled_features / valid.sum(dim=1).clamp_min(1.0)
+        context = self.context_proj(pooled_features)
         context = self.context_norm(context)
         queries = self.learnable_queries.unsqueeze(0).expand(batch_size, -1, -1)
         queries = queries + context.unsqueeze(1)
@@ -297,12 +407,12 @@ class QFormerStage(nn.Module):
 
 
 class QFormerLayer(nn.Module):
-    def __init__(self, token_dim, num_heads, ffn_dim, dropout=0.0):
+    def __init__(self, token_dim, num_heads, ffn_dim, dropout=0.0, qk_norm=False):
         super().__init__()
         self.self_attn_norm = nn.LayerNorm(token_dim)
-        self.self_attn = MultiHeadAttention(token_dim, num_heads)
+        self.self_attn = MultiHeadAttention(token_dim, num_heads, qk_norm)
         self.cross_norm = nn.LayerNorm(token_dim)
-        self.cross_attn = CrossValueAttention(token_dim, num_heads)
+        self.cross_attn = CrossValueAttention(token_dim, num_heads, qk_norm)
         self.ffn_norm = nn.LayerNorm(token_dim)
         self.ffn = FeedForward(token_dim, ffn_dim, dropout)
         self.dropout = nn.Dropout(dropout)
@@ -318,7 +428,7 @@ class QFormerLayer(nn.Module):
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, token_dim, num_heads):
+    def __init__(self, token_dim, num_heads, qk_norm=False):
         super().__init__()
         if token_dim % num_heads != 0:
             raise ValueError("token_dim must be divisible by num_heads")
@@ -329,6 +439,8 @@ class MultiHeadAttention(nn.Module):
         self.w_k = nn.Linear(token_dim, token_dim)
         self.w_v = nn.Linear(token_dim, token_dim)
         self.w_o = nn.Linear(token_dim, token_dim)
+        self.q_norm = nn.LayerNorm(self.head_dim) if qk_norm else nn.Identity()
+        self.k_norm = nn.LayerNorm(self.head_dim) if qk_norm else nn.Identity()
         self._reset_parameters()
 
     def _reset_parameters(self):
@@ -342,6 +454,8 @@ class MultiHeadAttention(nn.Module):
         q = self.w_q(query).view(batch_size, seq_q, self.num_heads, self.head_dim).transpose(1, 2)
         k = self.w_k(key).view(batch_size, seq_k, self.num_heads, self.head_dim).transpose(1, 2)
         v = self.w_v(value).view(batch_size, seq_k, self.num_heads, self.head_dim).transpose(1, 2)
+        q = self.q_norm(q)
+        k = self.k_norm(k)
         scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         attn = torch.softmax(scores, dim=-1)
         out = torch.matmul(attn, v).transpose(1, 2).contiguous().view(batch_size, seq_q, -1)
@@ -356,7 +470,7 @@ class CrossValueAttention(nn.Module):
     scale normalization for numerical stability.
     """
 
-    def __init__(self, token_dim, num_heads):
+    def __init__(self, token_dim, num_heads, qk_norm=False):
         super().__init__()
         if token_dim % num_heads != 0:
             raise ValueError("token_dim must be divisible by num_heads")
@@ -370,6 +484,8 @@ class CrossValueAttention(nn.Module):
         self.w_fi = nn.Linear(token_dim, token_dim)
         self.w_v_pair = nn.Linear(token_dim, token_dim)
         self.w_o = nn.Linear(token_dim, token_dim)
+        self.q_norm = nn.LayerNorm(self.head_dim) if qk_norm else nn.Identity()
+        self.k_norm = nn.LayerNorm(self.head_dim) if qk_norm else nn.Identity()
         self._reset_parameters()
 
     def _reset_parameters(self):
@@ -383,22 +499,39 @@ class CrossValueAttention(nn.Module):
 
         q = self.w_q(queries).view(batch_size, num_queries, self.num_heads, self.head_dim).transpose(1, 2)
         k = self.w_k(keys).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        q = self.q_norm(q)
+        k = self.k_norm(k)
         scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
+        attention_mass = None
         if mask is not None:
-            key_mask = mask.to(dtype=scores.dtype, device=scores.device).view(batch_size, 1, 1, seq_len)
-            scores = scores + (1.0 - key_mask) * -1e9
+            key_mask = mask.to(dtype=torch.bool, device=scores.device).view(
+                batch_size, 1, 1, seq_len
+            )
+            scores = scores.masked_fill(~key_mask, torch.finfo(scores.dtype).min)
         attn = torch.softmax(scores, dim=-1)
+        if mask is not None:
+            attn = attn * key_mask.to(dtype=attn.dtype)
+            attn = attn / attn.sum(dim=-1, keepdim=True).clamp_min(1e-9)
+            attention_mass = attn.sum(dim=-1, keepdim=True)
 
         q_inter = self.w_qi(queries)
         f_inter = self.w_fi(keys)
-        pair = q_inter.unsqueeze(2) * f_inter.unsqueeze(1)
-        pair_flat = pair.reshape(-1, self.token_dim)
-        v_pair = self.w_v_pair(pair_flat).view(
-            batch_size, num_queries, seq_len, self.num_heads, self.head_dim
-        ).permute(0, 3, 1, 2, 4)
-
-        weighted = attn.unsqueeze(-1) * v_pair
-        out = weighted.sum(dim=3)
+        # Linear projection and attention-weighted summation commute. Aggregate
+        # features before forming the query-feature product to avoid allocating
+        # the original B x Q x S x D pair tensor (multiple GB at batch_size=8192).
+        attended_features = torch.einsum("bhqs,bsd->bhqd", attn, f_inter)
+        pair_summary = q_inter.unsqueeze(1) * attended_features
+        pair_weight = self.w_v_pair.weight.view(
+            self.num_heads, self.head_dim, self.token_dim
+        )
+        out = torch.einsum("bhqd,hkd->bhqk", pair_summary, pair_weight)
+        if self.w_v_pair.bias is not None:
+            pair_bias = self.w_v_pair.bias.view(
+                1, self.num_heads, 1, self.head_dim
+            )
+            if attention_mass is not None:
+                pair_bias = pair_bias * attention_mass
+            out = out + pair_bias
         out = out.transpose(1, 2).contiguous().view(batch_size, num_queries, self.token_dim)
         return self.w_o(out)
 
