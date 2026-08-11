@@ -366,14 +366,16 @@ class FeatureProcessor(object):
             pickle_file = self.pickle_file
         logging.info("Load feature_processor from pickle: " + pickle_file)
         if os.path.exists(pickle_file):
-            pickled_feature_processor = pickle.load(open(pickle_file, "rb"))
+            with open(pickle_file, "rb") as file:
+                pickled_feature_processor = pickle.load(file)
             if pickled_feature_processor.feature_map.dataset_id == self.feature_map.dataset_id:
                 return pickled_feature_processor
         raise IOError("pickle_file={} not valid.".format(pickle_file))
 
     def save_pickle(self, pickle_file):
         logging.info("Pickle feature_encode: " + pickle_file)
-        pickle.dump(self, open(pickle_file, "wb"))
+        with open(pickle_file, "wb") as file:
+            pickle.dump(self, file)
 
     def save_vocab(self, vocab_file):
         logging.info("Save feature_vocab to json: " + vocab_file)

@@ -168,6 +168,14 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "QFormerCross4_Taobao_Action"
 
 # ==================================================
+# KuaiRec watch-ratio experiments
+# ==================================================
+# run_exp "OneTrans_KuaiRec_Big_Watch_Action"
+# run_exp "QFormerCross3_KuaiRec_Big_Watch_Action"
+# run_exp "OneTrans_KuaiRec_Dense_Watch_Action"
+# run_exp "QFormerCross3_KuaiRec_Dense_Watch_Action"
+
+# ==================================================
 # MerRec_Action experiments
 # ==================================================
 # run_exp "RankMixer_MerRec_Action"

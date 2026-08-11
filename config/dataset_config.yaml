@@ -111,6 +111,85 @@ KuaiRand_Video_Action:
         - {name: long_view, dtype: float}
 
 
+KuaiRec_Big_Watch_Action:
+    data_root: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data
+    data_format: parquet
+    train_data: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Big_Watch_Action/train/data
+    valid_data: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Big_Watch_Action/valid/data
+    test_data: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Big_Watch_Action/test/data
+    train_user_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Big_Watch_Action/train/user_info
+    train_item_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Big_Watch_Action/train/item_info
+    valid_user_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Big_Watch_Action/valid/user_info
+    valid_item_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Big_Watch_Action/valid/item_info
+    test_user_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Big_Watch_Action/test/user_info
+    test_item_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Big_Watch_Action/test/item_info
+    rebuild_dataset: False
+    blocked: True
+    block_cache_size: 2
+    feature_cols: &kuairec_watch_features
+        - {name: user_index, active: True, dtype: int, type: meta}
+        - {name: item_index, active: True, dtype: int, type: meta}
+        - {name: seq_len, active: True, dtype: int, type: meta}
+        - {name: user_id, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: item_id, active: True, dtype: int, type: categorical, vocab_size: 10729, source: item}
+        - {name: author_id, active: True, dtype: int, type: categorical, vocab_size: 10729, source: item}
+        - {name: video_type, active: True, dtype: int, type: categorical, vocab_size: 10729, source: item}
+        - {name: upload_type, active: True, dtype: int, type: categorical, vocab_size: 10729, source: item}
+        - {name: duration_bucket, active: True, dtype: int, type: categorical, vocab_size: 10729, source: item}
+        - {name: category_1, active: True, dtype: int, type: categorical, vocab_size: 10729, source: item}
+        - {name: category_2, active: True, dtype: int, type: categorical, vocab_size: 10729, source: item}
+        - {name: user_active_degree, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: is_lowactive_period, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: is_live_streamer, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: is_video_author, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: follow_user_num_range, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: fans_user_num_range, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: friend_user_num_range, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: register_days_range, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat0, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat1, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat2, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat3, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat4, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat5, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat6, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat7, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat8, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat9, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat10, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat11, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat12, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat13, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat14, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat15, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat16, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: onehot_feat17, active: True, dtype: int, type: categorical, vocab_size: 7177}
+        - {name: day_of_week, active: True, dtype: int, type: categorical, vocab_size: 8}
+        - {name: is_weekend, active: True, dtype: int, type: categorical, vocab_size: 3}
+        - {name: hour, active: True, dtype: int, type: categorical, vocab_size: 25}
+        - {name: action, active: True, dtype: int, type: categorical, vocab_size: 3, source: action}
+    label_col: &kuairec_watch_labels
+        - {name: high_watch, dtype: float}
+
+KuaiRec_Dense_Watch_Action:
+    data_root: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data
+    data_format: parquet
+    train_data: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Dense_Watch_Action/train/data
+    valid_data: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Dense_Watch_Action/valid/data
+    test_data: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Dense_Watch_Action/test/data
+    train_user_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Dense_Watch_Action/train/user_info
+    train_item_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Dense_Watch_Action/train/item_info
+    valid_user_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Dense_Watch_Action/valid/user_info
+    valid_item_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Dense_Watch_Action/valid/item_info
+    test_user_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Dense_Watch_Action/test/user_info
+    test_item_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/KuaiRec_Dense_Watch_Action/test/item_info
+    rebuild_dataset: False
+    blocked: True
+    block_cache_size: 2
+    feature_cols: *kuairec_watch_features
+    label_col: *kuairec_watch_labels
+
+
 TencentGR_10M_Action:
     data_root: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data
     data_format: parquet

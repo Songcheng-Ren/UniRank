@@ -2265,6 +2265,69 @@ QFormerCross4_Taobao_Action: # QFormerCross3 with 16 input-conditioned queries
     max_len: 100
     accumulation_steps: 1
 
+OneTrans_KuaiRec_Big_Watch_Action: &onetrans_kuairec_watch
+    model: OneTrans
+    dataset_id: KuaiRec_Big_Watch_Action
+    loss: ['binary_crossentropy']
+    metrics: ['logloss', 'AUC', 'UAUC', 'gAUC', 'NDCG(10)']
+    task: binary_classification
+    batch_size: 8192
+    embedding_dim: 16
+    tower_hidden_units: [128, 64]
+    num_tasks: 1
+    num_layers: 3
+    num_heads: 2
+    token_dim: 256
+    num_ns_token: 4
+    reduction_ratio: 0.5
+    tokenizer_type: Auto
+    dnn_activations: ReLU
+    tower_activations: ReLU
+    net_dropout: 0
+    epochs: 1
+    shuffle: True
+    seed: 20262027
+    monitor: {'UAUC': 1, 'logloss': 0}
+    monitor_mode: 'max'
+    max_len: 100
+    accumulation_steps: 1
+
+OneTrans_KuaiRec_Dense_Watch_Action:
+    <<: *onetrans_kuairec_watch
+    dataset_id: KuaiRec_Dense_Watch_Action
+
+QFormerCross3_KuaiRec_Big_Watch_Action: &qformercross3_kuairec_watch
+    model: QFormerCross3
+    dataset_id: KuaiRec_Big_Watch_Action
+    loss: ['binary_crossentropy']
+    metrics: ['logloss', 'AUC', 'UAUC', 'gAUC', 'NDCG(10)']
+    task: binary_classification
+    batch_size: 8192
+    embedding_dim: 16
+    token_dim: 256
+    num_heads: 4
+    num_queries: 8
+    num_ns_layers: 2
+    num_unified_layers: 3
+    ffn_ratio: 4.0
+    qk_norm: True
+    num_tasks: 1
+    tower_hidden_units: [256, 128]
+    tower_activations: ReLU
+    net_dropout: 0
+    dense_learning_rate: 1.0e-4
+    epochs: 1
+    shuffle: True
+    seed: 20262027
+    monitor: {'UAUC': 1, 'logloss': 0}
+    monitor_mode: 'max'
+    max_len: 100
+    accumulation_steps: 1
+
+QFormerCross3_KuaiRec_Dense_Watch_Action:
+    <<: *qformercross3_kuairec_watch
+    dataset_id: KuaiRec_Dense_Watch_Action
+
 UltraHSTU_QK_Video_Action: # This is a config template
     model: UltraHSTU
     dataset_id: QK_Video_Action
