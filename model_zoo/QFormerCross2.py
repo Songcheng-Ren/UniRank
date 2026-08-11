@@ -44,6 +44,8 @@ class QFormerCross2(MultiTaskModel):
                  num_tasks=4,
                  net_dropout=0,
                  accumulation_steps=1,
+                 _qformer_stage_cls=None,
+                 _qformer_layer_cls=None,
                  **kwargs):
         super().__init__(feature_map, model_id=model_id, gpu=gpu, **kwargs)
         if token_dim % num_heads != 0:
@@ -64,6 +66,8 @@ class QFormerCross2(MultiTaskModel):
         self.num_queries = num_queries
         self.max_len = max_len
         self.accumulation_steps = accumulation_steps
+        qformer_stage_cls = _qformer_stage_cls or QFormerStage
+        qformer_layer_cls = _qformer_layer_cls or QFormerLayer
 
         self.target_item_features = []
         self.sequence_features = []
@@ -118,7 +122,7 @@ class QFormerCross2(MultiTaskModel):
         self.sequence_input_norm = nn.LayerNorm(token_dim)
 
         ffn_dim = int(token_dim * ffn_ratio)
-        self.ns_qformer = QFormerStage(
+        self.ns_qformer = qformer_stage_cls(
             token_dim=token_dim,
             num_heads=num_heads,
             num_layers=num_ns_layers,
@@ -134,6 +138,7 @@ class QFormerCross2(MultiTaskModel):
             ffn_dim=ffn_dim,
             dropout=net_dropout,
             qk_norm=qk_norm,
+            layer_cls=qformer_layer_cls,
         )
 
         tower_input_dim = num_queries * token_dim
@@ -276,10 +281,10 @@ class UnifiedQFormer(nn.Module):
     """Refine crossed non-sequential queries against sequence features."""
 
     def __init__(self, token_dim, num_heads, num_layers, ffn_dim,
-                 dropout=0.0, qk_norm=True):
+                 dropout=0.0, qk_norm=True, layer_cls=QFormerLayer):
         super().__init__()
         self.layers = nn.ModuleList([
-            QFormerLayer(
+            layer_cls(
                 token_dim=token_dim,
                 num_heads=num_heads,
                 ffn_dim=ffn_dim,
