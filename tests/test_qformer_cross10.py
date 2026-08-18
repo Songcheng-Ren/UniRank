@@ -3,17 +3,19 @@ import unittest
 import torch
 
 from model_zoo.QFormerCross8 import (
-    QFormerCross8,
     RecursiveCrossValueLayer,
-    RecursiveCrossValueStage,
     RecursiveSequenceCrossValueStage,
-    SDPACrossValueAttention,
+)
+from model_zoo.QFormerCross10 import (
+    NonRecursiveCrossValueLayer,
+    NonRecursiveCrossValueStage,
+    QFormerCross10,
 )
 from tests.test_qformer_cross2 import DummyFeatureMap
 
 
 def build_model():
-    return QFormerCross8(
+    return QFormerCross10(
         DummyFeatureMap(),
         task=["binary_classification", "binary_classification"],
         gpu=-1,
@@ -31,7 +33,7 @@ def build_model():
         loss=["binary_crossentropy", "binary_crossentropy"],
         dense_optimizer="AdamW",
         dense_learning_rate=1e-3,
-        model_root="/tmp/unirank-qformer8-test",
+        model_root="/tmp/unirank-qformer10-test",
         metrics=["AUC"],
         verbose=0,
         enable_torch_compile=False,
@@ -39,9 +41,9 @@ def build_model():
     )
 
 
-class QFormerCross8Test(unittest.TestCase):
+class QFormerCross10Test(unittest.TestCase):
     def setUp(self):
-        torch.manual_seed(53)
+        torch.manual_seed(59)
         self.model = build_model()
         self.batch_dict = {
             "user_id": torch.tensor([1, 2, 3]),
@@ -70,50 +72,31 @@ class QFormerCross8Test(unittest.TestCase):
             [0, 0, 0, 0],
         ], dtype=torch.float32)
 
-    def test_both_stages_use_recursive_crossvalue(self):
-        self.assertEqual(self.model.num_queries, 8)
+    def test_only_sequence_stage_uses_recursive_crossvalue(self):
         self.assertIsInstance(
-            self.model.ns_qformer, RecursiveCrossValueStage
+            self.model.ns_qformer, NonRecursiveCrossValueStage
         )
+        self.assertEqual(len(self.model.ns_qformer.layers), 2)
+        self.assertTrue(all(
+            isinstance(layer, NonRecursiveCrossValueLayer)
+            for layer in self.model.ns_qformer.layers
+        ))
+        for layer in self.model.ns_qformer.layers:
+            self.assertTrue(hasattr(layer, "self_attn"))
+            self.assertTrue(hasattr(layer, "ffn"))
+            self.assertNotIsInstance(layer, RecursiveCrossValueLayer)
+
         self.assertIsInstance(
             self.model.unified_qformer,
             RecursiveSequenceCrossValueStage,
         )
-        self.assertEqual(len(self.model.ns_qformer.layers), 2)
         self.assertEqual(len(self.model.unified_qformer.layers), 3)
-        for layer in [
-            *self.model.ns_qformer.layers,
-            *self.model.unified_qformer.layers,
-        ]:
-            self.assertIsInstance(layer, RecursiveCrossValueLayer)
-            self.assertIsInstance(
-                layer.cross_attn, SDPACrossValueAttention
-            )
-            self.assertFalse(hasattr(layer, "self_attn"))
-            self.assertFalse(hasattr(layer, "ffn"))
+        self.assertTrue(all(
+            isinstance(layer, RecursiveCrossValueLayer)
+            for layer in self.model.unified_qformer.layers
+        ))
 
-    def test_sequence_stage_matches_manual_recurrence_before_post_processing(self):
-        stage = self.model.unified_qformer
-        queries = torch.randn(2, 8, 8)
-        sequence = torch.randn(2, 4, 8)
-        mask = torch.tensor([
-            [1, 1, 1, 1],
-            [0, 0, 1, 1],
-        ], dtype=torch.float32)
-
-        expected = queries
-        for layer in stage.layers:
-            expected = layer(expected, sequence, mask)
-        mixed = stage.post_self_attn(expected, expected, expected)
-        expected = stage.post_self_norm(expected + stage.dropout(mixed))
-        ffn_output = stage.post_ffn(expected)
-        expected = stage.post_ffn_norm(
-            expected + stage.dropout(ffn_output)
-        )
-        actual = stage(queries, sequence, mask)
-        torch.testing.assert_close(actual, expected)
-
-    def test_forward_backward_empty_history_and_padding_invariance(self):
+    def test_forward_backward_and_padding_invariance(self):
         output = self.model((self.batch_dict, self.item_dict, self.mask))
         self.assertEqual(set(output), {"click_pred", "buy_pred"})
         self.assertTrue(all(
@@ -136,8 +119,12 @@ class QFormerCross8Test(unittest.TestCase):
             values[0, :2] = 1
             values[2, :4] = 1
         with torch.no_grad():
-            expected = self.model((self.batch_dict, self.item_dict, self.mask))
-            actual = self.model((self.batch_dict, changed_item_dict, self.mask))
+            expected = self.model((
+                self.batch_dict, self.item_dict, self.mask
+            ))
+            actual = self.model((
+                self.batch_dict, changed_item_dict, self.mask
+            ))
         for label in expected:
             torch.testing.assert_close(
                 actual[label], expected[label], atol=1e-6, rtol=1e-6

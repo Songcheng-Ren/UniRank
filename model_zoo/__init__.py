@@ -38,5 +38,6 @@ from .QFormerCross6 import QFormerCross6
 from .QFormerCross7 import QFormerCross7
 from .QFormerCross8 import QFormerCross8
 from .QFormerCross9 import QFormerCross9
+from .QFormerCross10 import QFormerCross10
 
 from .SSR import SSR

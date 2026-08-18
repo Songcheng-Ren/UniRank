@@ -2,11 +2,11 @@ import unittest
 
 import torch
 
-from model_zoo.QFormerCross7 import (
+from model_zoo.QFormerCross8 import (
     RecursiveCrossValueLayer,
     RecursiveCrossValueStage,
+    RecursiveSequenceCrossValueStage,
 )
-from model_zoo.QFormerCross8 import RecursiveSequenceCrossValueStage
 from model_zoo.QFormerCross9 import QFormerCross9
 from tests.test_qformer_cross2 import DummyFeatureMap
 

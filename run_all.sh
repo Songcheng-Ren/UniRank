@@ -170,6 +170,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "QFormerCross7_Taobao_Action"
 # run_exp "QFormerCross8_Taobao_Action"
 # run_exp "QFormerCross9_Taobao_Action"
+# run_exp "QFormerCross10_Taobao_Action"
 
 # ==================================================
 # KuaiRec watch-ratio experiments
@@ -180,6 +181,7 @@ exec > >(tee -a "${MASTER_LOG}") 2>&1
 # run_exp "QFormerCross7_KuaiRec_Big_Watch_Action"
 # run_exp "QFormerCross8_KuaiRec_Big_Watch_Action"
 # run_exp "QFormerCross9_KuaiRec_Big_Watch_Action"
+# run_exp "QFormerCross10_KuaiRec_Big_Watch_Action"
 # run_exp "OneTrans_KuaiRec_Dense_Watch_Action"
 # run_exp "QFormerCross3_KuaiRec_Dense_Watch_Action"
 
