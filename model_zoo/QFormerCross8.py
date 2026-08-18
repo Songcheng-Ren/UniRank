@@ -350,6 +350,7 @@ class QFormerCross8(MultiTaskModel):
                  net_dropout=0,
                  accumulation_steps=1,
                  _ns_qformer_cls=None,
+                 _unified_qformer_cls=None,
                  **kwargs):
         super().__init__(feature_map, model_id=model_id, gpu=gpu, **kwargs)
         if token_dim % num_heads != 0:
@@ -435,7 +436,10 @@ class QFormerCross8(MultiTaskModel):
             dropout=net_dropout,
             qk_norm=qk_norm,
         )
-        self.unified_qformer = RecursiveSequenceCrossValueStage(
+        unified_qformer_cls = (
+            _unified_qformer_cls or RecursiveSequenceCrossValueStage
+        )
+        self.unified_qformer = unified_qformer_cls(
             token_dim=token_dim,
             num_heads=num_heads,
             num_layers=num_unified_layers,
