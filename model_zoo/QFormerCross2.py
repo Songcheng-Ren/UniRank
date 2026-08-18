@@ -46,6 +46,7 @@ class QFormerCross2(MultiTaskModel):
                  accumulation_steps=1,
                  _qformer_stage_cls=None,
                  _qformer_layer_cls=None,
+                 _unified_qformer_cls=None,
                  **kwargs):
         super().__init__(feature_map, model_id=model_id, gpu=gpu, **kwargs)
         if token_dim % num_heads != 0:
@@ -68,6 +69,7 @@ class QFormerCross2(MultiTaskModel):
         self.accumulation_steps = accumulation_steps
         qformer_stage_cls = _qformer_stage_cls or QFormerStage
         qformer_layer_cls = _qformer_layer_cls or QFormerLayer
+        unified_qformer_cls = _unified_qformer_cls or UnifiedQFormer
 
         self.target_item_features = []
         self.sequence_features = []
@@ -131,7 +133,7 @@ class QFormerCross2(MultiTaskModel):
             dropout=net_dropout,
             qk_norm=qk_norm,
         )
-        self.unified_qformer = UnifiedQFormer(
+        self.unified_qformer = unified_qformer_cls(
             token_dim=token_dim,
             num_heads=num_heads,
             num_layers=num_unified_layers,
