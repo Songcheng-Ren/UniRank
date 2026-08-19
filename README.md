@@ -366,6 +366,14 @@ Dataset semantics and repository entry points are aligned as follows:
       <td><a href="./data/Taobao/preprocess_Taobao_seq_action.py">Script</a></td>
     </tr>
     <tr>
+      <td><code>Taobao_CTR</code></td>
+      <td>click</td>
+      <td>Pure CTR variant: all ad impressions are retained; history actions contain only exposure/click and behavior_log is not read.</td>
+      <td><a href="https://tianchi.aliyun.com/dataset/56">Taobao Ad Display/Click Data</a></td>
+      <td><a href="https://huggingface.co/datasets/salmon1802/Taobao">Taobao</a></td>
+      <td><a href="./data/Taobao/preprocess_Taobao_ctr.py">Script</a></td>
+    </tr>
+    <tr>
       <td><code>MerRec_Action</code></td>
       <td>like, cart, offer, checkout, purchase</td>
       <td>May--October 2023; the current benchmark preprocessing uses the October partition.</td>

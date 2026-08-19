@@ -2683,6 +2683,34 @@ QFormerCross15_Taobao_Action: # QFormerCross3 with RMSNorm on attention Q/K
     max_len: 100
     accumulation_steps: 1
 
+QFormerCross15_Taobao_CTR: # Pure CTR; history actions are exposure/click only
+    model: QFormerCross15
+    dataset_id: Taobao_CTR
+    loss: ['binary_crossentropy']
+    metrics: ['logloss', 'AUC', 'UAUC', 'gAUC']
+    task: binary_classification
+    batch_size: 8192
+    embedding_dim: 16
+    token_dim: 256
+    num_heads: 4
+    num_queries: 8
+    num_ns_layers: 2
+    num_unified_layers: 3
+    ffn_ratio: 4.0
+    qk_norm: True
+    num_tasks: 1
+    tower_hidden_units: [256, 128]
+    tower_activations: ReLU
+    net_dropout: 0
+    dense_learning_rate: 1.0e-4
+    epochs: 1
+    shuffle: True
+    seed: 20262027
+    monitor: {'AUC': 1, 'logloss': 0}
+    monitor_mode: 'max'
+    max_len: 100
+    accumulation_steps: 1
+
 QFormerCross15_KuaiRec_Big_Watch_Action:
     model: QFormerCross15
     dataset_id: KuaiRec_Big_Watch_Action
@@ -2727,6 +2755,34 @@ QFormerCross16_Taobao_Action: # QFormerCross8 with RMSNorm on attention Q/K
     ffn_ratio: 4.0
     qk_norm: True
     num_tasks: 4
+    tower_hidden_units: [256, 128]
+    tower_activations: ReLU
+    net_dropout: 0
+    dense_learning_rate: 1.0e-4
+    epochs: 1
+    shuffle: True
+    seed: 20262027
+    monitor: {'AUC': 1, 'logloss': 0}
+    monitor_mode: 'max'
+    max_len: 100
+    accumulation_steps: 1
+
+QFormerCross16_Taobao_CTR: # Pure CTR; history actions are exposure/click only
+    model: QFormerCross16
+    dataset_id: Taobao_CTR
+    loss: ['binary_crossentropy']
+    metrics: ['logloss', 'AUC', 'UAUC', 'gAUC']
+    task: binary_classification
+    batch_size: 8192
+    embedding_dim: 16
+    token_dim: 256
+    num_heads: 4
+    num_queries: 8
+    num_ns_layers: 2
+    num_unified_layers: 3
+    ffn_ratio: 4.0
+    qk_norm: True
+    num_tasks: 1
     tower_hidden_units: [256, 128]
     tower_activations: ReLU
     net_dropout: 0

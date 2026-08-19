@@ -284,6 +284,47 @@ Taobao_Action:
         - {name: fav, dtype: float}
         - {name: buy, dtype: float}
 
+Taobao_CTR:
+    data_root: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data
+    data_format: parquet
+    train_data: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_CTR/train/data
+    valid_data: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_CTR/valid/data
+    test_data: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_CTR/test/data
+    train_user_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_CTR/train/user_info
+    train_item_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_CTR/train/item_info
+    valid_user_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_CTR/valid/user_info
+    valid_item_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_CTR/valid/item_info
+    test_user_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_CTR/test/user_info
+    test_item_info: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data/Taobao_CTR/test/item_info
+    rebuild_dataset: False
+    blocked: True
+    block_cache_size: 2
+    feature_cols:
+        - {name: user_index, active: True, dtype: int, type: meta}
+        - {name: item_index, active: True, dtype: int, type: meta}
+        - {name: seq_len, active: True, dtype: int, type: meta}
+        - {name: user_id, active: True, dtype: int, type: categorical, vocab_size: 470571}
+        - {name: item_id, active: True, dtype: int, type: categorical, vocab_size: 846812, source: item}
+        - {name: cate_id, active: True, dtype: int, type: categorical, vocab_size: 6409, source: item}
+        - {name: campaign_id, active: True, dtype: int, type: categorical, vocab_size: 354106, source: item}
+        - {name: customer_id, active: True, dtype: int, type: categorical, vocab_size: 220826, source: item}
+        - {name: brand, active: True, dtype: int, type: categorical, vocab_size: 88145, source: item}
+        - {name: price_bucket, active: True, dtype: int, type: categorical, vocab_size: 11, source: item}
+        - {name: cms_segid, active: True, dtype: int, type: categorical, vocab_size: 99}
+        - {name: cms_group_id, active: True, dtype: int, type: categorical, vocab_size: 15}
+        - {name: final_gender_code, active: True, dtype: int, type: categorical, vocab_size: 4}
+        - {name: age_level, active: True, dtype: int, type: categorical, vocab_size: 9}
+        - {name: pvalue_level, active: True, dtype: int, type: categorical, vocab_size: 5}
+        - {name: shopping_level, active: True, dtype: int, type: categorical, vocab_size: 5}
+        - {name: occupation, active: True, dtype: int, type: categorical, vocab_size: 4}
+        - {name: new_user_class_level, active: True, dtype: int, type: categorical, vocab_size: 6}
+        - {name: pid, active: True, dtype: int, type: categorical, vocab_size: 4}
+        - {name: is_weekend, active: True, dtype: int, type: categorical, vocab_size: 3}
+        - {name: hour, active: True, dtype: int, type: categorical, vocab_size: 25}
+        - {name: action, active: True, dtype: int, type: categorical, vocab_size: 3, source: action}
+    label_col:
+        - {name: is_click, dtype: float}
+
 MerRec_Action:
     data_root: /mnt/ceph-nj1-csp/bingoozhang/salmonli/data
     data_format: parquet

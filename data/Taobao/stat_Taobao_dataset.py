@@ -124,8 +124,17 @@ def build_pattern_to_action_id(action_vocab: dict, label_columns):
             action_name = "|".join(
                 label for i, label in enumerate(label_columns) if pattern & (1 << i)
             )
-        if action_name in action_vocab:
-            pattern_to_action_id[pattern] = int(action_vocab[action_name])
+        aliases = [action_name]
+        aliases.append(
+            "|".join(
+                part[3:] if part.startswith("is_") else part
+                for part in action_name.split("|")
+            )
+        )
+        for alias in aliases:
+            if alias in action_vocab:
+                pattern_to_action_id[pattern] = int(action_vocab[alias])
+                break
     return pattern_to_action_id
 
 

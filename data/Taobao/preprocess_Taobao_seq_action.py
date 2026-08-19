@@ -100,7 +100,10 @@ USER_ID_COL = "user_id"
 ITEM_ID_COL = "adgroup_id"
 TIMESTAMP_COL = "time_stamp"
 
-LABEL_COLUMNS = ["is_click"] + BEHAVIOR_LABEL_COLUMNS
+MULTITASK_LABEL_COLUMNS = ["is_click"] + BEHAVIOR_LABEL_COLUMNS
+CTR_LABEL_COLUMNS = ["is_click"]
+# Backward-compatible alias for callers that import the original multi-task schema.
+LABEL_COLUMNS = MULTITASK_LABEL_COLUMNS
 USER_STATIC_FEATURES = [
     "cms_segid",
     "cms_group_id",
@@ -281,15 +284,16 @@ def build_oov_vocab(values, counter: dict, min_feat_count: int) -> dict:
     return vocab
 
 
-def build_action_maps():
-    """Enumerate click/cart/fav/buy multi-label combination → action code."""
+def build_action_maps(label_columns=None):
+    """Enumerate the selected binary-label combinations into action codes."""
+    label_columns = list(label_columns or MULTITASK_LABEL_COLUMNS)
     pat2name = {}
-    for p in range(1 << len(LABEL_COLUMNS)):
+    for p in range(1 << len(label_columns)):
         if p == 0:
             pat2name[p] = "exposure"
         else:
             pat2name[p] = "|".join(
-                col for i, col in enumerate(LABEL_COLUMNS) if p & (1 << i)
+                col for i, col in enumerate(label_columns) if p & (1 << i)
             )
     name2code = {name: i + 1 for i, name in enumerate(sorted(set(pat2name.values())))}
     return pat2name, name2code
@@ -846,7 +850,15 @@ def process_partition(
     test_start_date: int,
     use_behavior_labels: bool = True,
     behavior_label_window: int = 86400,
+    label_columns=None,
 ):
+    label_columns = list(label_columns or MULTITASK_LABEL_COLUMNS)
+    final_columns = (
+        ["user_index", "item_index", "seq_len", "user_id"]
+        + USER_STATIC_FEATURES
+        + CONTEXT_FEATURES
+        + label_columns
+    )
     part_dir = tmp_dir / f"part_{pid:03d}"
     files = sorted(part_dir.glob("*.parquet"))
     if not files:
@@ -892,12 +904,12 @@ def process_partition(
     df["pid"] = df["pid"].map(vocabs["pid"]).fillna(0).astype(np.int32)
     df["is_weekend"] = (df["is_weekend"].astype(np.int32) + 1).astype(np.int32)
     df["hour"] = (df["hour"].astype(np.int32) + 1).astype(np.int32)
-    for col in LABEL_COLUMNS:
+    for col in label_columns:
         df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(np.float32)
 
-    binary = df[LABEL_COLUMNS].values.astype(np.int8)
+    binary = df[label_columns].values.astype(np.int8)
     pattern = np.zeros(len(df), dtype=np.int32)
-    for i in range(len(LABEL_COLUMNS)):
+    for i in range(len(label_columns)):
         pattern += binary[:, i].astype(np.int32) << i
     df["action"] = pd.Series(pattern, index=df.index).map(pat2name).map(action_name2code).astype(np.int32)
     del binary, pattern
@@ -922,8 +934,8 @@ def process_partition(
 
     def _select_final(sdf):
         if len(sdf) == 0:
-            return pd.DataFrame(columns=FINAL_COLUMNS)
-        return sdf[FINAL_COLUMNS].reset_index(drop=True)
+            return pd.DataFrame(columns=final_columns)
+        return sdf[final_columns].reset_index(drop=True)
 
     result = {
         "train": _select_final(train_df),
@@ -1127,10 +1139,19 @@ def preprocess_and_split(
     timestamp_unit: str = "auto",
     use_behavior_labels: bool = True,
     behavior_label_window_seconds: int = 86400,
+    task_mode: str = "multitask",
     overwrite: bool = False,
 ):
     data_dir = Path(data_dir).resolve()
     output_dir = Path(output_dir).resolve()
+
+    if task_mode not in {"multitask", "ctr"}:
+        raise ValueError("task_mode must be one of: multitask, ctr")
+    label_columns = (
+        MULTITASK_LABEL_COLUMNS if task_mode == "multitask" else CTR_LABEL_COLUMNS
+    )
+    # Pure CTR derives supervision only from raw_sample.clk.
+    use_behavior_labels = bool(use_behavior_labels and task_mode == "multitask")
 
     block_counts = (int(train_blocks), int(valid_blocks), int(test_blocks))
     if min(block_counts) <= 0:
@@ -1234,7 +1255,11 @@ def preprocess_and_split(
 
     uf_enc = encode_user_features(uf, valid_users, vocabs)
     global_item_lookup = encode_ad_features(af, item_idx_map, vocabs)
-    pat2name, action_name2code = build_action_maps()
+    if task_mode == "ctr":
+        pat2name = {0: "exposure", 1: "click"}
+        action_name2code = {"exposure": 1, "click": 2}
+    else:
+        pat2name, action_name2code = build_action_maps(label_columns)
 
     vocab_size = {
         "user_index": len(user_idx_map),
@@ -1277,6 +1302,7 @@ def preprocess_and_split(
             test_start_date=test_start_date,
             use_behavior_labels=use_behavior_labels,
             behavior_label_window=behavior_label_window,
+            label_columns=label_columns,
         )
         if result is None:
             continue
@@ -1314,6 +1340,7 @@ def preprocess_and_split(
     print("\n[Step 8/9] Save meta_data + block_manifest")
     meta = {
         "dataset": "Ali_Display_Ad_Click / Taobao",
+        "task_mode": task_mode,
         "sample_size": {
             "total": int(total),
             "train": int(sample_counts["train"]),
@@ -1334,12 +1361,22 @@ def preprocess_and_split(
         },
         "behavior_log_usage": {
             "used": bool(use_behavior_labels),
-            "label_columns": BEHAVIOR_LABEL_COLUMNS,
+            "label_columns": BEHAVIOR_LABEL_COLUMNS if use_behavior_labels else [],
             "stats": behavior_stats,
-            "match_key": ["user_id", "cate_id", "brand"],
-            "behavior_label_window_seconds": int(behavior_label_window_seconds),
-            "rule": "raw_sample is first mapped to ad_feature.cate_id/brand through adgroup_id; for each exposure sample, if the same user_id + cate_id + brand appears within behavior_label_window_seconds seconds after exposure time_stamp, the corresponding btag will be set to 1, otherwise it will be 0.",
-            "note": "behavior_log does not contain adgroup_id, so this is category/brand granularity, behavioral supervision within the post-exposure time window, not a direct label at the advertising ID granularity.",
+            "match_key": ["user_id", "cate_id", "brand"] if use_behavior_labels else [],
+            "behavior_label_window_seconds": (
+                int(behavior_label_window_seconds) if use_behavior_labels else None
+            ),
+            "rule": (
+                "raw_sample is first mapped to ad_feature.cate_id/brand through adgroup_id; for each exposure sample, if the same user_id + cate_id + brand appears within behavior_label_window_seconds seconds after exposure time_stamp, the corresponding btag will be set to 1, otherwise it will be 0."
+                if use_behavior_labels
+                else "behavior_log is not read; supervision comes only from raw_sample.clk."
+            ),
+            "note": (
+                "behavior_log does not contain adgroup_id, so this is category/brand granularity, behavioral supervision within the post-exposure time window, not a direct label at the advertising ID granularity."
+                if use_behavior_labels
+                else "Pure CTR mode contains no cart/fav/buy labels or history actions."
+            ),
         },
         "user_filtering": {
             "min_user_interactions": int(min_user_interactions),
@@ -1369,9 +1406,9 @@ def preprocess_and_split(
             },
         },
         "vocab_size": {k: int(v) for k, v in vocab_size.items()},
-        "label": LABEL_COLUMNS,
+        "label": label_columns,
         "action_vocab": {k: int(v) for k, v in action_name2code.items()},
-        "action_vocab_desc": "The encoded multi-task action vocabulary is used by the dataloader to construct task-specific token masks based on full_action_seq.",
+        "action_vocab_desc": "The encoded action vocabulary is used by the dataloader to construct task-specific token masks based on full_action_seq.",
         "user_info_schema": {
             "fields": ["user_index", "full_item_seq", "full_action_seq", "full_timestamp_seq"],
             "full_timestamp_seq_desc": "chronological sequence of raw_sample time_stamp",
@@ -1385,7 +1422,7 @@ def preprocess_and_split(
             "user_static_features": USER_STATIC_FEATURES,
             "context_features": CONTEXT_FEATURES,
             "item_static_features": ITEM_STATIC_FEATURES,
-            "label_columns": LABEL_COLUMNS,
+            "label_columns": label_columns,
         },
         "max_len": {
             "full_item_seq": int(max_seq),
@@ -1412,7 +1449,7 @@ def preprocess_and_split(
     shutil.rmtree(tmp_behavior_dir, ignore_errors=True)
 
     print("\n" + "=" * 70)
-    print("  Taobao Preprocess Done (multi-task label + split by date ratio + blocked output + OOV filtering)")
+    print(f"  Taobao Preprocess Done ({task_mode} + split by date ratio + blocked output + OOV filtering)")
     print("=" * 70)
     print(f"Output directory: {output_dir}")
     print(json.dumps(meta, ensure_ascii=False, indent=4))
@@ -1440,6 +1477,8 @@ def parse_args():
                         help="How many seconds after exposure the behavior of the same user/cate/brand will be marked as cart/fav/buy positive samples")
     parser.add_argument("--disable_behavior_labels", action="store_true", default=False,
                         help="Disable behavior_log to generate cart/fav/buy tags, leaving only is_click")
+    parser.add_argument("--task_mode", choices=["multitask", "ctr"], default="multitask",
+                        help="multitask outputs click/cart/fav/buy; ctr outputs only is_click and exposure/click actions")
     parser.add_argument("--overwrite", action="store_true", default=False)
     return parser.parse_args()
 
@@ -1463,5 +1502,6 @@ if __name__ == "__main__":
         timestamp_unit=args.timestamp_unit,
         use_behavior_labels=not args.disable_behavior_labels,
         behavior_label_window_seconds=args.behavior_label_window_seconds,
+        task_mode=args.task_mode,
         overwrite=args.overwrite,
     )
