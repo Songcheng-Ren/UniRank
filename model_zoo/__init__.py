@@ -33,10 +33,12 @@ from .DCNv2 import DCNv2
 from .QFormerCross import QFormerCross
 from .QFormerCross2 import QFormerCross2
 from .QFormerCross3 import QFormerCross3
+from .QFormerCross31 import QFormerCross31
 from .QFormerCross4 import QFormerCross4
 from .QFormerCross6 import QFormerCross6
 from .QFormerCross7 import QFormerCross7
 from .QFormerCross8 import QFormerCross8
+from .QFormerCross81 import QFormerCross81
 from .QFormerCross9 import QFormerCross9
 from .QFormerCross10 import QFormerCross10
 from .QFormerCross11 import QFormerCross11
