@@ -2473,6 +2473,7 @@ LoopCTR_Taobao_Action: &loopctr_taobao_action # Shared loop, standard residual, 
     inference_loops: 1
     ffn_ratio: 4.0
     qk_norm: False
+    global_grouping: source
     process_supervision: True
     num_tasks: 4
     tower_hidden_units: [256, 128]
@@ -2510,6 +2511,7 @@ LoopCTR_Taobao_CTR: # Single-task protocol closest to the paper's TaobaoAds setu
     inference_loops: 1
     ffn_ratio: 4.0
     qk_norm: False
+    global_grouping: source
     process_supervision: True
     num_tasks: 1
     tower_hidden_units: [256, 128]
@@ -2539,6 +2541,7 @@ LoopCTR_KuaiRec_Big_Watch_Action:
     inference_loops: 1
     ffn_ratio: 4.0
     qk_norm: False
+    global_grouping: source
     process_supervision: True
     num_tasks: 1
     tower_hidden_units: [256, 128]

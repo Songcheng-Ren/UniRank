@@ -11,6 +11,7 @@ This variant preserves the defining LoopCTR ingredients while deliberately
 leaving out HCR and MoE:
 
 * an Entry -> shared Loop Block -> Exit sandwich;
+* grouped global self-attention over user/context and target-item fields;
 * prefix attention that prevents sequence tokens from reading target/global
   tokens while allowing global tokens to read the complete prefix;
 * uniform process supervision over depths 0..L during training;
@@ -152,11 +153,17 @@ class TransformerBlock(nn.Module):
 
 
 class EntryBlock(nn.Module):
-    """Encode behavior sequences and singleton global fields independently."""
+    """Encode the sequence and configured global groups independently."""
 
     def __init__(self, token_dim, num_heads, ffn_dim, dropout=0.0,
-                 attention_dropout=0.0, qk_norm=False):
+                 attention_dropout=0.0, qk_norm=False,
+                 global_group_sizes=()):
         super().__init__()
+        if not global_group_sizes or any(
+            size < 1 for size in global_group_sizes
+        ):
+            raise ValueError("global_group_sizes must contain positive sizes")
+        self.global_group_sizes = tuple(global_group_sizes)
         self.sequence_block = TransformerBlock(
             token_dim, num_heads, ffn_dim, dropout,
             attention_dropout, qk_norm,
@@ -171,17 +178,29 @@ class EntryBlock(nn.Module):
             sequence_tokens, sequence_mask
         )
 
-        # Every non-sequence field is a singleton group in LoopCTR's Entry
-        # Block. Folding fields into the batch evaluates all singleton groups
-        # in one SDPA call without allowing premature cross-field attention.
         batch_size, num_fields, token_dim = global_tokens.shape
-        singleton_fields = global_tokens.reshape(
-            batch_size * num_fields, 1, token_dim
-        )
-        singleton_fields = self.global_block(singleton_fields)
-        global_tokens = singleton_fields.reshape(
-            batch_size, num_fields, token_dim
-        )
+        if sum(self.global_group_sizes) != num_fields:
+            raise ValueError(
+                "global group sizes do not match the number of global tokens"
+            )
+
+        if all(size == 1 for size in self.global_group_sizes):
+            # Keep the paper's singleton-field mode efficient by folding all
+            # fields into the batch for a single attention call.
+            singleton_fields = global_tokens.reshape(
+                batch_size * num_fields, 1, token_dim
+            )
+            singleton_fields = self.global_block(singleton_fields)
+            global_tokens = singleton_fields.reshape(
+                batch_size, num_fields, token_dim
+            )
+        else:
+            global_groups = torch.split(
+                global_tokens, self.global_group_sizes, dim=1
+            )
+            global_tokens = torch.cat([
+                self.global_block(group) for group in global_groups
+            ], dim=1)
         return sequence_tokens, global_tokens
 
 
@@ -311,6 +330,7 @@ class LoopCTR(MultiTaskModel):
                  inference_loops=1,
                  ffn_ratio=4.0,
                  qk_norm=False,
+                 global_grouping="source",
                  max_len=100,
                  num_tasks=1,
                  attention_dropout=0.0,
@@ -339,6 +359,7 @@ class LoopCTR(MultiTaskModel):
         self.num_loops = int(num_loops)
         self.inference_loops = int(inference_loops)
         self.process_supervision = bool(process_supervision)
+        self.global_grouping = str(global_grouping).strip().lower()
         self.max_len = max_len
         self.accumulation_steps = accumulation_steps
 
@@ -363,6 +384,22 @@ class LoopCTR(MultiTaskModel):
         self.global_features = (
             self.context_features + self.target_item_features
         )
+        if self.global_grouping == "source":
+            self.global_group_sizes = tuple(
+                size for size in (
+                    len(self.context_features),
+                    len(self.target_item_features),
+                )
+                if size > 0
+            )
+        elif self.global_grouping == "all":
+            self.global_group_sizes = (len(self.global_features),)
+        elif self.global_grouping == "field":
+            self.global_group_sizes = (1,) * len(self.global_features)
+        else:
+            raise ValueError(
+                "global_grouping must be one of: source, all, field"
+            )
         self.sequence_input_dim = sum(
             feature_map.features[feature].get(
                 "embedding_dim", embedding_dim
@@ -396,6 +433,7 @@ class LoopCTR(MultiTaskModel):
         self.entry_block = EntryBlock(
             token_dim, num_heads, ffn_dim, net_dropout,
             attention_dropout, qk_norm,
+            global_group_sizes=self.global_group_sizes,
         )
         # There is exactly one Loop Block. Forward invokes this same module L
         # times, so parameters are independent of num_loops.

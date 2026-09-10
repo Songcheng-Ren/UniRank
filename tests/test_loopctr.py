@@ -7,7 +7,8 @@ from model_zoo.LoopCTR import LoopBlock, LoopCTR, SwiGLU
 from tests.test_qformer_cross2 import DummyFeatureMap
 
 
-def build_model(num_loops=3, inference_loops=1):
+def build_model(num_loops=3, inference_loops=1,
+                global_grouping="source"):
     return LoopCTR(
         DummyFeatureMap(),
         task=["binary_classification", "binary_classification"],
@@ -19,6 +20,7 @@ def build_model(num_loops=3, inference_loops=1):
         inference_loops=inference_loops,
         ffn_ratio=2.0,
         qk_norm=False,
+        global_grouping=global_grouping,
         max_len=4,
         num_tasks=2,
         tower_hidden_units=[16, 8],
@@ -85,6 +87,36 @@ class LoopCTRTest(unittest.TestCase):
             parameter.numel() for parameter in zero_loop_model.parameters()
         )
         self.assertEqual(parameter_count, zero_loop_parameter_count)
+
+    def test_entry_self_attention_is_independent_within_source_groups(self):
+        self.assertEqual(self.model.global_group_sizes, (2, 2))
+        self.model.eval()
+        sequence = torch.randn(2, 4, 8)
+        sequence_mask = torch.ones(2, 4)
+        global_tokens = torch.randn(2, 4, 8)
+        changed_tokens = global_tokens.clone()
+        changed_tokens[:, 3, :] += torch.arange(8, dtype=torch.float32)
+
+        with torch.no_grad():
+            _, expected = self.model.entry_block(
+                sequence, global_tokens, sequence_mask
+            )
+            _, actual = self.model.entry_block(
+                sequence, changed_tokens, sequence_mask
+            )
+
+        # Changing one target-item field cannot cross into the separate
+        # user/context group during Entry.
+        torch.testing.assert_close(actual[:, :2], expected[:, :2])
+        # It does affect another token inside the target-item group through
+        # the group's full self-attention.
+        self.assertFalse(torch.allclose(actual[:, 2], expected[:, 2]))
+
+    def test_global_grouping_modes(self):
+        all_model = build_model(global_grouping="all")
+        field_model = build_model(global_grouping="field")
+        self.assertEqual(all_model.global_group_sizes, (4,))
+        self.assertEqual(field_model.global_group_sizes, (1, 1, 1, 1))
 
     def test_training_returns_every_depth_and_process_loss_is_mean(self):
         self.model.train()
