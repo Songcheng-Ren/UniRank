@@ -45,5 +45,6 @@ from .QFormerCross11 import QFormerCross11
 from .QFormerCross12 import QFormerCross12
 from .QFormerCross15 import QFormerCross15
 from .QFormerCross16 import QFormerCross16
+from .LoopCTR import LoopCTR
 
 from .SSR import SSR

@@ -2459,6 +2459,101 @@ QFormerCross8_KuaiRec_Big_Watch_Action:
     max_len: 100
     accumulation_steps: 1
 
+LoopCTR_Taobao_Action: &loopctr_taobao_action # Shared loop, standard residual, SwiGLU
+    model: LoopCTR
+    dataset_id: Taobao_Action
+    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
+    metrics: ['logloss', 'AUC']
+    task: binary_classification
+    batch_size: 2048
+    embedding_dim: 16
+    token_dim: 64
+    num_heads: 4
+    num_loops: 3
+    inference_loops: 1
+    ffn_ratio: 4.0
+    qk_norm: False
+    process_supervision: True
+    num_tasks: 4
+    tower_hidden_units: [256, 128]
+    tower_activations: ReLU
+    attention_dropout: 0
+    net_dropout: 0
+    dense_learning_rate: 1.0e-4
+    epochs: 1
+    shuffle: True
+    seed: 20262027
+    monitor: {'AUC': 1, 'logloss': 0}
+    monitor_mode: 'max'
+    max_len: 100
+    accumulation_steps: 4
+
+LoopCTR_Taobao_Action_ZeroLoop:
+    <<: *loopctr_taobao_action
+    inference_loops: 0
+
+LoopCTR_Taobao_Action_ThreeLoops:
+    <<: *loopctr_taobao_action
+    inference_loops: 3
+
+LoopCTR_Taobao_CTR: # Single-task protocol closest to the paper's TaobaoAds setup
+    model: LoopCTR
+    dataset_id: Taobao_CTR
+    loss: ['binary_crossentropy']
+    metrics: ['logloss', 'AUC', 'UAUC', 'gAUC']
+    task: binary_classification
+    batch_size: 2048
+    embedding_dim: 16
+    token_dim: 64
+    num_heads: 4
+    num_loops: 3
+    inference_loops: 1
+    ffn_ratio: 4.0
+    qk_norm: False
+    process_supervision: True
+    num_tasks: 1
+    tower_hidden_units: [256, 128]
+    tower_activations: ReLU
+    attention_dropout: 0
+    net_dropout: 0
+    dense_learning_rate: 1.0e-4
+    epochs: 1
+    shuffle: True
+    seed: 20262027
+    monitor: {'AUC': 1, 'logloss': 0}
+    monitor_mode: 'max'
+    max_len: 100
+    accumulation_steps: 4
+
+LoopCTR_KuaiRec_Big_Watch_Action:
+    model: LoopCTR
+    dataset_id: KuaiRec_Big_Watch_Action
+    loss: ['binary_crossentropy']
+    metrics: ['logloss', 'AUC', 'UAUC', 'gAUC', 'NDCG(10)']
+    task: binary_classification
+    batch_size: 2048
+    embedding_dim: 16
+    token_dim: 64
+    num_heads: 4
+    num_loops: 3
+    inference_loops: 1
+    ffn_ratio: 4.0
+    qk_norm: False
+    process_supervision: True
+    num_tasks: 1
+    tower_hidden_units: [256, 128]
+    tower_activations: ReLU
+    attention_dropout: 0
+    net_dropout: 0
+    dense_learning_rate: 1.0e-4
+    epochs: 1
+    shuffle: True
+    seed: 20262027
+    monitor: {'UAUC': 1, 'logloss': 0}
+    monitor_mode: 'max'
+    max_len: 100
+    accumulation_steps: 4
+
 QFormerCross81_Taobao_Action: # V8 + shared NS field/head logit scaling
     model: QFormerCross81
     dataset_id: Taobao_Action
