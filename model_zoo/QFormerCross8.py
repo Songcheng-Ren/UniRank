@@ -351,6 +351,8 @@ class QFormerCross8(MultiTaskModel):
                  accumulation_steps=1,
                  _ns_qformer_cls=None,
                  _unified_qformer_cls=None,
+                 _interaction_block_cls=None,
+                 output_dim=None,
                  **kwargs):
         super().__init__(feature_map, model_id=model_id, gpu=gpu, **kwargs)
         if token_dim % num_heads != 0:
@@ -363,6 +365,10 @@ class QFormerCross8(MultiTaskModel):
             raise ValueError("ffn_ratio must be positive")
         if max_len < 1:
             raise ValueError("max_len must be positive")
+        if _interaction_block_cls is not None and (
+            not isinstance(output_dim, int) or output_dim < 1
+        ):
+            raise ValueError("output_dim must be a positive integer")
 
         self.feature_map = feature_map
         self.num_tasks = num_tasks
@@ -426,29 +432,44 @@ class QFormerCross8(MultiTaskModel):
         self.sequence_input_norm = nn.LayerNorm(token_dim)
 
         ffn_dim = int(token_dim * ffn_ratio)
-        ns_qformer_cls = _ns_qformer_cls or RecursiveCrossValueStage
-        self.ns_qformer = ns_qformer_cls(
-            token_dim=token_dim,
-            num_heads=num_heads,
-            num_layers=num_ns_layers,
-            num_queries=num_queries,
-            ffn_dim=ffn_dim,
-            dropout=net_dropout,
-            qk_norm=qk_norm,
-        )
-        unified_qformer_cls = (
-            _unified_qformer_cls or RecursiveSequenceCrossValueStage
-        )
-        self.unified_qformer = unified_qformer_cls(
-            token_dim=token_dim,
-            num_heads=num_heads,
-            num_layers=num_unified_layers,
-            ffn_dim=ffn_dim,
-            dropout=net_dropout,
-            qk_norm=qk_norm,
-        )
-
-        tower_input_dim = num_queries * token_dim
+        self.interaction_block = None
+        if _interaction_block_cls is None:
+            ns_qformer_cls = _ns_qformer_cls or RecursiveCrossValueStage
+            self.ns_qformer = ns_qformer_cls(
+                token_dim=token_dim,
+                num_heads=num_heads,
+                num_layers=num_ns_layers,
+                num_queries=num_queries,
+                ffn_dim=ffn_dim,
+                dropout=net_dropout,
+                qk_norm=qk_norm,
+            )
+            unified_qformer_cls = (
+                _unified_qformer_cls or RecursiveSequenceCrossValueStage
+            )
+            self.unified_qformer = unified_qformer_cls(
+                token_dim=token_dim,
+                num_heads=num_heads,
+                num_layers=num_unified_layers,
+                ffn_dim=ffn_dim,
+                dropout=net_dropout,
+                qk_norm=qk_norm,
+            )
+            tower_input_dim = num_queries * token_dim
+        else:
+            self.output_dim = output_dim
+            self.interaction_block = _interaction_block_cls(
+                token_dim=token_dim,
+                num_heads=num_heads,
+                num_queries=num_queries,
+                num_ns_layers=num_ns_layers,
+                num_unified_layers=num_unified_layers,
+                ffn_dim=ffn_dim,
+                output_dim=output_dim,
+                dropout=net_dropout,
+                qk_norm=qk_norm,
+            )
+            tower_input_dim = output_dim
         self.tower = nn.ModuleList([
             MLP_Block(
                 input_dim=tower_input_dim,
@@ -559,22 +580,29 @@ class QFormerCross8(MultiTaskModel):
             dtype=mask.dtype,
             device=mask.device,
         )
-        ns_queries = self.activation_checkpoint(
-            self.ns_qformer, ns_field_tokens, ns_mask
-        )
-
-        history_mask = mask.to(device=ns_queries.device)
+        history_mask = mask.to(device=ns_field_tokens.device)
         sequence_tokens = self._build_sequence_tokens(
             item_embedding_dict, history_mask
         )
-        unified_queries = self.activation_checkpoint(
-            self.unified_qformer,
-            ns_queries,
-            sequence_tokens,
-            history_mask,
-        )
-
-        bottom_output = unified_queries.reshape(batch_size, -1)
+        if self.interaction_block is None:
+            ns_queries = self.activation_checkpoint(
+                self.ns_qformer, ns_field_tokens, ns_mask
+            )
+            unified_queries = self.activation_checkpoint(
+                self.unified_qformer,
+                ns_queries,
+                sequence_tokens,
+                history_mask,
+            )
+            bottom_output = unified_queries.reshape(batch_size, -1)
+        else:
+            bottom_output = self.activation_checkpoint(
+                self.interaction_block,
+                ns_field_tokens,
+                sequence_tokens,
+                ns_mask,
+                history_mask,
+            )
         tower_output = [
             self.tower[index](bottom_output)
             for index in range(self.num_tasks)

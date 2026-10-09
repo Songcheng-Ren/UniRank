@@ -2459,6 +2459,75 @@ QFormerCross8_KuaiRec_Big_Watch_Action:
     max_len: 100
     accumulation_steps: 1
 
+QFormerCross17_Taobao_Action: &qformercross17_taobao_action
+    model: QFormerCross17
+    dataset_id: Taobao_Action
+    loss: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
+    metrics: ['logloss', 'AUC']
+    task: binary_classification
+    batch_size: 8192
+    embedding_dim: 16
+    token_dim: 256
+    num_heads: 4
+    num_queries: 8
+    num_ns_layers: 2
+    num_unified_layers: 3
+    num_blocks: 1
+    output_dim: 256
+    ffn_ratio: 4.0
+    qk_norm: True
+    num_tasks: 4
+    tower_hidden_units: [256, 128]
+    tower_activations: ReLU
+    net_dropout: 0
+    dense_learning_rate: 1.0e-4
+    epochs: 1
+    shuffle: True
+    seed: 20262027
+    monitor: {'AUC': 1, 'logloss': 0}
+    monitor_mode: 'max'
+    max_len: 100
+    accumulation_steps: 1
+
+QFormerCross17_Taobao_Action_TwoBlocks:
+    <<: *qformercross17_taobao_action
+    num_blocks: 2
+
+QFormerCross17_Taobao_Action_ThreeBlocks:
+    <<: *qformercross17_taobao_action
+    num_blocks: 3
+
+QFormerCross17_Taobao_CTR: &qformercross17_taobao_ctr
+    <<: *qformercross17_taobao_action
+    dataset_id: Taobao_CTR
+    loss: ['binary_crossentropy']
+    num_tasks: 1
+    metrics: ['logloss', 'AUC', 'UAUC', 'gAUC']
+
+QFormerCross17_Taobao_CTR_TwoBlocks:
+    <<: *qformercross17_taobao_ctr
+    num_blocks: 2
+
+QFormerCross17_Taobao_CTR_ThreeBlocks:
+    <<: *qformercross17_taobao_ctr
+    num_blocks: 3
+
+QFormerCross17_KuaiRec_Big_Watch_Action: &qformercross17_kuairec_watch
+    <<: *qformercross17_taobao_action
+    dataset_id: KuaiRec_Big_Watch_Action
+    loss: ['binary_crossentropy']
+    num_tasks: 1
+    metrics: ['logloss', 'AUC', 'UAUC', 'gAUC', 'NDCG(10)']
+    monitor: {'UAUC': 1, 'logloss': 0}
+
+QFormerCross17_KuaiRec_Big_Watch_Action_TwoBlocks:
+    <<: *qformercross17_kuairec_watch
+    num_blocks: 2
+
+QFormerCross17_KuaiRec_Big_Watch_Action_ThreeBlocks:
+    <<: *qformercross17_kuairec_watch
+    num_blocks: 3
+
 LoopCTR_Taobao_Action: &loopctr_taobao_action # Shared loop, standard residual, SwiGLU
     model: LoopCTR
     dataset_id: Taobao_Action
